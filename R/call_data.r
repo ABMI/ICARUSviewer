@@ -29,7 +29,14 @@ sql_reader <- function(sqlquery,
     return(out)
 }
 
-
+#' code for loading data
+#' @import SqlRender
+#' @import DatabaseConnector
+#' @param Resultschema
+#' @param CDMschema
+#' @param connectionDetails
+#' @param connection
+#' @export
 call_dataList<- function(connectionDetails,
                          connection,
                          Resultschema,

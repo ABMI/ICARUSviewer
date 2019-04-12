@@ -9,6 +9,7 @@ check.packages("shinydashboard")
 check.packages("shiny")
 check.packages("tidyverse")
 check.packages("mgcv")
+check.packages("ICARUSviewer")
 
 Sys.setlocale(category = "LC_ALL", locale = "us")
 

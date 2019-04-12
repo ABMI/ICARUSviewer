@@ -1,5 +1,4 @@
 #'switch input from label to cohortDefinitionId
-#'@import dplyr
 #'@param input
 #'@export
 #'
