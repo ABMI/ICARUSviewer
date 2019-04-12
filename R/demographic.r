@@ -91,7 +91,6 @@ agepieplot <- function(charactManufac){
 
 #'code for plotting bmi tree plot
 #'@import ggplot2
-#'@import ggtheme
 #'@import dplyr
 #'@param charactManufac           result of charactManufacture code
 #'@export
