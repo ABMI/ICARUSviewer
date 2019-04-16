@@ -5,6 +5,8 @@ check.packages("ggplot2")
 check.packages("shiny")
 check.packages("SqlRender")
 check.packages("DatabaseConnector")
+check.packages("FeatureExtraction")
+check.packages("PatientLevelPrediction")
 check.packages("shinydashboard")
 check.packages("shiny")
 check.packages("tidyverse")
@@ -25,9 +27,10 @@ ui <- dashboardPage(
 
         sidebarMenu(
             menuItem("DB connection", tabName = "db"),
-            menuItem("Demographics", tabName = "demographics"),
-            menuItem("PFT changing", tabName = "PFT"),
-            menuItem("Comorbidity", tabName = "comorbidity")
+            menuItem("Asthma Phenotype", tabName = "AsthmaPhenotype"),
+            menuItem("Asthma Biomarker", tabName = "Biomarker")
+            # ,
+            # menuItem("Comorbidity", tabName = "comorbidity")
         )
     ),
 
@@ -35,7 +38,7 @@ ui <- dashboardPage(
     dashboardBody(
 
         tags$head(tags$style(HTML('.main-header .logo {
-  font-family: "Georgia", Times, "Times New Roman", serif;
+                                  font-family: "Georgia", Times, "Times New Roman", serif;
                                   font-weight: bold;
                                   font-size: 24px;
                                   }'))),
@@ -61,90 +64,179 @@ ui <- dashboardPage(
                     )
             ),
 
-            #tab menu = demographics
-            tabItem(tabName = "demographics",
-                    fluidRow(
-                        titlePanel("Characteristics demographic comparison"),
 
-                        #choose disease you want to compare
+            #tab menu = asthma phenotype compare
+            tabItem(tabName = "AsthmaPhenotype",
+                    fluidRow(
+
+                        titlePanel("Compare Asthma Phenotype Cohort"),
                         sidebarPanel(
-                            actionButton(inputId = "show_demographic", label = "SHOW"),
-                            uiOutput("selectcohort_char"), width = 3
-                        )
-                    ),
-                    #age and gender compare
-                    fluidRow(
-                        box(title = "Gender compare", width = 4, status = "primary", solidHeader = TRUE,
-                            plotOutput("genderPiePlot")),
-                        box(title = "Age tree compare", width = 4, status = "primary", solidHeader = TRUE,
-                            plotOutput("agePiePlot")),
-                        box(title = "Gender-Age characteristic table", width = 4, status = "primary", solidHeader = TRUE,
-                            tableOutput("genderageTable"),
-                            verbatimTextOutput("genderage_pvalue"))
-                    ),
-                    #bmi compare
-                    fluidRow(
-                        box(title = "BMI compare", width = 8, status = "warning", solidHeader = TRUE,
-                            plotOutput("BMITreePlot")),
-                        box(title = "BMI-Age characteristic table", width = 4, status = "warning", solidHeader = TRUE,
-                            tableOutput("genderbmiTable"),
-                            verbatimTextOutput("genderbmip_value"))
+                            actionButton(inputId = "show_result_phe", label = "SHOW"),
+                            uiOutput("selectcohort_phe"), width = 3 )
                     )
+                    ,
+                    tabsetPanel(type = "tabs",
+                                ############Demographic anlaysis tab#####################
+                                tabPanel("Demographic",
+                                         fluidRow(
+                                             titlePanel("Compare gender, age and BMI")
+                                         ),
+                                         fluidRow(
+                                             box(title = "Gender compare", width = 4, status = "primary", solidHeader = TRUE,
+                                                 plotOutput("genderPiePlot")),
+                                             box(title = "Age tree compare", width = 4, status = "primary", solidHeader = TRUE,
+                                                 plotOutput("agePiePlot")),
+                                             box(title = "Gender-Age characteristic table", width = 4, status = "primary", solidHeader = TRUE,
+                                                 tableOutput("genderageTable"),
+                                                 verbatimTextOutput("genderage_pvalue"))
+                                         ),
+                                         #bmi compare
+                                         fluidRow(
+                                             box(title = "BMI compare", width = 8, status = "warning", solidHeader = TRUE,
+                                                 plotOutput("BMITreePlot")),
+                                             box(title = "BMI-Age characteristic table", width = 4, status = "warning", solidHeader = TRUE,
+                                                 tableOutput("genderbmiTable"),
+                                                 verbatimTextOutput("genderbmip_value"))
+                                         )
+                                ),
+                                ############PFT changing analysis tab#####################
+                                tabPanel("PulmonaryFunctionTest",
+                                         fluidRow(
+                                             titlePanel("Pulmonary Function Test changing comparison")
+                                         ),
+                                         fluidRow(
+                                             box(title = "FEV1(%) change according to time flow",
+                                                 width = 6,status = "primary",solidHeader = TRUE,
+                                                 plotOutput("FEV1plot")),
+                                             box(title = "FEV1/FVC(%) change according to time flow",
+                                                 width = 6,status = "warning",solidHeader = TRUE,
+                                                 plotOutput("FEV1FVCplot")
+                                             )
+                                         ),
+                                         fluidRow(
+                                             box(title = "FEV1(%) change according to time flow",
+                                                 width = 6,status = "primary",solidHeader = TRUE,
+                                                 tableOutput("FEV1counttable"),
+                                                 tableOutput("FEV1predicttable")
+                                             ),
+                                             box(title = "FEV1/FVC(%) change according to time flow",
+                                                 width = 6,status = "warning",solidHeader = TRUE,
+                                                 tableOutput("FEV1FVCcounttable"),
+                                                 tableOutput("FEV1FVCpredicttable")
+                                             )
+                                         )
+                                ),
+                                ############comorbidity analysis tab#####################
+                                tabPanel("comorbidity",
+                                         fluidRow(
+                                             titlePanel("Comorbidity Co-prevalence comparison")
+                                         ),
+                                         fluidRow(
+                                             box(title = "metabolic disease co-prevalence between patients over 50's",
+                                                 width = 6,status = "info",solidHeader = TRUE,
+                                                 plotOutput("metabolicCoprev")
+                                             ),
+                                             box(title = "immune-related disease co-prevalence between patients",
+                                                 width = 6,status = "info",solidHeader = TRUE,
+                                                 plotOutput("immuneCoprev")
+                                             )
 
-            ),
+                                         )
+                                ),
+                                ############exacerbation count analysis tab#####################
+                                tabPanel("exacerbationCount",
+                                         fluidRow(
+                                             titlePanel("Compare Exacerbation Count Between Two Cohort")
+                                         ),
+                                         fluidRow(
+                                             box(title = "Exacerbation Count Compare",
+                                                 width = 6,background = 'light-blue', solidHeader = TRUE,
+                                                 plotOutput("exacerbationPlot")
+                                             ),
+                                             box(title = "statistical analysis of Differences of exacerbation Count",
+                                                 width = 6,status = "info",solidHeader = TRUE,
+                                                 tableOutput("exacerbationTable"),
+                                                 verbatimTextOutput("exacerbationPvalue")
+                                             )
 
-            #tab menu = PFT changing
-            tabItem(tabName = "PFT",
-                    fluidRow(
-                        titlePanel("Pulmonary Function Test changing comparison"),
-                        sidebarPanel(
-                            actionButton(inputId = "show_PFT", label = "SHOW"),
-                            uiOutput("selectcohort_pft"),width = 3
-                        )
-                    ),
-                    fluidRow(
-                        box(title = "FEV1(%) change according to time flow",
-                            width = 6,status = "primary",solidHeader = TRUE,
-                            plotOutput("FEV1plot")),
-                        box(title = "FEV1/FVC(%) change according to time flow",
-                            width = 6,status = "warning",solidHeader = TRUE,
-                            plotOutput("FEV1FVCplot"))
-                    ),
-                    fluidRow(
-                        box(title = "FEV1(%) change according to time flow",
-                            width = 6,status = "primary",solidHeader = TRUE,
-                            tableOutput("FEV1counttable"),
-                            tableOutput("FEV1predicttable")
-                        ),
-                        box(title = "FEV1/FVC(%) change according to time flow",
-                            width = 6,status = "warning",solidHeader = TRUE,
-                            tableOutput("FEV1FVCcounttable"),
-                            tableOutput("FEV1FVCpredicttable")
-                        )
+                                         )
+                                ),
+                                ############PLP analysis tab#####################
+                                tabPanel("PredictiveVariable",
+                                         fluidRow(
+                                             titlePanel("Top 40 variables which could be predictive variables")
+                                         ),
+                                         fluidRow(
+                                             box(title = "Using Gradient Boosting Model",
+                                                 width = 6,status = "primary",solidHeader = TRUE,
+                                                 plotOutput("GredientBoosting")
+                                             ),
+                                             box(title = "Using Lasso Logistic Regression",
+                                                 width = 6,status = "warning",solidHeader = TRUE,
+                                                 plotOutput("LassoLogistic")
+                                             )
+
+                                         )
+                                )
                     )
             ),
-
-            #tab menu = comorbidity
-            tabItem(tabName = "comorbidity",
+            # biomarker compare#################
+            tabItem(tabName = "Biomarker",
                     fluidRow(
-                        titlePanel("Comorbidity Co-prevalence comparison"),
+                        titlePanel("Compare Asthma Cohort according to biomarker"),
                         sidebarPanel(
-                            actionButton(inputId = "show_comorb", label = "SHOW"),
-                            uiOutput("selectcohort_comor"), width = 3
-                        )
-                    ),
-                    fluidRow(
-                        box(title = "metabolic disease co-prevalence between patients over 50's",
-                            width = 6,status = "info",solidHeader = TRUE,
-                            plotOutput("metabolicCoprev")
-                        ),
-                        box(title = "immune-related disease co-prevalence between patients",
-                            width = 6,status = "info",solidHeader = TRUE,
-                            plotOutput("immuneCoprev"))
+                            actionButton(inputId = "show_result_biomarker", label = "SHOW"),
+                            uiOutput("selectbiomarker_char"), width = 3 )
+                    )
+                    ,
+                    tabsetPanel(type = "tabs",
 
+                                tabPanel("PulmonaryFunctionTest",
+                                         fluidRow(
+                                             titlePanel("Pulmonary Function Test changing comparison")
+                                         ),
+                                         fluidRow(
+                                             box(title = "FEV1(%) change according to time flow",
+                                                 width = 6,status = "primary",solidHeader = TRUE,
+                                                 plotOutput("FEV1plot_bio")),
+                                             box(title = "FEV1/FVC(%) change according to time flow",
+                                                 width = 6,status = "warning",solidHeader = TRUE,
+                                                 plotOutput("FEV1FVCplot_bio")
+                                             )
+                                         ),
+                                         fluidRow(
+                                             box(title = "FEV1(%) change according to time flow",
+                                                 width = 6,status = "primary",solidHeader = TRUE,
+                                                 tableOutput("FEV1counttable_bio"),
+                                                 tableOutput("FEV1predicttable_bio")
+                                             ),
+                                             box(title = "FEV1/FVC(%) change according to time flow",
+                                                 width = 6,status = "warning",solidHeader = TRUE,
+                                                 tableOutput("FEV1FVCcounttable_bio"),
+                                                 tableOutput("FEV1FVCpredicttable_bio")
+                                             )
+                                         )
+                                ),
+                                tabPanel("exacerbationCount",
+                                         fluidRow(
+                                             titlePanel("Compare Exacerbation Count Between Two Cohort")
+                                         ),
+                                         fluidRow(
+                                             box(title = "metabolic disease co-prevalence between patients over 50's",
+                                                 width = 6,status = "info",solidHeader = TRUE,
+                                                 plotOutput("metabolicCoprev_bio")
+                                             ),
+                                             box(title = "immune-related disease co-prevalence between patients",
+                                                 width = 6,status = "info",solidHeader = TRUE,
+                                                 plotOutput("immuneCoprev_bio")
+                                             )
+
+                                         )
+                                )
                     )
             )
         )
+
     ),
     skin = "black"
 )
@@ -153,7 +245,6 @@ ui <- dashboardPage(
 
 ####server
 server <- function(input, output, session) {
-
     ###tab menu result : DB connection####
     output$sqltype<-renderUI({
         selectInput("sqltype", "Select DBMS",
@@ -181,7 +272,9 @@ server <- function(input, output, session) {
                                  CDMschema = input$CDMschema)
 
         demographicData<<-dataList[[1]]
-        PFTdata <<- dataList[[2]]
+        measureData <<- dataList[[2]]
+        comorbidity <<- dataList[[3]]
+        exacerbation <<- dataList[[4]]
 
         removeModal()
         showModal(modalDialog(title = "Loading data complete", "Loading data were succeed!", footer = modalButton("OK")))
@@ -192,26 +285,26 @@ server <- function(input, output, session) {
         DBconnect()
     })
 
-
-    ##############demographics analysis result###################
     #UI create
-    output$selectcohort_char <- renderUI({
-        selectInput(inputId = "selectcohort_char", label = "Select Cohort Set",
-                    choices = c("Severe Asthma vs Non-severe Asthma",
-                                "Aspirin Exacerbated Repiratory Disease vs Aspirin Tolerant Asthma"),
+    output$selectcohort_phe <- renderUI({
+        selectInput(inputId = "selectcohort_phe", label = "Select Cohort Set",
+                    choices = c("Severe Asthma vs Non-severe Asthma" ,
+                                "Aspirin Exacerbated Repiratory Disease vs Aspirin Tolerant Asthma" ),
                     multiple = FALSE)
     })
 
     #switch choice to cohort Id set
-    switchcohort_char <- reactive({
-        switchcohort(input$selectcohort_char)
+    switchcohortPhe <- reactive({
+        switchcohort(input$selectcohort_phe)
     })
 
+
+    ##############demographics analysis result###################
     # 1. gender pie graph
-    genderpie <- eventReactive(input$show_demographic,{
+    genderpie <- eventReactive(input$show_result_phe,{
 
         demographic_ready<-charactManufacture(characteristicData = demographicData,
-                                              cohortDefinitionIdSet = switchcohort_char())
+                                              cohortDefinitionIdSet = switchcohortPhe())
         genderpieplot(charactManufac = demographic_ready)
     })
 
@@ -220,9 +313,9 @@ server <- function(input, output, session) {
     })
 
     # 2. age tree graph
-    agepie <- eventReactive(input$show_demographic,{
+    agepie <- eventReactive(input$show_result_phe,{
         demographic_ready<-charactManufacture(characteristicData = demographicData,
-                                              cohortDefinitionIdSet = switchcohort_char())
+                                              cohortDefinitionIdSet = switchcohortPhe())
         agepieplot(charactManufac = demographic_ready)
     })
 
@@ -231,9 +324,9 @@ server <- function(input, output, session) {
     })
 
     # 3. gender-age table
-    genderagetable <- eventReactive(input$show_demographic, {
+    genderagetable <- eventReactive(input$show_result_phe, {
         demographic_ready<-charactManufacture(characteristicData = demographicData,
-                                              cohortDefinitionIdSet = switchcohort_char())
+                                              cohortDefinitionIdSet = switchcohortPhe())
         demographic_Table(charactManufac = demographic_ready,
                           dividedVariable = "age")
     })
@@ -243,9 +336,9 @@ server <- function(input, output, session) {
 
 
     # 4. p-value calculate
-    agegender_pvalue <- eventReactive(input$show_demographic,{
+    agegender_pvalue <- eventReactive(input$show_result_phe,{
         demographic_ready<-charactManufacture(characteristicData = demographicData,
-                                              cohortDefinitionIdSet = switchcohort_char())
+                                              cohortDefinitionIdSet = switchcohortPhe())
         demographic_cal(charactManufac = demographic_ready,
                         dividedVariable = "age")
 
@@ -255,9 +348,9 @@ server <- function(input, output, session) {
     })
 
     # 5. BMI tree plot
-    bmitree <- eventReactive(input$show_demographic,{
+    bmitree <- eventReactive(input$show_result_phe,{
         demographic_ready <- charactManufacture(characteristicData = demographicData,
-                                                cohortDefinitionIdSet = switchcohort_char())
+                                                cohortDefinitionIdSet = switchcohortPhe())
         bmitreeplot(charactManufac = demographic_ready)
     })
 
@@ -266,9 +359,9 @@ server <- function(input, output, session) {
     })
 
     # 6. gender - BMI table
-    genderbmitable <- eventReactive(input$show_demographic, {
+    genderbmitable <- eventReactive(input$show_result_phe, {
         demographic_ready<-charactManufacture(characteristicData = demographicData,
-                                              cohortDefinitionIdSet = switchcohort_char())
+                                              cohortDefinitionIdSet = switchcohortPhe())
         demographic_Table(charactManufac = demographic_ready,
                           dividedVariable = "bmi")
     })
@@ -277,9 +370,9 @@ server <- function(input, output, session) {
     })
 
     # 7. p-value calculate
-    bmigender_pvalue <- eventReactive(input$show_demographic,{
+    bmigender_pvalue <- eventReactive(input$show_result_phe,{
         demographic_ready<-charactManufacture(characteristicData = demographicData,
-                                              cohortDefinitionIdSet = switchcohort_char())
+                                              cohortDefinitionIdSet = switchcohortPhe())
         demographic_cal(charactManufac = demographic_ready,
                         dividedVariable = "bmi")
 
@@ -289,25 +382,14 @@ server <- function(input, output, session) {
     })
 
 
-    ####PFT changing analysis result
-    #UI create
-    output$selectcohort_pft <- renderUI({
-        selectInput(inputId = "selectcohort_pft", label = "Select Cohort Set",
-                    choices = c("Severe Asthma vs Non-severe Asthma",
-                                "Aspirin Exacerbated Repiratory Disease vs Aspirin Tolerant Asthma"),
-                    multiple = FALSE)
+    ##############PFT changing analysis result##################
 
-    })
-    #switch choice to cohort Id set
-    switchcohort_pft <- reactive({
-        switchcohort(input$selectcohort_pft)
-    })
     #FEV1plot
-    plotFEV1 <- eventReactive(input$show_PFT,{
+    plotFEV1 <- eventReactive(input$show_result_phe,{
 
-        FEV1data <- PFTmanufacture(PFTdata = PFTdata,
+        FEV1data <- PFTmanufacture(measurementData = measureData,
                                    measurementType = 3011708,
-                                   cohortDefinitionIdSet = switchcohort_pft())
+                                   cohortDefinitionIdSet = switchcohortPhe())
         FEV1plot <- plotPFT(PFTmanufactured = FEV1data)
         FEV1plot
     })
@@ -315,11 +397,11 @@ server <- function(input, output, session) {
         plotFEV1()
     })
     #FEV1FVCplot
-    plotFEV1FVC <- eventReactive(input$show_PFT,{
+    plotFEV1FVC <- eventReactive(input$show_result_phe,{
 
-        FEV1FVCdata <- PFTmanufacture(PFTdata = PFTdata,
+        FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
                                    measurementType = 3011505,
-                                   cohortDefinitionIdSet = switchcohort_pft())
+                                   cohortDefinitionIdSet = switchcohortPhe())
         FEV1FVCplot <- plotPFT(PFTmanufactured = FEV1FVCdata)
         FEV1FVCplot
     })
@@ -328,17 +410,17 @@ server <- function(input, output, session) {
     })
 
     #FEV1 table
-    tablecountFEV1 <- eventReactive(input$show_PFT,{
-        FEV1data <- PFTmanufacture(PFTdata = PFTdata,
+    tablecountFEV1 <- eventReactive(input$show_result_phe,{
+        FEV1data <- PFTmanufacture(measurementData = measureData,
                                       measurementType = 3011708,
-                                      cohortDefinitionIdSet = switchcohort_pft())
+                                      cohortDefinitionIdSet = switchcohortPhe())
         FEV1countTable <- pft_count_table(PFTmanufactured = FEV1data)
         FEV1countTable
     })
-    tablepredictFEV1 <- eventReactive(input$show_PFT,{
-        FEV1data <- PFTmanufacture(PFTdata = PFTdata,
+    tablepredictFEV1 <- eventReactive(input$show_result_phe,{
+        FEV1data <- PFTmanufacture(measurementData = measureData,
                                       measurementType = 3011708,
-                                      cohortDefinitionIdSet = switchcohort_pft())
+                                      cohortDefinitionIdSet = switchcohortPhe())
         FEV1predictTable <- pft_predict_table(PFTmanufactured = FEV1data)
         FEV1predictTable
     })
@@ -352,18 +434,18 @@ server <- function(input, output, session) {
     })
 
     #FEV1FVC table
-    tablecountFEV1FVC <- eventReactive(input$show_PFT,{
-        FEV1FVCdata <- PFTmanufacture(PFTdata = PFTdata,
+    tablecountFEV1FVC <- eventReactive(input$show_result_phe,{
+        FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
                                       measurementType = 3011505,
-                                      cohortDefinitionIdSet = switchcohort_pft())
+                                      cohortDefinitionIdSet = switchcohortPhe())
         FEV1FVCcountTable <- pft_count_table(PFTmanufactured = FEV1FVCdata)
         FEV1FVCcountTable
     })
 
-    tablepredictFEV1FVC <- eventReactive(input$show_PFT,{
-        FEV1FVCdata <- PFTmanufacture(PFTdata = PFTdata,
+    tablepredictFEV1FVC <- eventReactive(input$show_result_phe,{
+        FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
                                       measurementType = 3011505,
-                                      cohortDefinitionIdSet = switchcohort_pft())
+                                      cohortDefinitionIdSet = switchcohortPhe())
         FEV1FVCpredictTable <- pft_predict_table(PFTmanufactured = FEV1FVCdata)
         FEV1FVCpredictTable
     })
@@ -374,6 +456,84 @@ server <- function(input, output, session) {
 
     output$FEV1FVCpredicttable <- renderTable({
         tablepredictFEV1FVC()
+    })
+
+    ##############comorbidity analysis result####################
+
+    #metabolic disease relative ratio
+    comorbidity_metabolic <- eventReactive(input$show_result_phe,{
+
+        comorbManufac<- comorbManufacture(comorbidityData = comorbidity,
+                                           cohortDefinitionIdSet = switchcohortPhe())
+
+        RRcaclulate<-cacluateRR(comorbManufacData = comorbManufac,
+                                whichDisease = 'metabolic')
+
+        metabolic_RR <- RRplot(RRResult = RRcaclulate)
+
+        return(metabolic_RR)
+    })
+
+    output$metabolicCoprev <-renderPlot({
+        comorbidity_metabolic()
+    })
+
+    #immune disease relative ratio
+    comorbidity_immune <- eventReactive(input$show_result_phe,{
+
+        comorbManufac<- comorbManufacture(comorbidityData = comorbidity,
+                                          cohortDefinitionIdSet = switchcohortPhe())
+
+        RRcaclulate<-cacluateRR(comorbManufacData = comorbManufac,
+                                whichDisease = 'immune')
+
+        immune_RR <- RRplot(RRResult = RRcaclulate)
+
+        return(immune_RR)
+    })
+
+    output$immuneCoprev  <-renderPlot({
+        comorbidity_immune()
+    })
+
+    ##############exacerbation Count analysis result###############
+
+    #exacerbation Count Plot
+    exacerbationCountPlot <- eventReactive(input$show_result_phe,{
+        exacerbationManufac <- exacerbaManufacture()
+        sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
+                                                    cohortDefinitionIdSet = switchcohortPhe())
+        plotExacerbation <- plotExacerbationCount(sumCountExacerbation = sumCounExacerbation)
+
+        return(plotExacerbation)
+    })
+    output$exacerbationPlot <- renderPlot({
+        exacerbationCountPlot()
+    })
+
+    #exacerbation Count Table
+    exacerbationTable <-eventReactive(input$show_result_phe,{
+        exacerbationManufac <- exacerbaManufacture()
+        sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
+                                                    cohortDefinitionIdSet = switchcohortPhe())
+        tableExacerbation <- tableExacerbationCoun(sumCountExacerbation = sumCounExacerbation)
+
+        return(tableExacerbation)
+    })
+    output$exacerbationTable <- renderTable({
+        exacerbationTable()
+    })
+
+    #p_value exacerbation Count
+    exacerbationPvalue <-eventReactive(input$show_result_phe,{
+        exacerbationManufac <- exacerbaManufacture()
+        textExacerbation <- p_value_ExacerbationCouny(exacerbationCount = exacerbationManufac,
+                                                       cohortDefinitionIdSet = switchcohortPhe())
+
+        return(textExacerbation)
+    })
+    output$exacerbationPvalue <- renderText({
+        exacerbationPvalue()
     })
 }
 

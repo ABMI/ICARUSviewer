@@ -57,11 +57,11 @@ call_dataList<- function(connectionDetails,
     colnames(demographic_data)<-SqlRender::snakeCaseToCamelCase(colnames(demographic_data))
 
     ###load PFT longitudinal data
-    sql <- SqlRender::readSql("SQL/loadPFTmeasure.sql")
+    sql <- SqlRender::readSql("SQL/loadAsthma_Measure.sql")
     sql <- SqlRender::renderSql(sql,
                                 resultDatabaseSchema = resultDatabaseSchema)$sql
-    PFTmeasure_data<-DatabaseConnector::querySql(connection, sql)
-    colnames(PFTmeasure_data)<-SqlRender::snakeCaseToCamelCase(colnames(PFTmeasure_data))
+    measure_data<-DatabaseConnector::querySql(connection, sql)
+    colnames(measure_data)<-SqlRender::snakeCaseToCamelCase(colnames(measure_data))
 
     ##load comorbidity data
     sql <- SqlRender::readSql("SQL/loadComorbidity.sql")
@@ -70,10 +70,19 @@ call_dataList<- function(connectionDetails,
     comorbidity_data<-DatabaseConnector::querySql(connection, sql)
     colnames(comorbidity_data)<-SqlRender::snakeCaseToCamelCase(colnames(comorbidity_data))
 
+    ##load exacerbation data
+    sql <- SqlRender::readSql("SQL/loadExacerbation.sql")
+    sql <- SqlRender::renderSql(sql,
+                                resultDatabaseSchema = resultDatabaseSchema)$sql
+    exacerbatuib_data<-DatabaseConnector::querySql(connection, sql)
+    colnames(exacerbatuib_data)<-SqlRender::snakeCaseToCamelCase(colnames(exacerbatuib_data))
+
     result<-list(demographic_data,
-                 PFTmeasure_data,
-                 comorbidity_data)
+                 measure_data,
+                 comorbidity_data,
+                 exacerbatuib_data)
 
     return(result)
 
 }
+

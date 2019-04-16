@@ -1,15 +1,15 @@
 #'ready for plotting PFT data
 #'@import dplyr
-#'@param PFTdata
+#'@param measurementData
 #'@param measurementConceptId         FEV1/FVC(%) = 3011505, FEV1(%) = 3011708
 #'@param cohortDefinitionIdSet
 #'@export
 #'
-PFTmanufacture <- function(PFTdata,
+PFTmanufacture <- function(measurementData,
                            measurementType,
                            cohortDefinitionIdSet){
 
-    out <- PFTdata %>%
+    out <- measurementData %>%
         filter(measurementConceptId == measurementType) %>%
         filter(time >= 0) %>%
         filter(valueAsNumber < 200) %>%
