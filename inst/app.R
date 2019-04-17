@@ -164,21 +164,26 @@ ui <- dashboardPage(
                                 ############PLP analysis tab#####################
                                 tabPanel("PredictiveVariable",
                                          fluidRow(
-                                             titlePanel("Top 40 variables which could be predictive variables")
+                                             titlePanel("Top 40 variables which could be predictive variables"),
+                                             uiOutput(outputId = "ModelSelect"),
+                                             actionButton(inputId = "RunPredictionModel", label = "Run Prediction Model"),
+                                             textOutput("readyPLP")
                                          ),
                                          fluidRow(
-                                             box(title = "Using Gradient Boosting Model",
-                                                 width = 6,status = "primary",solidHeader = TRUE,
-                                                 plotOutput("GredientBoosting")
-                                             ),
-                                             box(title = "Using Lasso Logistic Regression",
-                                                 width = 6,status = "warning",solidHeader = TRUE,
-                                                 plotOutput("LassoLogistic")
+                                             box(title = "Using Machine Learning Model, get predictive variables",
+                                                 width = 12, background = "yellow",solidHeader = TRUE,
+                                                 plotOutput("PredictiveVariablePlot")
                                              )
-
+                                         ),
+                                         fluidRow(
+                                             box(title = "Using Lasso Logistic Regression",
+                                                 width = 12,status = "warning",solidHeader = TRUE,
+                                                 tableOutput("PredictiveVariableTable")
+                                             )
                                          )
                                 )
                     )
+
             ),
             # biomarker compare#################
             tabItem(tabName = "Biomarker",
@@ -245,7 +250,7 @@ ui <- dashboardPage(
 
 ####server
 server <- function(input, output, session) {
-    ###tab menu result : DB connection####
+    ##############tab menu result : DB connection####
     output$sqltype<-renderUI({
         selectInput("sqltype", "Select DBMS",
                     choices = c("sql server" = "sql server",
@@ -257,7 +262,7 @@ server <- function(input, output, session) {
         )
     })
 
-    ####DB connection and load data
+    ##############DB connection and load data###############
     DBconnect <- eventReactive(input$db_load, {
         connectionDetails <<- DatabaseConnector::createConnectionDetails(dbms = input$sqltype,
                                                                          server = input$ip,
@@ -275,6 +280,9 @@ server <- function(input, output, session) {
         measureData <<- dataList[[2]]
         comorbidity <<- dataList[[3]]
         exacerbation <<- dataList[[4]]
+        totalCohort <<- dataList[[5]]
+
+        setting()
 
         removeModal()
         showModal(modalDialog(title = "Loading data complete", "Loading data were succeed!", footer = modalButton("OK")))
@@ -400,8 +408,8 @@ server <- function(input, output, session) {
     plotFEV1FVC <- eventReactive(input$show_result_phe,{
 
         FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
-                                   measurementType = 3011505,
-                                   cohortDefinitionIdSet = switchcohortPhe())
+                                      measurementType = 3011505,
+                                      cohortDefinitionIdSet = switchcohortPhe())
         FEV1FVCplot <- plotPFT(PFTmanufactured = FEV1FVCdata)
         FEV1FVCplot
     })
@@ -412,15 +420,15 @@ server <- function(input, output, session) {
     #FEV1 table
     tablecountFEV1 <- eventReactive(input$show_result_phe,{
         FEV1data <- PFTmanufacture(measurementData = measureData,
-                                      measurementType = 3011708,
-                                      cohortDefinitionIdSet = switchcohortPhe())
+                                   measurementType = 3011708,
+                                   cohortDefinitionIdSet = switchcohortPhe())
         FEV1countTable <- pft_count_table(PFTmanufactured = FEV1data)
         FEV1countTable
     })
     tablepredictFEV1 <- eventReactive(input$show_result_phe,{
         FEV1data <- PFTmanufacture(measurementData = measureData,
-                                      measurementType = 3011708,
-                                      cohortDefinitionIdSet = switchcohortPhe())
+                                   measurementType = 3011708,
+                                   cohortDefinitionIdSet = switchcohortPhe())
         FEV1predictTable <- pft_predict_table(PFTmanufactured = FEV1data)
         FEV1predictTable
     })
@@ -464,7 +472,7 @@ server <- function(input, output, session) {
     comorbidity_metabolic <- eventReactive(input$show_result_phe,{
 
         comorbManufac<- comorbManufacture(comorbidityData = comorbidity,
-                                           cohortDefinitionIdSet = switchcohortPhe())
+                                          cohortDefinitionIdSet = switchcohortPhe())
 
         RRcaclulate<-cacluateRR(comorbManufacData = comorbManufac,
                                 whichDisease = 'metabolic')
@@ -528,12 +536,73 @@ server <- function(input, output, session) {
     exacerbationPvalue <-eventReactive(input$show_result_phe,{
         exacerbationManufac <- exacerbaManufacture()
         textExacerbation <- p_value_ExacerbationCouny(exacerbationCount = exacerbationManufac,
-                                                       cohortDefinitionIdSet = switchcohortPhe())
+                                                      cohortDefinitionIdSet = switchcohortPhe())
 
         return(textExacerbation)
     })
     output$exacerbationPvalue <- renderText({
         exacerbationPvalue()
+    })
+    ##############predictive Variable analysis resylt#################
+
+    #createUI for prediction model
+    output$ModelSelect <- renderUI({
+        selectInput("ModelSelect", "Choose Prediction Model",
+                    choices = c("Lasso Logistic Regression" = "lassologistic",
+                                "Gradient Boosting Machine" = "gradientboosting",
+                                "Random Forest Machine" = "randomforest")
+        )
+    })
+
+    #switch cohortId for prediction model
+    switchcohortPLP <- reactive({
+        switchselect_plp(input$selectcohort_phe)
+    })
+
+    readyPrediction <- eventReactive(input$show_result_phe,{
+
+        readyPlpData <- getPlpData (connectionDetails = connectionDetails,
+                                    connection = connection,
+                                    Resultschema = input$Resultschema,
+                                    CDMschema = input$CDMschema,
+                                    cohortTable = 'asthma_cohort',
+                                    targetId = 1,
+                                    outcomeCohortConceptId = switchcohortPLP(),
+                                    covariateSetting = covariateSetting,
+                                    washoutPeriod = 0,
+                                    removeSubjectsWithPriorOutcome = TRUE,
+                                    riskWindowStart = 1,
+                                    riskWindowEnd = 365*15)
+        readyPlp <<- readyPlpData
+    })
+
+    output$readyPLP <- renderText({
+        readyPrediction()
+    })
+    runPredictionModel <- eventReactive(input$RunPredictionModel,{
+
+        readyPlpData<-readyPlp
+
+        machineLearningResult <- RunPlp(getplpOut = readyPlpData,
+                                        learningModel = input$ModelSelect)
+
+        plot <- plotPredictiveVariables(machineLearningData = machineLearningResult,
+                                        rankCount = 20)
+
+        table <- tablePredictiveVariables(machineLearningData = machineLearningResult,
+                                          rankCount = 20)
+
+        outputList <- list(plot = plot,
+                           table = table)
+        return(outputList)
+    })
+
+    output$PredictiveVariablePlot <- renderPlot({
+        runPredictionModel()[[1]]
+    })
+
+    output$PredictiveVariableTable <- renderTable({
+        runPredictionModel()[[2]]
     })
 }
 

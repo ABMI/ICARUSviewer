@@ -42,6 +42,12 @@ call_dataList<- function(connectionDetails,
                          Resultschema,
                          CDMschema){
 
+    outputFolder <<- file.path(getwd(), "output")
+
+    if(!(dir.exists(outputFolder))){
+        dir.create(outputFolder)
+    }
+
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")
     connectionDetails <-connectionDetails
@@ -77,10 +83,18 @@ call_dataList<- function(connectionDetails,
     exacerbatuib_data<-DatabaseConnector::querySql(connection, sql)
     colnames(exacerbatuib_data)<-SqlRender::snakeCaseToCamelCase(colnames(exacerbatuib_data))
 
+    ##load asthma_cohort data
+    sql <- SqlRender::readSql("SQL/loadAsthma_cohort.sql")
+    sql <- SqlRender::renderSql(sql,
+                                resultDatabaseSchema = resultDatabaseSchema)$sql
+    asthmacohort_data<-DatabaseConnector::querySql(connection, sql)
+    colnames(asthmacohort_data)<-SqlRender::snakeCaseToCamelCase(colnames(asthmacohort_data))
+
     result<-list(demographic_data,
                  measure_data,
                  comorbidity_data,
-                 exacerbatuib_data)
+                 exacerbatuib_data,
+                 asthmacohort_data)
 
     return(result)
 
