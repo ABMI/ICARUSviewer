@@ -27,13 +27,13 @@ getPlpData(connectionDetails, connection, Resultschema, CDMschema,
 
 \item{covariateSetting}{}
 
-\item{washoutPeriodset}{0}
+\item{washoutPeriod}{0}
 
-\item{removeSubjectsWithPriorOutcomeset}{TRUE}
+\item{removeSubjectsWithPriorOutcome}{TRUE}
 
-\item{riskWindowStartset}{1}
+\item{riskWindowStart}{1}
 
-\item{riskWindowEndset}{365*15}
+\item{riskWindowEnd}{365*15}
 }
 \description{
 create Plp data and population data (ready for run Plp)

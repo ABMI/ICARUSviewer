@@ -10,11 +10,12 @@
 #'@param  targetId                                target cohort Id (default = 1)
 #'@param  outcomeCohortConceptId                  outcome cohort Id (2 = NSA, 3 = SA, 4 = AERD, 5 = ATA)
 #'@param  covariateSetting
-#'@param  washoutPeriodset                        0
-#'@param  removeSubjectsWithPriorOutcomeset       TRUE
-#'@param  riskWindowStartset                      1
-#'@param  riskWindowEndset                        365*15
+#'@param  washoutPeriod                           0
+#'@param  removeSubjectsWithPriorOutcome          TRUE
+#'@param  riskWindowStart                         1
+#'@param  riskWindowEnd                           365*15
 #'@export
+
 getPlpData <- function(connectionDetails,
                        connection,
                        Resultschema,
@@ -25,7 +26,7 @@ getPlpData <- function(connectionDetails,
                        covariateSetting,
                        washoutPeriod = 0,
                        removeSubjectsWithPriorOutcome = TRUE,
-                       riskWindowStart = 1,
+                       riskWindowStart = 0,
                        riskWindowEnd = 365*15){
 
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
@@ -101,11 +102,10 @@ RunPlp <- function(getplpOut,
 #'@import  ggplot2
 #'@param   machineLearningData get from RunPlp code
 #'@param   rankCount           how many variables do you want to see?
-#'@param
 #'@export
 
 plotPredictiveVariables <- function(machineLearningData,
-                                    rankCount = 40){
+                                    rankCount = 20){
 
     MLresult <- machineLearningData
 colnames(MLresult$covariateSummary)
@@ -153,10 +153,19 @@ tablePredictiveVariables <- function(machineLearningData,
 
     table <- Covariates %>%
         select( conceptId,covariateName,covariateValue,CovariateCount) %>%
-        mutate( notNullProportion = covariateCount/sum(demographicData$cohortDefinitionId==1) )
+        mutate( notNullProportion = ( CovariateCount/sum(demographicData$cohortDefinitionId==1)*100 ) )
 
     colnames(table)[5] <- 'not Null percent (%)'
 
     return(table)
 }
 
+# plp<-getPlpData(connectionDetails, connection, Resultschema = 'ICARUS', CDMschema = 'ICARUS', outcomeCohortConceptId = 4,
+#                 covariateSetting = covariateSetting)
+#
+# plp$populationOut
+#
+# run<-RunPlp(getplpOut = plp,
+#                    learningModel = 'lassologistic')
+# plot<-plotPredictiveVariables(machineLearningData = run,
+#                                           rankCount = 20)

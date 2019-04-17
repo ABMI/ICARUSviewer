@@ -42,11 +42,11 @@ call_dataList<- function(connectionDetails,
                          Resultschema,
                          CDMschema){
 
-    outputFolder <<- file.path(getwd(), "output")
-
-    if(!(dir.exists(outputFolder))){
-        dir.create(outputFolder)
-    }
+    # outputFolder <<- file.path(getwd(), "output")
+    #
+    # if(!(dir.exists(outputFolder))){
+    #     dir.create(outputFolder)
+    # }
 
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")

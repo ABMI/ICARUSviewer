@@ -9,9 +9,7 @@ calculateRR(comorbManufacData, whichDisease)
 \arguments{
 \item{comorbManufacData}{the result of comorbManufacture code (list)}
 
-\item{whichDiesase}{metabolic or immune disease}
-
-\item{cohortDefinitionIdSet}{c(2,3) or c(4,5)}
+\item{whichDisease}{metabolic or immune disease}
 }
 \description{
 ready for calculate Relative Ratio and CI

@@ -13,6 +13,8 @@ check.packages("tidyverse")
 check.packages("mgcv")
 check.packages("ICARUSviewer")
 
+outputFolder <<- Sys.getenv("outputFolder")
+
 Sys.setlocale(category = "LC_ALL", locale = "us")
 
 # UI
@@ -176,7 +178,7 @@ ui <- dashboardPage(
                                              )
                                          ),
                                          fluidRow(
-                                             box(title = "Using Lasso Logistic Regression",
+                                             box(title = "Using Machine Learning Model",
                                                  width = 12,status = "warning",solidHeader = TRUE,
                                                  tableOutput("PredictiveVariableTable")
                                              )
@@ -474,8 +476,8 @@ server <- function(input, output, session) {
         comorbManufac<- comorbManufacture(comorbidityData = comorbidity,
                                           cohortDefinitionIdSet = switchcohortPhe())
 
-        RRcaclulate<-cacluateRR(comorbManufacData = comorbManufac,
-                                whichDisease = 'metabolic')
+        RRcaclulate<-calculateRR(comorbManufacData = comorbManufac,
+                                 whichDisease = 'metabolic')
 
         metabolic_RR <- RRplot(RRResult = RRcaclulate)
 
@@ -492,8 +494,8 @@ server <- function(input, output, session) {
         comorbManufac<- comorbManufacture(comorbidityData = comorbidity,
                                           cohortDefinitionIdSet = switchcohortPhe())
 
-        RRcaclulate<-cacluateRR(comorbManufacData = comorbManufac,
-                                whichDisease = 'immune')
+        RRcaclulate<-calculateRR(comorbManufacData = comorbManufac,
+                                 whichDisease = 'immune')
 
         immune_RR <- RRplot(RRResult = RRcaclulate)
 
@@ -554,8 +556,8 @@ server <- function(input, output, session) {
         )
     })
 
-    #switch cohortId for prediction model
-    switchcohortPLP <- reactive({
+    #switch asthma cohort to conceptId
+    switchcohortPlp<- reactive({
         switchselect_plp(input$selectcohort_phe)
     })
 
@@ -567,18 +569,23 @@ server <- function(input, output, session) {
                                     CDMschema = input$CDMschema,
                                     cohortTable = 'asthma_cohort',
                                     targetId = 1,
-                                    outcomeCohortConceptId = switchcohortPLP(),
+                                    outcomeCohortConceptId = switchcohortPlp(),
                                     covariateSetting = covariateSetting,
                                     washoutPeriod = 0,
                                     removeSubjectsWithPriorOutcome = TRUE,
-                                    riskWindowStart = 1,
+                                    riskWindowStart = 0,
                                     riskWindowEnd = 365*15)
         readyPlp <<- readyPlpData
+
+        removeModal()
+        showModal(modalDialog(title = "ready to start prediction", "go prediction! Press the 'Run Prediction Model' Button ", footer = modalButton("OK")))
+
     })
 
     output$readyPLP <- renderText({
         readyPrediction()
     })
+
     runPredictionModel <- eventReactive(input$RunPredictionModel,{
 
         readyPlpData<-readyPlp
@@ -598,11 +605,13 @@ server <- function(input, output, session) {
     })
 
     output$PredictiveVariablePlot <- renderPlot({
-        runPredictionModel()[[1]]
+        out <- runPredictionModel()
+        out[[1]]
     })
 
     output$PredictiveVariableTable <- renderTable({
-        runPredictionModel()[[2]]
+        out <- runPredictionModel()
+        out[[2]]
     })
 }
 

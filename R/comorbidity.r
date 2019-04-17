@@ -50,8 +50,7 @@ comorbManufacture <- function(comorbidityData,
 #'@import dplyr
 #'@import epitools
 #'@param comorbManufacData               the result of comorbManufacture code (list)
-#'@param whichDiesase                    metabolic or immune disease
-#'@param cohortDefinitionIdSet           c(2,3) or c(4,5)
+#'@param whichDisease                    metabolic or immune disease
 #'@export
 #'
 calculateRR <- function(comorbManufacData,
