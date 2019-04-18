@@ -19,6 +19,19 @@ switchselect_plp <- function(input){
     )
 }
 
+#'switch input from label to machine learning model
+#'@param input
+#'@export
+#'
+switchselect_model <- function(input){
+    switch(input,
+           "lassologistic" = PatientLevelPrediction::setLassoLogisticRegression(),
+           "gradientboosting" = PatientLevelPrediction::setGradientBoostingMachine(maxDepth = c(4,6),
+                                                                                   ntrees = c(1,10,100),
+                                                                                   minRows = c(2,10,20)),
+           "randomforest" = PatientLevelPrediction::setRandomForest()
+    )
+}
 
 #'switch input from label to cohortDefinitionId
 #'@param input
@@ -33,3 +46,4 @@ switchselect_pft <- function(input){
                                       multiple = FALSE)}
     )
 }
+

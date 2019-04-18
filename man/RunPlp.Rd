@@ -9,7 +9,7 @@ RunPlp(getplpOut, learningModel)
 \arguments{
 \item{getplpOut}{get from getPlpData code}
 
-\item{learningModel}{machin learning model to develop prediction model (lassologistic, gradientboosting, randomforest)}
+\item{learningModel}{input$ModelSelect}
 }
 \description{
 Run Plp

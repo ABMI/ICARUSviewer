@@ -7,7 +7,7 @@
 getPlpData(connectionDetails, connection, Resultschema, CDMschema,
   cohortTable = "asthma_cohort", targetId = 1, outcomeCohortConceptId,
   covariateSetting, washoutPeriod = 0,
-  removeSubjectsWithPriorOutcome = TRUE, riskWindowStart = 1,
+  removeSubjectsWithPriorOutcome = TRUE, riskWindowStart = 0,
   riskWindowEnd = 365 * 15)
 }
 \arguments{

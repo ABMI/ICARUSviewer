@@ -46,7 +46,7 @@ ui <- dashboardPage(
                                   }'))),
         tabItems(
 
-            #tab menu = DB connection
+            #########tab menu = DB connection##############
             tabItem(tabName = "db",
                     fluidRow(
                         titlePanel("Database Connection"),
@@ -67,7 +67,7 @@ ui <- dashboardPage(
             ),
 
 
-            #tab menu = asthma phenotype compare
+            #########tab menu = asthma phenotype compare##########
             tabItem(tabName = "AsthmaPhenotype",
                     fluidRow(
 
@@ -561,6 +561,11 @@ server <- function(input, output, session) {
         switchselect_plp(input$selectcohort_phe)
     })
 
+    #switch machine model select to plp::machinelearning
+    switchModel <- reactive({
+        switchselect_model(input$ModelSelect)
+    })
+
     readyPrediction <- eventReactive(input$show_result_phe,{
 
         readyPlpData <- getPlpData (connectionDetails = connectionDetails,
@@ -591,7 +596,7 @@ server <- function(input, output, session) {
         readyPlpData<-readyPlp
 
         machineLearningResult <- RunPlp(getplpOut = readyPlpData,
-                                        learningModel = input$ModelSelect)
+                                        learningModel = switchModel())
 
         plot <- plotPredictiveVariables(machineLearningData = machineLearningResult,
                                         rankCount = 20)

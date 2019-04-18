@@ -64,7 +64,7 @@ getPlpData <- function(connectionDetails,
 #'Run Plp
 #'@import  PatientLevelPrediction
 #'@param   getplpOut              get from getPlpData code
-#'@param   learningModel          machin learning model to develop prediction model (lassologistic, gradientboosting, randomforest)
+#'@param   learningModel          input$ModelSelect
 #'@param
 #'@export
 RunPlp <- function(getplpOut,
@@ -72,19 +72,19 @@ RunPlp <- function(getplpOut,
 
     Sys.setlocale(category="LC_CTYPE", locale="C")
 
-    if(learningModel == "lassologistic"){
-        Model <- PatientLevelPrediction::setLassoLogisticRegression()
-    } else if(learningModel == "gradientboosting"){
-        Model <- PatientLevelPrediction::setGradientBoostingMachine(maxDepth = c(4,6),
-                                                                    ntrees = c(1,10,100),
-                                                                    minRows = c(2,10,20))
-    } else if(learningModel == "randomforest"){
-        Model <- PatientLevelPrediction::setRandomForest()
-    }
+    # if(learningModel == "lassologistic"){
+    #     Model <- PatientLevelPrediction::setLassoLogisticRegression()
+    # } else if(learningModel == "gradientboosting"){
+    #     Model <- PatientLevelPrediction::setGradientBoostingMachine(maxDepth = c(4,6),
+    #                                                                 ntrees = c(1,10,100),
+    #                                                                 minRows = c(2,10,20))
+    # } else if(learningModel == "randomforest"){
+    #     Model <- PatientLevelPrediction::setRandomForest()
+    # }
 
     MLresult<-PatientLevelPrediction::runPlp(population = getplpOut[[2]],
                                              plpData = getplpOut[[1]],
-                                             modelSettings = Model,
+                                             modelSettings = learningModel,
                                              testSplit = "person",
                                              testFraction = 0.25,
                                              nfold = 3,
