@@ -8,6 +8,8 @@ demographic_cal(charactManufac, dividedVariable)
 }
 \arguments{
 \item{charactManufac}{result of charactManufacture code}
+
+\item{dividedVariable}{age, bmi (gender was default)}
 }
 \description{
 calculate p-value of gender(chi-square test) and and age mean(t-test)

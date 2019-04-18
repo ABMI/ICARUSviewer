@@ -29,11 +29,24 @@ sql_reader <- function(sqlquery,
     return(out)
 }
 
-
+#' code for loading data
+#' @import SqlRender
+#' @import DatabaseConnector
+#' @param Resultschema
+#' @param CDMschema
+#' @param connectionDetails
+#' @param connection
+#' @export
 call_dataList<- function(connectionDetails,
                          connection,
                          Resultschema,
                          CDMschema){
+
+    # outputFolder <<- file.path(getwd(), "output")
+    #
+    # if(!(dir.exists(outputFolder))){
+    #     dir.create(outputFolder)
+    # }
 
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")
@@ -50,11 +63,11 @@ call_dataList<- function(connectionDetails,
     colnames(demographic_data)<-SqlRender::snakeCaseToCamelCase(colnames(demographic_data))
 
     ###load PFT longitudinal data
-    sql <- SqlRender::readSql("SQL/loadPFTmeasure.sql")
+    sql <- SqlRender::readSql("SQL/loadAsthma_Measure.sql")
     sql <- SqlRender::renderSql(sql,
                                 resultDatabaseSchema = resultDatabaseSchema)$sql
-    PFTmeasure_data<-DatabaseConnector::querySql(connection, sql)
-    colnames(PFTmeasure_data)<-SqlRender::snakeCaseToCamelCase(colnames(PFTmeasure_data))
+    measure_data<-DatabaseConnector::querySql(connection, sql)
+    colnames(measure_data)<-SqlRender::snakeCaseToCamelCase(colnames(measure_data))
 
     ##load comorbidity data
     sql <- SqlRender::readSql("SQL/loadComorbidity.sql")
@@ -63,10 +76,27 @@ call_dataList<- function(connectionDetails,
     comorbidity_data<-DatabaseConnector::querySql(connection, sql)
     colnames(comorbidity_data)<-SqlRender::snakeCaseToCamelCase(colnames(comorbidity_data))
 
+    ##load exacerbation data
+    sql <- SqlRender::readSql("SQL/loadExacerbation.sql")
+    sql <- SqlRender::renderSql(sql,
+                                resultDatabaseSchema = resultDatabaseSchema)$sql
+    exacerbatuib_data<-DatabaseConnector::querySql(connection, sql)
+    colnames(exacerbatuib_data)<-SqlRender::snakeCaseToCamelCase(colnames(exacerbatuib_data))
+
+    ##load asthma_cohort data
+    sql <- SqlRender::readSql("SQL/loadAsthma_cohort.sql")
+    sql <- SqlRender::renderSql(sql,
+                                resultDatabaseSchema = resultDatabaseSchema)$sql
+    asthmacohort_data<-DatabaseConnector::querySql(connection, sql)
+    colnames(asthmacohort_data)<-SqlRender::snakeCaseToCamelCase(colnames(asthmacohort_data))
+
     result<-list(demographic_data,
-                 PFTmeasure_data,
-                 comorbidity_data)
+                 measure_data,
+                 comorbidity_data,
+                 exacerbatuib_data,
+                 asthmacohort_data)
 
     return(result)
 
 }
+

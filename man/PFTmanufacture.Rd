@@ -4,7 +4,7 @@
 \alias{PFTmanufacture}
 \title{ready for plotting PFT data}
 \usage{
-PFTmanufacture(PFTdata, measurementType, cohortDefinitionIdSet)
+PFTmanufacture(measurementData, measurementType, cohortDefinitionIdSet)
 }
 \arguments{
 \item{measurementConceptId}{FEV1/FVC(%) = 3011505, FEV1(%) = 3011708}

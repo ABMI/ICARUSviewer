@@ -8,7 +8,7 @@ charactManufacture<-function(characteristicData,
                              cohortDefinitionIdSet){
     out <- characteristicData %>%
         filter(cohortDefinitionId %in% cohortDefinitionIdSet) %>%
-        filter(age >=12) %>%
+        #filter(age >=12) %>%
         mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
                                             labels = c("Asthma", "Non-Severe Asthma",
                                                        "Severe Asthma", "AERD",
@@ -91,7 +91,6 @@ agepieplot <- function(charactManufac){
 
 #'code for plotting bmi tree plot
 #'@import ggplot2
-#'@import ggtheme
 #'@import dplyr
 #'@param charactManufac           result of charactManufacture code
 #'@export
@@ -171,6 +170,7 @@ demographic_Table <- function(charactManufac,
 #'@import reshape2
 #'@import dplyr
 #'@param charactManufac           result of charactManufacture code
+#'@param dividedVariable          age, bmi (gender was default)
 #'@export
 #'
 demographic_cal <- function(charactManufac,

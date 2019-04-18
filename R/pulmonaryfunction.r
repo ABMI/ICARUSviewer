@@ -1,15 +1,15 @@
 #'ready for plotting PFT data
 #'@import dplyr
-#'@param PFTdata
+#'@param measurementData
 #'@param measurementConceptId         FEV1/FVC(%) = 3011505, FEV1(%) = 3011708
 #'@param cohortDefinitionIdSet
 #'@export
 #'
-PFTmanufacture <- function(PFTdata,
+PFTmanufacture <- function(measurementData,
                            measurementType,
                            cohortDefinitionIdSet){
 
-    out <- PFTdata %>%
+    out <- measurementData %>%
         filter(measurementConceptId == measurementType) %>%
         filter(time >= 0) %>%
         filter(valueAsNumber < 200) %>%
@@ -61,6 +61,8 @@ pft_count_table<-function(PFTmanufactured){
         paste(i,"-",i+5)
     }
 
+    level <- seq(0,25,5)
+
     df_total<-PFTmanufactured %>%
         group_by(cohortDefinitionId) %>%
         summarise(total_count = n_distinct(subjectId))
@@ -69,8 +71,8 @@ pft_count_table<-function(PFTmanufactured){
         mutate(timeSection = (time%/%5)*5 ) %>%
         group_by(cohortDefinitionId,timeSection) %>%
         summarise(count = n_distinct(subjectId)) %>%
-        mutate(timeSection = factor(timeSection, levels = seq(0,25,5),
-                                    labels = seq_fun(levels)))
+        mutate(timeSection = factor(timeSection, levels = level,
+                                    labels = seq_fun(level)))
 
     df_dcast <- reshape2::dcast(df_count, cohortDefinitionId~timeSection)
     df_dcast <- df_dcast %>%
@@ -92,9 +94,10 @@ pft_predict_table<-function(PFTmanufactured){
     pft_split <- split(PFTmanufactured, PFTmanufactured$cohortDefinitionId)
     pft_split <- pft_split[as.character(unique(PFTmanufactured$cohortDefinitionId))]
 
+    time <- c(0,5,10,15)
+
     pft_predict <- lapply(pft_split, FUN = function(x){
 
-        time <<- c(0,5,10,15)
         gam_out <- gam(valueAsNumber~s(time, bs = "cs"), data = x)
 
         need.data<-data.frame(time)
