@@ -88,6 +88,39 @@ agepieplot <- function(charactManufac){
     return(plot)
 }
 
+#'code for plotting age-gender pie plot
+#'@import ggplot2
+#'@import dplyr
+#'@param charactManufac           result of charactManufacture code
+#'@export
+#'
+####################
+agegenderpieplot <- function(charactManufac){
+    df <- charactManufac %>%
+        group_by( cohortDefinitionId, ageSection , genderConceptId) %>%
+        summarise(count = n()) %>%
+        left_join(demographicData %>% group_by(cohortDefinitionId) %>% summarise(total = n()), by = c("cohortDefinitionId") ) %>%
+        mutate(perc = (count/total)*100 )
+
+    plot <- ggplot(data = df, aes(x = "", y = count, fill = ageSection))+
+        geom_col(position = 'fill',color = 'black', width = 1) +
+        facet_grid(.~cohortDefinitionId)+
+        geom_text(aes(label = count), position = position_fill(vjust = 0.5))+
+        scale_fill_brewer(palette = "Pastel2")+
+        coord_polar(theta = "y")+
+        theme_bw() +
+        theme(legend.title = element_blank(),
+              strip.text = element_text(size = 15),
+              #legend.position = "none",
+              legend.text = element_text(size = 11),
+              axis.title.x = element_text(size = 14),
+              axis.text.x = element_text(size = 14),
+              axis.text.y = element_text(size = 12),
+              axis.title.y = element_blank())
+
+    return(plot)
+}
+
 
 #'code for plotting bmi tree plot
 #'@import ggplot2

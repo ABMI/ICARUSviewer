@@ -10,6 +10,7 @@ check.packages("PatientLevelPrediction")
 check.packages("shinydashboard")
 check.packages("shiny")
 check.packages("tidyverse")
+check.packages("epitools")
 check.packages("mgcv")
 check.packages("ICARUSviewer")
 
@@ -84,9 +85,9 @@ ui <- dashboardPage(
                                              titlePanel("Compare gender, age and BMI")
                                          ),
                                          fluidRow(
-                                             box(title = "Gender compare", width = 4, status = "primary", solidHeader = TRUE,
+                                             box(title = "Gender compare", width = 4, background = "blue", solidHeader = TRUE,
                                                  plotOutput("genderPiePlot")),
-                                             box(title = "Age tree compare", width = 4, status = "primary", solidHeader = TRUE,
+                                             box(title = "Age tree compare", width = 4, background = "blue", solidHeader = TRUE,
                                                  plotOutput("agePiePlot")),
                                              box(title = "Gender-Age characteristic table", width = 4, status = "primary", solidHeader = TRUE,
                                                  tableOutput("genderageTable"),
@@ -94,7 +95,9 @@ ui <- dashboardPage(
                                          ),
                                          #bmi compare
                                          fluidRow(
-                                             box(title = "BMI compare", width = 8, status = "warning", solidHeader = TRUE,
+                                             box(title = "Gender-Age compare", width = 4, background = "blue", solidHeader = TRUE,
+                                                 plotOutput("genderAgePiePlot")),
+                                             box(title = "BMI compare", width = 4, background = "yellow", solidHeader = TRUE,
                                                  plotOutput("BMITreePlot")),
                                              box(title = "BMI-Age characteristic table", width = 4, status = "warning", solidHeader = TRUE,
                                                  tableOutput("genderbmiTable"),
@@ -134,13 +137,24 @@ ui <- dashboardPage(
                                              titlePanel("Comorbidity Co-prevalence comparison")
                                          ),
                                          fluidRow(
-                                             box(title = "metabolic disease co-prevalence between patients over 50's",
-                                                 width = 6,status = "info",solidHeader = TRUE,
+                                             box(title = "Metabolic disease Relative Ratio among patient >= 50’s",
+                                                 width = 6,background = 'blue',solidHeader = TRUE,
                                                  plotOutput("metabolicCoprev")
                                              ),
-                                             box(title = "immune-related disease co-prevalence between patients",
-                                                 width = 6,status = "info",solidHeader = TRUE,
+                                             box(title = "Immune relative disease Relative Ratio among patient >= 12 years old",
+                                                 width = 6,background = 'blue',solidHeader = TRUE,
                                                  plotOutput("immuneCoprev")
+                                             )
+
+                                         ),
+                                         fluidRow(
+                                             box(title = "Metabolic disease Co-prevalence(%) among patient >= 50’s",
+                                                 width = 6,status = "primary",solidHeader = TRUE,
+                                                 tableOutput("metabolicCoprevTable")
+                                             ),
+                                             box(title = "Immune relative disease Co-prevalence(%) among patient >= 12 years old",
+                                                 width = 6,status = "primary",solidHeader = TRUE,
+                                                 tableOutput("immuneCoprevTable")
                                              )
 
                                          )
@@ -152,7 +166,7 @@ ui <- dashboardPage(
                                          ),
                                          fluidRow(
                                              box(title = "Exacerbation Count Compare",
-                                                 width = 6,background = 'light-blue', solidHeader = TRUE,
+                                                 width = 6,background = 'blue', solidHeader = TRUE,
                                                  plotOutput("exacerbationPlot")
                                              ),
                                              box(title = "statistical analysis of Differences of exacerbation Count",
@@ -173,8 +187,12 @@ ui <- dashboardPage(
                                          ),
                                          fluidRow(
                                              box(title = "Using Machine Learning Model, get predictive variables",
-                                                 width = 12, background = "yellow",solidHeader = TRUE,
+                                                 width = 8, background = "yellow",solidHeader = TRUE,
                                                  plotOutput("PredictiveVariablePlot")
+                                             ),
+                                             box(title = "Prediction Model AUC plot",
+                                                 width = 4, background = "yellow",solidHeader = TRUE,
+                                                 plotOutput("PredictiveAUC")
                                              )
                                          ),
                                          fluidRow(
@@ -599,13 +617,16 @@ server <- function(input, output, session) {
                                         learningModel = switchModel())
 
         plot <- plotPredictiveVariables(machineLearningData = machineLearningResult,
-                                        rankCount = 20)
+                                        rankCount = 40)
 
         table <- tablePredictiveVariables(machineLearningData = machineLearningResult,
-                                          rankCount = 20)
+                                          rankCount = 40)
+
+        AUROC <- AUROCcurve(machineLearningData = machineLearningResult)
 
         outputList <- list(plot = plot,
-                           table = table)
+                           table = table,
+                           AUROC = AUROC)
         return(outputList)
     })
 
@@ -618,6 +639,12 @@ server <- function(input, output, session) {
         out <- runPredictionModel()
         out[[2]]
     })
+
+    output$PredictiveAUC <- renderPlot({
+        out <- runPredictionModel()
+        out[[3]]
+    })
+
 }
 
 # Run the application
