@@ -72,16 +72,6 @@ RunPlp <- function(getplpOut,
 
     Sys.setlocale(category="LC_CTYPE", locale="C")
 
-    # if(learningModel == "lassologistic"){
-    #     Model <- PatientLevelPrediction::setLassoLogisticRegression()
-    # } else if(learningModel == "gradientboosting"){
-    #     Model <- PatientLevelPrediction::setGradientBoostingMachine(maxDepth = c(4,6),
-    #                                                                 ntrees = c(1,10,100),
-    #                                                                 minRows = c(2,10,20))
-    # } else if(learningModel == "randomforest"){
-    #     Model <- PatientLevelPrediction::setRandomForest()
-    # }
-
     MLresult<-PatientLevelPrediction::runPlp(population = getplpOut[[2]],
                                              plpData = getplpOut[[1]],
                                              modelSettings = learningModel,
@@ -108,7 +98,7 @@ plotPredictiveVariables <- function(machineLearningData,
                                     rankCount = 20){
 
     MLresult <- machineLearningData
-colnames(MLresult$covariateSummary)
+
     Covariates<- MLresult$covariateSummary %>%
         filter( covariateValue != 0.0000000000) %>%
         select( analysisId, conceptId, covariateName, covariateValue, CovariateCount) %>%
@@ -160,12 +150,52 @@ tablePredictiveVariables <- function(machineLearningData,
     return(table)
 }
 
+#'get AUROC curve From PatientLevelPrediction
+#'@import PatientLevelPrediction
+#'@import ggplot2
+#'@param machineLearningData
+#'@export
+
+AUROCcurve <- function(machineLearningData){
+    MLresult <- machineLearningData
+
+    evaluationStat <- MLresult$performanceEvaluation$evaluationStatistics
+
+    evaluationStat_df<-as.data.frame(evaluationStat)
+
+    AUC <- evaluationStat_df[which(evaluationStat_df$Eval == 'test' & evaluationStat_df$Metric == c('AUC.auc','AUC.auc_lb95ci','AUC.auc_ub95ci')),]$Value
+
+    AUC_round<-round(as.numeric(as.character(AUC)), 3)
+
+    AUROC <- plotSparseRoc(MLresult$performanceEvaluation) +
+        ggplot2::annotate("text", label = paste0("AUC = ",AUC_round[1],"(",AUC_round[2],"-",AUC_round[3],")"), x = 0.75, y = 0.15, size = 6)
+
+    return(AUROC)
+}
+#
+# machineLearningData
 # plp<-getPlpData(connectionDetails, connection, Resultschema = 'ICARUS', CDMschema = 'ICARUS', outcomeCohortConceptId = 4,
 #                 covariateSetting = covariateSetting)
 #
 # plp$populationOut
 #
 # run<-RunPlp(getplpOut = plp,
-#                    learningModel = 'lassologistic')
+#             learningModel)
+#
+# plotSparseRoc(run$performanceEvaluation )+
+#     annotate("text", label = paste0("AUC = ",AUC_round[1],"(",AUC_round[2],"-",AUC_round[3],")"), x = 0.75, y = 0.15, size = 6)
+#
+#
+# st<-run$performanceEvaluation$evaluationStatistics
+#
+# dff<-as.data.frame(st)
+#
+# AUC <- dff[which(dff$Eval == 'test' & dff$Metric == c('AUC.auc','AUC.auc_lb95ci','AUC.auc_ub95ci')),]$Value
+# AUC_round<-round(as.numeric(as.character(AUC)), 3)
+#
+# plotSparseRoc(result$performanceEvaluation,
+#               fileName=file.path(filename, 'plots','sparseROC.pdf'),
+#               type = type)
+#
 # plot<-plotPredictiveVariables(machineLearningData = run,
 #                                           rankCount = 20)
