@@ -31,7 +31,8 @@ ui <- dashboardPage(
         sidebarMenu(
             menuItem("DB connection", tabName = "db"),
             menuItem("Asthma Phenotype", tabName = "AsthmaPhenotype"),
-            menuItem("Asthma Biomarker", tabName = "Biomarker")
+            menuItem("Asthma Biomarker", tabName = "Biomarker"),
+            menuItem("PFT In Detail", tabName = "PFTdetail")
             # ,
             # menuItem("Comorbidity", tabName = "comorbidity")
         )
@@ -259,18 +260,27 @@ ui <- dashboardPage(
                                          )
                                 )
                     )
+            ),
+
+            #########tab menu = PFT compare more detail########
+            tabItem(tabName = "PFTdetail",
+                    fluidRow(
+                        titlePanel("Pulmonary Function Test Compare in more detail"),
+                        sidebarPanel( uiOutput("PFTselect") , width = 2),
+                        sidebarPanel( uiOutput("cohortSelect") , width = 2),
+                        sidebarPanel( checkboxInput("genderDivided", label = "Gender Devided?") , width = 2),
+                        actionButton(inputId = "show_pft_in_detail", label = "SHOW")
+                    )
             )
         )
 
     ),
     skin = "black"
 )
-######UI end########################
 
-
-####server
+####server##########################
 server <- function(input, output, session) {
-    ##############tab menu result : DB connection####
+    ######################1. tab menu result : DB connection####
     output$sqltype<-renderUI({
         selectInput("sqltype", "Select DBMS",
                     choices = c("sql server" = "sql server",
@@ -313,6 +323,7 @@ server <- function(input, output, session) {
         DBconnect()
     })
 
+    ######################2. tab menu result : Asthma Phenotype##########
     #UI create
     output$selectcohort_phe <- renderUI({
         selectInput(inputId = "selectcohort_phe", label = "Select Cohort Set",
@@ -325,6 +336,7 @@ server <- function(input, output, session) {
     switchcohortPhe <- reactive({
         switchcohort(input$selectcohort_phe)
     })
+
 
 
     ##############demographics analysis result###################
@@ -520,8 +532,34 @@ server <- function(input, output, session) {
         return(immune_RR)
     })
 
-    output$immuneCoprev  <-renderPlot({
+    output$immuneCoprev  <- renderPlot({
         comorbidity_immune()
+    })
+
+
+    coPrevTable_metabolic <- eventReactive(input$show_result_phe ,{
+
+        comorbManufac<- comorbManufacture(comorbidityData = comorbidity,
+                                          cohortDefinitionIdSet = switchcohortPhe())
+
+        metabolicTable <- co_prevtable(comorbManufacData = comorbManufac,
+                                       whichDisease = 'metabolic')
+        immuneTable <- co_prevtable(comorbManufacData = comorbManufac,
+                                    whichDisease = 'immune')
+
+        co_prevTable <- list(metabolicTable = metabolicTable,
+                       immuneTable = immuneTable)
+
+        return(co_prevTable)
+    })
+
+    output$metabolicCoprevTable <- renderTable({
+        out <- coPrevTable_metabolic()
+        out[[1]]
+    })
+    output$immuneCoprevTable <- renderTable({
+        out <- coPrevTable_metabolic()
+        out[[2]]
     })
 
     ##############exacerbation Count analysis result###############
@@ -644,6 +682,26 @@ server <- function(input, output, session) {
         out <- runPredictionModel()
         out[[3]]
     })
+
+
+    ######################3. tab menu result : PFT In Detail################
+    ##############ui update###############
+    output$PFTselect <- renderUI({
+        selectInput("PFTselect","which PFT",
+                    choices = c("FEV1(%)" = 3011708,
+                                "FEV1/FVC(%)" = 3011505))
+    })
+    output$cohortSelect <- renderUI({
+        checkboxGroupInput("cohortSelect", "which asthma phenotype do you want to see?",
+                           choices = list("All Asthma Patient" = 1,
+                                          "Non-severe Asthma" = 2,
+                                          "Severe Asthma" = 3,
+                                          "Aspirin Exacerbated Respiratoru Disease" = 4,
+                                          "Aspirin Tolerant Asthma" = 5)
+                           )
+    })
+
+    ##############PFT in detail analysis result###################
 
 }
 
