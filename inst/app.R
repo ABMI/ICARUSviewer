@@ -682,8 +682,7 @@ server <- function(input, output, session) {
         out <- runPredictionModel()
         out[[3]]
     })
-
-
+  
     ######################3. tab menu result : PFT In Detail################
     ##############ui update###############
     output$PFTselect <- renderUI({
@@ -702,7 +701,6 @@ server <- function(input, output, session) {
     })
 
     ##############PFT in detail analysis result###################
-
 }
 
 # Run the application
