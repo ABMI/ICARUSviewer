@@ -63,7 +63,8 @@ calculateRR <- function(comorbManufacData,
         split <- split(df, df$diseaseId)
         RRresult <- lapply(split, FUN = function(x){
             simply <- x[,c("Count","notdisease")]
-            row.names(simply)<-x$cohortDefinitionId
+            simply <- simply[c(2,1),]
+            row.names(simply)<-x$cohortDefinitionId[c(2,1)]
             RR_cal<-epitools::riskratio(as.matrix(simply))
             RR_cal$measure[2,]
         })
@@ -73,8 +74,7 @@ calculateRR <- function(comorbManufacData,
         split <- split(df, df$diseaseId)
         RRresult <- lapply(split, FUN = function(x){
             simply <- x[,c("Count","notdisease")]
-            simply <- simply[c(2,1),]
-            row.names(simply)<-x$cohortDefinitionId[c(2,1)]
+            row.names(simply)<-x$cohortDefinitionId
             RR_cal<-epitools::riskratio(as.matrix(simply))
             RR_cal$measure[2,]
         })
@@ -118,3 +118,31 @@ RRplot <- function(RRResult){
     return(RRplotOut)
 }
 
+#'calculate co-prevalence rate
+#'@import dplyr
+#'@import reshape2
+#'@param comorbManufacData               the result of comorbManufacture code (list)
+#'@param whichDisease                    metabolic or immune disease
+#'@export
+#'
+
+co_prevtable <- function(comorbManufacData,
+                         whichDisease){
+
+    df <- comorbManufacData[[whichDisease]]
+    #str(ready)
+    df_coprev <- as.data.frame(df) %>%
+        mutate(co_prevalence = paste0( round((Count/totalCount)*100,2),"%") ) %>%
+        mutate(result = paste0(Count,"(",co_prevalence,")")) %>%
+        mutate(diseaseName = factor(diseaseId, levels = diseaseList$diseaseId,
+                                    labels = diseaseList$diseaseName) ) %>%
+        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
+                                            labels = c("Asthma", "Non-Severe Asthma",
+                                                       "Severe Asthma", "AERD",
+                                                       "ATA"))) %>%
+        select(cohortDefinitionId, diseaseName, result)
+
+    out <- dcast(df_coprev, diseaseName~cohortDefinitionId)
+
+    return(out)
+}
