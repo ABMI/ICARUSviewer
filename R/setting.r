@@ -50,6 +50,10 @@ setting <- function(){
                                         "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4")
                         )
 
+    measurementId <<- list(maesurementConceptId = c(2,3,4,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469),
+                           measureName = c("EDN","periostin","eotaxin1","eotaxin2","SP_D","DPP10","MBL","TGFb1","chitinase","TIMP1","OPN","IL8","MPO")
+                           )
+
     covariateSetting <<- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
                                                                     useDemographicsAge = TRUE,
                                                                     useMeasurementValueAnyTimePrior = TRUE,

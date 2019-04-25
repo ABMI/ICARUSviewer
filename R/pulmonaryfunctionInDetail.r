@@ -78,6 +78,7 @@ plotPFT_detail<-function(PFTmanufactured,
 
 #'calculate count of cohort population in detail
 #'@import dplyr
+#'@import reshape2
 #'@param PFTmanufactured              result of PFTmanufacture code
 #'@param genderDivided                logical (TRUE/FALSE)
 #'@export
@@ -126,6 +127,7 @@ pftCountTable_indetail<-function(PFTmanufactured,
 
 #'calculate prediction values of PFT that 5, 10, 15 years after treatment in detail
 #'@import dplyr
+#'@import reshape2
 #'@import mgcv
 #'@param PFTmanufactured              result of PFTmanufacture code
 #'@param genderDivided                logical (TRUE/FALSE)
@@ -195,3 +197,4 @@ pftPredictTable_indetail<-function(PFTmanufactured,
 
     return(outcome)
 }
+

@@ -32,7 +32,9 @@ ui <- dashboardPage(
             menuItem("DB connection", tabName = "db"),
             menuItem("Asthma Phenotype", tabName = "AsthmaPhenotype"),
             menuItem("Asthma Biomarker", tabName = "Biomarker"),
-            menuItem("PFT In Detail", tabName = "PFTdetail")
+            menuItem("PFT In Detail", tabName = "PFTdetail"),
+            menuItem("Clinical Characteristic", tabName = "Characteristic"),
+            menuItem("Biomarker Characteristic", tabName = "biomarker")
             # ,
             # menuItem("Comorbidity", tabName = "comorbidity")
         )
@@ -272,26 +274,40 @@ ui <- dashboardPage(
                                   textInput("ageSection", label = "write down age section",value = "ex)12/40/60/100"),
                                   actionButton(inputId = "show_pft_in_detail", label = "SHOW") ),
                     mainPanel(
-                        box(title = "Pulmonary Function Test Changing according to Time Flow In Detail",
-                            background = "navy", width = 12,
+                        box(title = "Pulmonary Function Test Changing according to Time Flow In Detail",width = 12,
                             plotOutput("PFTchanging_indetail")
                         ),
-                        box(title = "Pulmonary Function Test Count",
-                            status = "primary", width = 12,
+                        box(title = "Pulmonary Function Test Count", width = 12,
                             tableOutput("PFTcountTable_indetail")
                         ),
-                        box(title = "Pulmonary Function Test Predict",
-                            status = "primary", width = 12,
+                        box(title = "Pulmonary Function Test Predict", width = 12,
                             tableOutput("PFTpredictTable_indetail")
                         )
                     )
 
+            ),
+            #########tab menu = Clinical Characteristic################
+            tabItem(tabName = "Characteristic",
+                    titlePanel("Comparison of clinical characteristics among asthma cohorts"),
+                    fluidRow(box(uiOutput("cohortchaSelect"), width = 6),
+                             actionButton(inputId = "show_clincical_charac", label = "SHOW") ),
+                    fluidRow(box(tableOutput("meanSdTable"), width = 10) ),
+                    fluidRow(box(tableOutput("anovaPvalue"), width = 10) )
+            ),
+            #########tab menu = Biomarker Characteristic###############
+            tabItem(tabName = "biomarker",
+                    titlePanel("Comparison of Biomarker profiles among asthma cohorts"),
+                    fluidRow(box(uiOutput("cohortbioSelect"), width = 6),
+                             actionButton(inputId = "show_biomarker_charac", label = "SHOW") ),
+                    fluidRow(box(tableOutput("meanSdTable_bio"), width = 10) ),
+                    fluidRow(box(tableOutput("anovaPvalue_bio"), width = 10) )
             )
         )
 
     ),
     skin = "black"
 )
+
 
 ####server##########################
 server <- function(input, output, session) {
@@ -617,7 +633,6 @@ server <- function(input, output, session) {
         exacerbationPvalue()
     })
     ##############predictive Variable analysis resylt#################
-
     #createUI for prediction model
     output$ModelSelect <- renderUI({
         selectInput("ModelSelect", "Choose Prediction Model",
@@ -698,7 +713,6 @@ server <- function(input, output, session) {
         out[[3]]
     })
 
-
     ######################3. tab menu result : PFT In Detail################
     ##############ui update###############
     output$PFTselect <- renderUI({
@@ -726,7 +740,7 @@ server <- function(input, output, session) {
 
         pftDetail <- PFTmanufacture_detail(measurementType = input$PFTselect,
                                            cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)),
-                                           ageSection = input$ageSection)
+                                           ageSection = as.character(input$ageSection))
 
         pftDetail_plot <- plotPFT_detail(PFTmanufactured = pftDetail,
                                          genderDivided = as.logical(input$genderDivided))
@@ -743,7 +757,7 @@ server <- function(input, output, session) {
 
         pftDetail <- PFTmanufacture_detail(measurementType = input$PFTselect,
                                            cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)),
-                                           ageSection = input$ageSection)
+                                           ageSection = as.character(input$ageSection))
 
         pftDetail_table <- pftCountTable_indetail(PFTmanufactured = pftDetail,
                                                   genderDivided = as.logical(input$genderDivided))
@@ -760,16 +774,85 @@ server <- function(input, output, session) {
 
         pftDetail <- PFTmanufacture_detail(measurementType = input$PFTselect,
                                            cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)),
-                                           ageSection = input$ageSection)
+                                           ageSection = as.character(input$ageSection))
 
-        pftDetail_table <- pftPredictTable_indetail(PFTmanufactured = pftDetail,
-                                                    genderDivided = as.logical(input$genderDivided))
+        pftpredict_table <- pftPredictTable_indetail(PFTmanufactured = pftDetail,
+                                                     genderDivided = as.logical(input$genderDivided))
 
-        return(pftDetail_table)
+        return(pftpredict_table)
     })
 
     output$PFTpredictTable_indetail <- renderTable({
         PFTpredict_indetail_table()
+    })
+
+    ######################4. tab menu result : Clinical Characteristic##################
+    ##############ui update##############
+    output$cohortchaSelect <- renderUI({
+        checkboxGroupInput("cohortchaSelect", "which asthma phenotype do you want to see?",
+                           choices = list("All Asthma Patient" = 1,
+                                          "Non-severe Asthma" = 2,
+                                          "Severe Asthma" = 3,
+                                          "Aspirin Exacerbated Respiratory Disease" = 4,
+                                          "AERD subtype 1" = 51,
+                                          "AERD subtype 2" = 52,
+                                          "AERD subtype 3" = 53,
+                                          "AERD subtype 4" = 54,
+                                          "Aspirin Tolerant Asthma" = 5)
+        )
+    })
+    ##############clinical characteristic###############
+    #mean and sd
+    meanSd <- eventReactive(input$show_clincical_charac,{
+        clinicalCharac <- clinicalCharManufacture(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)))
+        meanSdTable <- characterAnalysis(clinicalCharData)
+        return(meanSdTable)
+    })
+    output$meanSdTable <- renderTable({
+        meanSd()
+    })
+    #ANOVA p-value
+    anovatable <- eventReactive(input$show_clincical_charac,{
+        clinicalCharac <- clinicalCharManufacture(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)))
+        anovaTable <- characPvalue(clinicalCharData)
+        return(anovaTable)
+    })
+    output$anovaPvalue <- renderTable({
+        anovatable()
+    })
+    ######################5. tab menu result : Biomarker Characteristic#################
+    ##############ui update#############
+    output$cohortbioSelect <- renderUI({
+        checkboxGroupInput("cohortbioSelect", "which asthma phenotype do you want to see?",
+                           choices = list("All Asthma Patient" = 1,
+                                          "Non-severe Asthma" = 2,
+                                          "Severe Asthma" = 3,
+                                          "Aspirin Exacerbated Respiratory Disease" = 4,
+                                          "AERD subtype 1" = 51,
+                                          "AERD subtype 2" = 52,
+                                          "AERD subtype 3" = 53,
+                                          "AERD subtype 4" = 54,
+                                          "Aspirin Tolerant Asthma" = 5)
+        )
+    })
+
+    ##############biomarker characteristic###################
+    biomarker_meanSd <- eventReactive(input$show_biomarker_charac,{
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)) )
+        biomarkerMeanSd <- BiomarkerAnalysis(biomarkerData)
+        return(biomarkerMeanSd)
+    })
+    output$meanSdTable_bio <- renderTable({
+        biomarker_meanSd()
+    })
+
+    biomarker_pvalue <- eventReactive(input$show_biomarker_charac,{
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)) )
+        biomarkerPvalue <- biomarkerPvalue(biomarkerData)
+        return(biomarkerPvalue)
+    })
+    output$anovaPvalue_bio <- renderTable({
+        biomarker_pvalue()
     })
 }
 
