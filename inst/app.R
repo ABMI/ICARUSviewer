@@ -264,13 +264,28 @@ ui <- dashboardPage(
 
             #########tab menu = PFT compare more detail########
             tabItem(tabName = "PFTdetail",
-                    fluidRow(
-                        titlePanel("Pulmonary Function Test Compare in more detail"),
-                        sidebarPanel( uiOutput("PFTselect") , width = 2),
-                        sidebarPanel( uiOutput("cohortSelect") , width = 2),
-                        sidebarPanel( checkboxInput("genderDivided", label = "Gender Devided?") , width = 2),
-                        actionButton(inputId = "show_pft_in_detail", label = "SHOW")
+                    titlePanel("Pulmonary Function Test Compare in more detail"),
+                    sidebarPanel( uiOutput("PFTselect") ,
+                                  uiOutput("cohortSelect"),
+                                  checkboxGroupInput("genderDivided", "Gender Devided?", choices = list("yes" = TRUE,
+                                                                                                        "no" = FALSE) ),
+                                  textInput("ageSection", label = "write down age section",value = "ex)12/40/60/100"),
+                                  actionButton(inputId = "show_pft_in_detail", label = "SHOW") ),
+                    mainPanel(
+                        box(title = "Pulmonary Function Test Changing according to Time Flow In Detail",
+                            background = "navy", width = 12,
+                            plotOutput("PFTchanging_indetail")
+                        ),
+                        box(title = "Pulmonary Function Test Count",
+                            status = "primary", width = 12,
+                            tableOutput("PFTcountTable_indetail")
+                        ),
+                        box(title = "Pulmonary Function Test Predict",
+                            status = "primary", width = 12,
+                            tableOutput("PFTpredictTable_indetail")
+                        )
                     )
+
             )
         )
 
@@ -696,13 +711,66 @@ server <- function(input, output, session) {
                            choices = list("All Asthma Patient" = 1,
                                           "Non-severe Asthma" = 2,
                                           "Severe Asthma" = 3,
-                                          "Aspirin Exacerbated Respiratoru Disease" = 4,
+                                          "Aspirin Exacerbated Respiratory Disease" = 4,
+                                          "AERD subtype 1" = 51,
+                                          "AERD subtype 2" = 52,
+                                          "AERD subtype 3" = 53,
+                                          "AERD subtype 4" = 54,
                                           "Aspirin Tolerant Asthma" = 5)
                            )
     })
 
     ##############PFT in detail analysis result###################
+    #pft plot
+    PFT_indetail_plot <- eventReactive(input$show_pft_in_detail ,{
 
+        pftDetail <- PFTmanufacture_detail(measurementType = input$PFTselect,
+                                           cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)),
+                                           ageSection = input$ageSection)
+
+        pftDetail_plot <- plotPFT_detail(PFTmanufactured = pftDetail,
+                                         genderDivided = as.logical(input$genderDivided))
+
+        return(pftDetail_plot)
+    })
+
+    output$PFTchanging_indetail <- renderPlot({
+        PFT_indetail_plot()
+    })
+
+    #pft count table
+    PFT_indetail_table <- eventReactive(input$show_pft_in_detail ,{
+
+        pftDetail <- PFTmanufacture_detail(measurementType = input$PFTselect,
+                                           cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)),
+                                           ageSection = input$ageSection)
+
+        pftDetail_table <- pftCountTable_indetail(PFTmanufactured = pftDetail,
+                                                  genderDivided = as.logical(input$genderDivided))
+
+        return(pftDetail_table)
+    })
+
+    output$PFTcountTable_indetail <- renderTable({
+        PFT_indetail_table()
+    })
+
+    #pft predict table
+    PFTpredict_indetail_table <- eventReactive(input$show_pft_in_detail ,{
+
+        pftDetail <- PFTmanufacture_detail(measurementType = input$PFTselect,
+                                           cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)),
+                                           ageSection = input$ageSection)
+
+        pftDetail_table <- pftPredictTable_indetail(PFTmanufactured = pftDetail,
+                                                    genderDivided = as.logical(input$genderDivided))
+
+        return(pftDetail_table)
+    })
+
+    output$PFTpredictTable_indetail <- renderTable({
+        PFTpredict_indetail_table()
+    })
 }
 
 # Run the application
