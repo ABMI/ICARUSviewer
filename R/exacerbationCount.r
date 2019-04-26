@@ -38,17 +38,17 @@ sumCountExacerbation<-function(exacerbationCount,
 #'plot exacerbation Count
 #'@import dplyr
 #'@import ggplot2
-#'@param sumCountExacerbation         the result of sumCountExacerbation function
+#'@param sumCountExacerbateData         the result of sumCountExacerbation function
 #'@export
 #'
 #'
-plotExacerbationCount<-function(sumCountExacerbation){
+plotExacerbationCount<-function(sumCountExacerbateData){
 
-    exacerbationPlot <- sumCountExacerbation %>%
-        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
-                                            labels = c("Asthma", "Non-Severe Asthma",
-                                                       "Severe Asthma", "AERD",
-                                                       "ATA")) ) %>%
+    exacerbationPlot <- sumCountExacerbateData %>%
+        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,51,52,53,54),
+                                            labels = c("Asthma (2,037)", "Non-Severe Asthma (1,388)",
+                                                       "Severe Asthma (649)", "AERD (281)","ATA (584)",
+                                                       "AERDsubtype1 (61)","AERDsubtype2 (75)","AERDsubtype3 (81)","AERDsubtype4 (64)") ) ) %>%
         ggplot(aes(x = as.factor(maxExacerbationCount), y = count, group = cohortDefinitionId, colour = cohortDefinitionId)) +
         geom_point(size = 2.5)+
         geom_line(size = 2) +
@@ -69,17 +69,16 @@ plotExacerbationCount<-function(sumCountExacerbation){
 #'table of exacerbation Count
 #'@import dplyr
 #'@import reshape2
-#'@param sumCountExacerbation         the result of sumCountExacerbation function
+#'@param sumCountExacerbateData         the result of sumCountExacerbation function
 #'@export
 #'
 #'
-tableExacerbationCoun <- function(sumCountExacerbation){
-    df <- sumCountExacerbation %>%
-        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
-                                            labels = c("Asthma", "Non-Severe Asthma",
-                                                       "Severe Asthma", "AERD",
-                                                       "ATA")) ) %>%
-        mutate(percent = paste0(round((count/totalCount)*100,2), "%")) %>%
+tableExacerbationCoun <- function(sumCountExacerbateData){
+    df <- sumCountExacerbateData %>%
+        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,51,52,53,54),
+                                            labels = c("Asthma (2,037)", "Non-Severe Asthma (1,388)", "Severe Asthma (649)", "AERD (281)","ATA (584)",
+                                                       "AERDsubtype1 (61)","AERDsubtype2 (75)","AERDsubtype3 (81)","AERDsubtype4 (64)") ) ) %>%
+        mutate(percent = paste0(round( (count/totalCount)*100,2), "%")) %>%
         mutate(result = paste0(count, "(",percent,")")) %>%
         select(cohortDefinitionId, maxExacerbationCount, result)
 
@@ -103,10 +102,10 @@ p_value_ExacerbationCouny <- function(exacerbationCount,
     df <- exacerbationCount  %>%
         filter(maxExacerbationCount !=0) %>%
         filter(cohortDefinitionId %in% cohortDefinitionIdSet) %>%
-        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
-                                            labels = c("Asthma", "Non-Severe Asthma",
-                                                       "Severe Asthma", "AERD",
-                                                       "ATA")) )
+        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,51,52,53,54),
+                                            labels = c("Asthma (2,037)", "Non-Severe Asthma (1,388)",
+                                                       "Severe Asthma (649)", "AERD (281)","ATA (584)",
+                                                       "AERDsubtype1 (61)","AERDsubtype2 (75)","AERDsubtype3 (81)","AERDsubtype4 (64)") ) )
 
     t.test <- t.test(data = df, maxExacerbationCount~cohortDefinitionId)
     average <- t.test$estimate

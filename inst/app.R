@@ -169,13 +169,14 @@ ui <- dashboardPage(
                                          ),
                                          fluidRow(
                                              box(title = "Exacerbation Count Compare",
-                                                 width = 6,background = 'blue', solidHeader = TRUE,
+                                                 width = 4,background = 'blue', solidHeader = TRUE,
                                                  plotOutput("exacerbationPlot")
                                              ),
                                              box(title = "statistical analysis of Differences of exacerbation Count",
-                                                 width = 6,status = "info",solidHeader = TRUE,
-                                                 tableOutput("exacerbationTable"),
-                                                 verbatimTextOutput("exacerbationPvalue")
+                                                 width = 8,status = "info",solidHeader = TRUE,
+                                                 tableOutput("exacerbationTable")
+                                                 # ,
+                                                 # verbatimTextOutput("exacerbationPvalue")
                                              )
 
                                          )
@@ -359,7 +360,8 @@ server <- function(input, output, session) {
     output$selectcohort_phe <- renderUI({
         selectInput(inputId = "selectcohort_phe", label = "Select Cohort Set",
                     choices = c("Severe Asthma vs Non-severe Asthma" ,
-                                "Aspirin Exacerbated Repiratory Disease vs Aspirin Tolerant Asthma" ),
+                                "Aspirin Exacerbated Repiratory Disease vs Aspirin Tolerant Asthma" ,
+                                "AERD subtype compare" ),
                     multiple = FALSE)
     })
 
@@ -596,42 +598,42 @@ server <- function(input, output, session) {
     ##############exacerbation Count analysis result###############
 
     #exacerbation Count Plot
-    exacerbationCountPlot <- eventReactive(input$show_result_phe,{
-        exacerbationManufac <- exacerbaManufacture()
-        sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
-                                                    cohortDefinitionIdSet = switchcohortPhe())
-        plotExacerbation <- plotExacerbationCount(sumCountExacerbation = sumCounExacerbation)
-
-        return(plotExacerbation)
-    })
-    output$exacerbationPlot <- renderPlot({
-        exacerbationCountPlot()
-    })
+    # exacerbationCountPlot <- eventReactive(input$show_result_phe,{
+    #     exacerbationManufac <- exacerbaManufacture()
+    #     sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
+    #                                                 cohortDefinitionIdSet = switchcohortPhe())
+    #     plotExacerbation <- plotExacerbationCount(sumCountExacerbation = sumCounExacerbation)
+    #
+    #     return(plotExacerbation)
+    # })
+    # output$exacerbationPlot <- renderPlot({
+    #     exacerbationCountPlot()
+    # })
 
     #exacerbation Count Table
-    exacerbationTable <-eventReactive(input$show_result_phe,{
+    ExacerbationTable <-eventReactive(input$show_result_phe,{
         exacerbationManufac <- exacerbaManufacture()
         sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
-                                                    cohortDefinitionIdSet = switchcohortPhe())
-        tableExacerbation <- tableExacerbationCoun(sumCountExacerbation = sumCounExacerbation)
+                                                    cohortDefinitionIdSet = switchcohortPhe() )
+        tableExacerbation <- tableExacerbationCoun(sumCountExacerbateData = sumCounExacerbation)
 
         return(tableExacerbation)
     })
     output$exacerbationTable <- renderTable({
-        exacerbationTable()
+        ExacerbationTable()
     })
 
-    #p_value exacerbation Count
-    exacerbationPvalue <-eventReactive(input$show_result_phe,{
-        exacerbationManufac <- exacerbaManufacture()
-        textExacerbation <- p_value_ExacerbationCouny(exacerbationCount = exacerbationManufac,
-                                                      cohortDefinitionIdSet = switchcohortPhe())
-
-        return(textExacerbation)
-    })
-    output$exacerbationPvalue <- renderText({
-        exacerbationPvalue()
-    })
+    # #p_value exacerbation Count
+    # exacerbationPvalue <-eventReactive(input$show_result_phe,{
+    #     exacerbationManufac <- exacerbaManufacture()
+    #     textExacerbation <- p_value_ExacerbationCouny(exacerbationCount = exacerbationManufac,
+    #                                                   cohortDefinitionIdSet = switchcohortPhe())
+    #
+    #     return(textExacerbation)
+    # })
+    # output$exacerbationPvalue <- renderText({
+    #     exacerbationPvalue()
+    # })
     ##############predictive Variable analysis resylt#################
     #createUI for prediction model
     output$ModelSelect <- renderUI({
@@ -804,8 +806,8 @@ server <- function(input, output, session) {
     ##############clinical characteristic###############
     #mean and sd
     meanSd <- eventReactive(input$show_clincical_charac,{
-        clinicalCharac <- clinicalCharManufacture(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)))
-        meanSdTable <- characterAnalysis(clinicalCharData)
+        clinicalCharac <- clinicalCharManufacture(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortchaSelect)))
+        meanSdTable <- characterAnalysis(clinicalCharData = clinicalCharac)
         return(meanSdTable)
     })
     output$meanSdTable <- renderTable({
@@ -813,8 +815,8 @@ server <- function(input, output, session) {
     })
     #ANOVA p-value
     anovatable <- eventReactive(input$show_clincical_charac,{
-        clinicalCharac <- clinicalCharManufacture(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)))
-        anovaTable <- characPvalue(clinicalCharData)
+        clinicalCharac <- clinicalCharManufacture(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortchaSelect)))
+        anovaTable <- characPvalue(clinicalCharData = clinicalCharac)
         return(anovaTable)
     })
     output$anovaPvalue <- renderTable({
@@ -838,8 +840,8 @@ server <- function(input, output, session) {
 
     ##############biomarker characteristic###################
     biomarker_meanSd <- eventReactive(input$show_biomarker_charac,{
-        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)) )
-        biomarkerMeanSd <- BiomarkerAnalysis(biomarkerData)
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)) )
+        biomarkerMeanSd <- BiomarkerAnalysis(biomarkerData = biomarkerMan)
         return(biomarkerMeanSd)
     })
     output$meanSdTable_bio <- renderTable({
@@ -847,8 +849,8 @@ server <- function(input, output, session) {
     })
 
     biomarker_pvalue <- eventReactive(input$show_biomarker_charac,{
-        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortSelect)) )
-        biomarkerPvalue <- biomarkerPvalue(biomarkerData)
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)))
+        biomarkerPvalue <- biomarkerPvalue(biomarkerData = biomarkerMan)
         return(biomarkerPvalue)
     })
     output$anovaPvalue_bio <- renderTable({

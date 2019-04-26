@@ -34,7 +34,8 @@ BiomarkerAnalysis <- function(biomarkerData){
         out<-data.frame()
         for(i in as.character(unique(x$biomarker)) ){
             sub <- subset(x,x$biomarker==i)
-            meanSd <- paste( round(mean(sub$valueAsNumber, na.rm = T),2), "+/-", round(sd(sub$valueAsNumber, na.rm = T),2) )
+            meanSd <- paste( round(mean(sub$valueAsNumber, na.rm = T),2), "+/-", round(sd(sub$valueAsNumber, na.rm = T),2) ,
+                             "( N =",length(unique(sub$subjectId)), ")")
             meanSd_df <- data.frame(meanSd, stringsAsFactors = FALSE)
             #colnames(meanSd_df) <- c(cohortDefinitionId,meanSd)
 
@@ -48,6 +49,11 @@ BiomarkerAnalysis <- function(biomarkerData){
     biomarker <- as.character(unique(biomarkerData$biomarker) )
 
     outcome <- cbind(biomarker,outcome)
+
+    totalPopulation <- data.frame( matrix(c("total Population counts",sapply(split_df,FUN = function(x){length(unique(x$subjectId))} ) ),nrow = 1 ) )
+    colnames(totalPopulation) <- colnames(outcome)
+
+    outcome <- rbind(totalPopulation,outcome)
 
     return(outcome)
 }
@@ -83,4 +89,36 @@ biomarkerPvalue <- function(biomarkerData){
 
     return(outcome)
 }
+
+#'analysis of biomarker characteristics : p-value using Kruskal Wallis test
+#'@param biomarkerData  result of biomarkerManufac
+#'@export
+
+biomarkerPvalue_KW <- function(biomarkerData){
+
+    biomarkerData$cohortDefinitionId <- as.character(biomarkerData$cohortDefinitionId)
+
+    KWtest <- function(x){
+        KW <- kruskal.test(valueAsNumber~as.factor(cohortDefinitionId), data = x)
+        k <- KW$p.value
+        tukey <- TukeyHSD(anova)
+        tukey_p_value<- as.data.frame( t( round( tukey$cohortDefinitionId[,4],3 ) ) )
+        p_value <- data.frame(anova_p_value,tukey_p_value)
+        return(p_value)
+    }
+
+    out <- data.frame()
+    for(i in as.character(unique(biomarkerData$biomarker)) ){
+        sub <- subset(biomarkerData,biomarkerData$biomarker==i)
+        pvalue <- ANOVA(sub)
+
+        out <- rbind(out,pvalue)
+    }
+
+    biomarker <- as.character(unique(biomarkerData$biomarker))
+    outcome <- cbind(biomarker,out)
+
+    return(outcome)
+}
+
 

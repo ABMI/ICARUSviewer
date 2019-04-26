@@ -28,6 +28,10 @@ clinicalCharManufacture<-function(cohortDefinitionIdSet){
     return(out)
 }
 
+# demographicData%>%filter(cohortDefinitionId %in% c(51,52,53,54))%>% group_by(cohortDefinitionId)%>% summarise(count = n())
+# totalCohort %>%filter(cohortDefinitionId %in% c(51,52,53,54))%>% group_by(cohortDefinitionId)%>% summarise(count = n())
+# out%>% group_by(cohortDefinitionId)%>% summarise(count = n())
+
 #'analysis of demographic characteristics : mean, SD
 #'@param clinicalCharData  result of clinicalCharManufacture
 #'@export
@@ -40,12 +44,15 @@ characterAnalysis <- function(clinicalCharData){
 
     cal <- sapply(split_df, FUN = function(x){
 
+        totalPopulation <- nrow(x)
         age_meanSd <- paste( round(mean(x$age, na.rm = T),2), "+/-", round(sd(x$age, na.rm = T),2) )
         follow_up_meanSd <- paste( round(mean(x$followUpDuration, na.rm = T),2), "+/-", round(sd(x$followUpDuration, na.rm = T),2) )
         femalePropor <- paste( round((sum(x$genderConceptId == 8532, na.rm = T)/nrow(x))*100,2),"%" )
-        FEV1base_meanSd <- paste( round(mean(x$valueAsNumber, na.rm = T),2),"+/-",round(sd(x$valueAsNumber, na.rm = T),2) )
+        FEV1base_meanSd <- paste( round(mean(x$valueAsNumber, na.rm = T),2),"+/-",round(sd(x$valueAsNumber, na.rm = T),2),
+                                  "( N =", sum(!is.na(x$valueAsNumber)), ")" )
 
-        df <- data.frame(age = age_meanSd,
+        df <- data.frame(totalPopulation = totalPopulation,
+                         age = age_meanSd,
                          followUpDuration = follow_up_meanSd,
                          femaleProportion = femalePropor,
                          baseFEV1 = FEV1base_meanSd,
@@ -53,7 +60,7 @@ characterAnalysis <- function(clinicalCharData){
         return(df)
     })
 
-    value <- c("age(years)","followUp Duration (years)","Female Proportion (%)","baseFEV1 (%)")
+    value <- c("totalPopulation (persons)","age (years)","followUp Duration (years)","Female Proportion (%)","baseFEV1 (%)")
     cal <- cbind(value,cal)
 
     return(cal)

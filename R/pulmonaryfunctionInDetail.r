@@ -16,9 +16,9 @@ PFTmanufacture_detail <- function(measurementType,
         filter(cohortDefinitionId %in% cohortDefinitionIdSet)%>%
         mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,
                                                                            51,52,53,54),
-                                            labels = c("Asthma", "Non-Severe Asthma",
-                                                       "Severe Asthma", "AERD","ATA",
-                                                       "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4") ))
+                                            labels = c("Asthma (2,037)", "Non-Severe Asthma (1,388)",
+                                                       "Severe Asthma (649)", "AERD (281)","ATA (584)",
+                                                       "AERDsubtype1 (61)","AERDsubtype2 (75)","AERDsubtype3 (81)","AERDsubtype4 (64)") ))
     merge <- left_join(out, demographicData %>% select(personId,age,genderConceptId), by = c("subjectId" = "personId") )
 
     if(!is.null(ageSection)){
