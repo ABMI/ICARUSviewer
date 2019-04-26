@@ -32,6 +32,7 @@ ui <- dashboardPage(
             menuItem("DB connection", tabName = "db"),
             menuItem("Asthma Phenotype", tabName = "AsthmaPhenotype"),
             menuItem("Asthma Biomarker", tabName = "Biomarker"),
+
             menuItem("PFT In Detail", tabName = "PFTdetail"),
             menuItem("Clinical Characteristic", tabName = "Characteristic"),
             menuItem("Biomarker Characteristic", tabName = "biomarker")
@@ -266,6 +267,7 @@ ui <- dashboardPage(
 
             #########tab menu = PFT compare more detail########
             tabItem(tabName = "PFTdetail",
+
                     titlePanel("Pulmonary Function Test Compare in more detail"),
                     sidebarPanel( uiOutput("PFTselect") ,
                                   uiOutput("cohortSelect"),
@@ -301,12 +303,15 @@ ui <- dashboardPage(
                              actionButton(inputId = "show_biomarker_charac", label = "SHOW") ),
                     fluidRow(box(tableOutput("meanSdTable_bio"), width = 10) ),
                     fluidRow(box(tableOutput("anovaPvalue_bio"), width = 10) )
+
             )
         )
 
     ),
     skin = "black"
 )
+
+
 
 
 ####server##########################
@@ -713,6 +718,8 @@ server <- function(input, output, session) {
         out[[3]]
     })
 
+
+
     ######################3. tab menu result : PFT In Detail################
     ##############ui update###############
     output$PFTselect <- renderUI({
@@ -725,6 +732,7 @@ server <- function(input, output, session) {
                            choices = list("All Asthma Patient" = 1,
                                           "Non-severe Asthma" = 2,
                                           "Severe Asthma" = 3,
+
                                           "Aspirin Exacerbated Respiratory Disease" = 4,
                                           "AERD subtype 1" = 51,
                                           "AERD subtype 2" = 52,
@@ -735,6 +743,7 @@ server <- function(input, output, session) {
     })
 
     ##############PFT in detail analysis result###################
+
     #pft plot
     PFT_indetail_plot <- eventReactive(input$show_pft_in_detail ,{
 
@@ -854,6 +863,7 @@ server <- function(input, output, session) {
     output$anovaPvalue_bio <- renderTable({
         biomarker_pvalue()
     })
+
 }
 
 # Run the application
