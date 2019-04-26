@@ -4,10 +4,10 @@
 \alias{tableExacerbationCoun}
 \title{table of exacerbation Count}
 \usage{
-tableExacerbationCoun(sumCountExacerbation)
+tableExacerbationCoun(sumCountExacerbateData)
 }
 \arguments{
-\item{sumCountExacerbation}{the result of sumCountExacerbation function}
+\item{sumCountExacerbateData}{the result of sumCountExacerbation function}
 }
 \description{
 table of exacerbation Count

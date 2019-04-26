@@ -4,10 +4,10 @@
 \alias{plotExacerbationCount}
 \title{plot exacerbation Count}
 \usage{
-plotExacerbationCount(sumCountExacerbation)
+plotExacerbationCount(sumCountExacerbateData)
 }
 \arguments{
-\item{sumCountExacerbation}{the result of sumCountExacerbation function}
+\item{sumCountExacerbateData}{the result of sumCountExacerbation function}
 }
 \description{
 plot exacerbation Count
