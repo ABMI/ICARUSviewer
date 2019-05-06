@@ -57,7 +57,7 @@ setting <- function(){
     covariateSetting <<- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
                                                                     useDemographicsAge = TRUE,
                                                                     useMeasurementValueAnyTimePrior = TRUE,
-                                                                    useMeasurementRangeGroupAnyTimePrior = TRUE,
+                                                                    useMeasurementRangeGroupAnyTimePrior = FALSE,
                                                                     includedCovariateConceptIds = c(), addDescendantsToInclude = FALSE,
                                                                     excludedCovariateConceptIds = c(), addDescendantsToExclude = FALSE,
                                                                     includedCovariateIds = c())
