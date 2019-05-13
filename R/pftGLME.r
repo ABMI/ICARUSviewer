@@ -24,7 +24,7 @@
 #'@import lme4
 #'@import lmerTest
 #'@import effects
-#'@param pftmanufacData
+#'@param pftmanufacData result of PFTmanufacture function
 #'@export
 #'
 lmePft <- function(pftmanufacData){
@@ -82,23 +82,26 @@ plotpftLmm <- function(PFTmanufacData,
         }
     }
     plotpft <- plotpft +
-        stat_function(fun = function(x)exp(lmePftData[[1]][[1]][1] + lmePftData[[1]][[1]][2]*x), geom = "line", size = 1) +
-        stat_function(fun = function(x)exp(lmePftData[[2]][[1]][1] + lmePftData[[2]][[1]][2]*x), geom = "line", size = 1)
-
-    while(1){
-
-        # # fixef_value <- lmePftData[[j]][[1]]
-        # et_df       <- lmePftData[[j]][[2]]
-        # #plotpft <- ggplot(data = PFTmanufacData)
-        # #f <- function(x){exp(fixef_value[1] + fixef_value[2]*x)}
-
-        plotpft <- plotpft +
-            geom_line(data = lmePftData[[j]][[2]], aes(x = time, y = lower), linetype = "longdash", size = .5) +
-            geom_line(data = lmePftData[[j]][[2]], aes(x = time, y = upper), linetype = "longdash", size = .5)
-    }
+        stat_function(fun = function(x)exp(lmePftData[[1]][[1]][1] + lmePftData[[1]][[1]][2]*x), geom = "line", size = 1, colour = 'red') +
+        stat_function(fun = function(x)exp(lmePftData[[2]][[1]][1] + lmePftData[[2]][[1]][2]*x), geom = "line", size = 1, colour = 'blue')
 
     plotpft <- plotpft +
-        #coord_cartesian(xlim = c(0,15),ylim = c(50,120)) +
-        theme_bw()
+        geom_line(data = lmePftData[[1]][[2]], aes(x = time, y = lower), linetype = "longdash", size = .5, colour = 'red') +
+        geom_line(data = lmePftData[[1]][[2]], aes(x = time, y = upper), linetype = "longdash", size = .5, colour = 'red') +
+        geom_line(data = lmePftData[[2]][[2]], aes(x = time, y = lower), linetype = "longdash", size = .5, colour = 'blue') +
+        geom_line(data = lmePftData[[2]][[2]], aes(x = time, y = upper), linetype = "longdash", size = .5, colour = 'blue')
+
+    return(plotpft)
 }
 
+
+# #FEV1/FVC(%) = 3011505, FEV1(%) = 3011708
+# pftmanfac_data<- PFTmanufacture(measurementData,
+#                                 measurementType = 3011708,
+#                                 cohortDefinitionIdSet = c(4,5))
+# lmePft_data <- lmePft(pftmanufacData = pftmanfac_data)
+# plotpftLmm(PFTmanufacData = pftmanfac_data,
+#            lmePftData = lmePft_data,
+#            cohortDefinitionIdSet = c(4,5),
+#            pftIndividual = TRUE)
+# ggplot2::ggsave(file.path(outputFolder, "AERDATA_FEV1.png"))
