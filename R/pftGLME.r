@@ -76,37 +76,29 @@ plotpftLmm <- function(PFTmanufacData,
         i <- 1
         while(1){
             df <- split_list[[i]]
-            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = valueAsNumber, group = subjectId, colour = cohortDefinitionId ) )
+            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = valueAsNumber, group = subjectId, colour = cohortDefinitionId) )
             i <- i + 1
             if(i > length(cohortDefinitionIdSet) ) break
         }
     }
-    j <- 1
+    plotpft <- plotpft +
+        stat_function(fun = function(x)exp(lmePftData[[1]][[1]][1] + lmePftData[[1]][[1]][2]*x), geom = "line", size = 1) +
+        stat_function(fun = function(x)exp(lmePftData[[2]][[1]][1] + lmePftData[[2]][[1]][2]*x), geom = "line", size = 1)
+
     while(1){
 
-        fixef_value <- lmePftData[[j]][[1]]
-        et_df       <- lmePftData[[j]][[2]]
+        # # fixef_value <- lmePftData[[j]][[1]]
+        # et_df       <- lmePftData[[j]][[2]]
+        # #plotpft <- ggplot(data = PFTmanufacData)
+        # #f <- function(x){exp(fixef_value[1] + fixef_value[2]*x)}
 
         plotpft <- plotpft +
-            stat_function(fun = function(x){exp(fixef_value[1] + fixef_value[2]*x)}, geom = "line", size = 1) +
-            geom_line(data = et_df, aes(x = time, y = lower), linetype = "longdash", size = .5) +
-            geom_line(data = et_df, aes(x = time, y = upper), linetype = "longdash", size = .5)
-
-        j <- j + 1
-
-        if(j > length(cohortDefinitionIdSet) ) break
+            geom_line(data = lmePftData[[j]][[2]], aes(x = time, y = lower), linetype = "longdash", size = .5) +
+            geom_line(data = lmePftData[[j]][[2]], aes(x = time, y = upper), linetype = "longdash", size = .5)
     }
 
     plotpft <- plotpft +
-        coord_cartesian(xlim = c(0,15),ylim = c(50,120)) +
+        #coord_cartesian(xlim = c(0,15),ylim = c(50,120)) +
         theme_bw()
 }
-# ggplot(data = et_df) +
-#     # geom_ribbon(aes(x = time, ymin = lower, ymax = upper), fill = "grey", linetype = "dotted", alpha = 0.25) +
-#     # geom_point(aes(x = time, y = fit), size = 3)+
-#     # geom_line(aes(x = time, y = fit, group = 1))+
-#     stat_function(fun = function(x){exp(fixef_value[1] + fixef_value[2]*x)}, geom = "line", size = 1, colour = "red")+
-#     geom_line(aes(x = time, y = lower), linetype = "longdash", size = .5, col = "red" ) +
-#     geom_line(aes(x = time, y = upper), linetype = "longdash", size = .5, col = "red" ) +
-#     coord_cartesian(xlim = c(0,15),ylim = c(50,120)) +
-#     theme_bw()
+
