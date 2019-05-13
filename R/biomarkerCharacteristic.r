@@ -1,9 +1,11 @@
 #'analysis of demographic characteristics according to disease cohort
 #'@import dplyr
 #'@param cohortDefinitionIdSet
+#'@param logTransformBiomarkerSet
 #'@export
 
-biomarkerManufac<-function(cohortDefinitionIdSet){
+biomarkerManufac<-function(cohortDefinitionIdSet,
+                           logTransformBiomarkerSet){
     biomarker <- measureData %>%
         filter(cohortDefinitionId %in% cohortDefinitionIdSet) %>%
         filter(measurementConceptId %in% measurementId$maesurementConceptId)
@@ -15,8 +17,14 @@ biomarkerManufac<-function(cohortDefinitionIdSet){
                                                       "Severe Asthma", "AERD","ATA",
                                                       "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4") ),
                biomarker = factor(measurementConceptId, levels = measurementId$maesurementConceptId,
-                                  labels = measurementId$measureName) )
-    return(out)
+                                  labels = measurementId$measureName) ) %>%
+        mutate(biomarker = as.character(biomarker))
+
+    output <- out %>%
+        filter(valueAsNumber > 0) %>%
+        mutate(valueAsNumber = if_else(biomarker %in% logTransformBiomarkerSet, log(valueAsNumber), valueAsNumber) )
+
+    return(output)
 }
 
 #'analysis of biomarker characteristics : mean, SD

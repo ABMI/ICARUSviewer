@@ -299,6 +299,7 @@ ui <- dashboardPage(
             tabItem(tabName = "biomarker",
                     titlePanel("Comparison of Biomarker profiles among asthma cohorts"),
                     fluidRow(box(uiOutput("cohortbioSelect"), width = 6),
+                             box(uiOutput("logTransforSelect"), width = 6),
                              actionButton(inputId = "show_biomarker_charac", label = "SHOW") ),
                     fluidRow(box(tableOutput("meanSdTable_bio"), width = 10) ),
                     fluidRow(box(tableOutput("anovaPvalue_bio"), width = 10) )
@@ -838,9 +839,15 @@ server <- function(input, output, session) {
         )
     })
 
+    output$logTransforSelect <- renderUI({
+        checkboxGroupInput("biomarkerlogTransform", "Do you want to transform into log?",
+                            choices = measurementId$measureName
+        )
+    })
     ##############biomarker characteristic###################
     biomarker_meanSd <- eventReactive(input$show_biomarker_charac,{
-        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)) )
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)),
+                                         logTransformBiomarkerSet = as.character(as.vector(input$biomarkerlogTransform)))
         biomarkerMeanSd <- BiomarkerAnalysis(biomarkerData = biomarkerMan)
         return(biomarkerMeanSd)
     })
@@ -849,7 +856,8 @@ server <- function(input, output, session) {
     })
 
     biomarker_pvalue <- eventReactive(input$show_biomarker_charac,{
-        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)))
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)),
+                                         logTransformBiomarkerSet = as.character(as.vector(input$biomarkerlogTransform)))
         biomarkerPvalue <- biomarkerPvalue(biomarkerData = biomarkerMan)
         return(biomarkerPvalue)
     })
