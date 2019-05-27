@@ -44,12 +44,11 @@ setting <- function(){
                                            c(1),c(2)
                        ))
 
-    cohortList <<- list(diseaseId = c(1,2,3,4,5,51,52,53,54),
+    cohortList <<- list(diseaseId = c(1,2,3,4,5,51,52,53,54,100),
                         diseaseName = c("Asthma", "Non-Severe Asthma",
                                         "Severe Asthma", "AERD","ATA",
-                                        "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4"),
-                        color = c("black","blue","red","orange","green",
-                                  "#CC6600","#9633FF","#E2FF33","#E3DB71")
+                                        "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4",
+                                        "exacerbation")
     )
 
     measurementId <<- list(maesurementConceptId = c(2,3,4,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469),

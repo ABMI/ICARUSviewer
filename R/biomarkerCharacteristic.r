@@ -39,6 +39,7 @@ BiomarkerAnalysis <- function(biomarkerData){
 
     cal <- sapply(split_df, FUN = function(x){
         measurementId$maesurementConceptId
+
         out<-data.frame()
         for(i in measurementId$maesurementConceptId ){
             sub <- subset(x,x$measurementConceptId==i)
@@ -56,8 +57,18 @@ BiomarkerAnalysis <- function(biomarkerData){
     biomarker <- measurementId$measureName
 
     outcome <- cbind(biomarker,outcome)
+    totalPopulation <- demographicData %>%
+        mutate(cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,
+                                                                          51,52,53,54),
+                                           labels = c("Asthma", "Non-Severe Asthma",
+                                                      "Severe Asthma", "AERD","ATA",
+                                                      "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4") ) )%>%
+        filter(cohortDefinitionId %in% unique(biomarkerData$cohortDefinitionId) ) %>%
+        group_by(cohortDefinitionId) %>%
+        summarise(totalPopulation = n_distinct(personId))
 
-    totalPopulation <- data.frame( matrix(c("total Population counts",sapply(split_df,FUN = function(x){length(unique(x$subjectId))} ) ),nrow = 1 ) )
+    totalPopulation <- data.frame( matrix(as.matrix(totalPopulation)[,2],nrow = 1) )
+    totalPopulation <- cbind('totalPopulation',totalPopulation)
     colnames(totalPopulation) <- colnames(outcome)
 
     outcome <- rbind(totalPopulation,outcome)

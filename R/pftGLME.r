@@ -45,7 +45,10 @@ lmePft <- function(pftmanufacData){
 
         effect_value_df <- as.data.frame(effect_value)
 
-        out <- list(fixef_value,
+        cohortDefinition <- unique(df$cohortDefinitionId)
+
+        out <- list(cohortDefinition,
+                    fixef_value,
                     effect_value_df)
 
         return(out)
@@ -57,51 +60,144 @@ lmePft <- function(pftmanufacData){
 #'plot pft trajectory line and its CI
 #'@import ggplot
 #'@import dplyr
-#'@param PFTmanufacData
+#'@param pftmanufacData
 #'@param lmePftData
 #'@param cohortDefinitionIdSet
 #'@param pftIndividual       logical (TRUE/FALSE)
+#'@param alpha
+#'@param CIlineSize
 #'@export
 #'
 
-plotpftLmm <- function(PFTmanufacData,
+plotpftLmm <- function(pftmanufacData,
                        lmePftData,
                        cohortDefinitionIdSet,
-                       pftIndividual = TRUE){
+                       pftIndividual = TRUE,
+                       alpha = 0.002,
+                       CIlineSize = 0){
 
-    plotpft <- ggplot(data = PFTmanufacData)
-    split_list <- split(PFTmanufacData, PFTmanufacData$cohortDefinitionId)
+    plotpft <- ggplot(data = pftmanufacData)
+    split_list <- split(pftmanufacData, pftmanufacData$cohortDefinitionId)
+
+    # #colour list
+    # lmePftData[[1]][[1]] = "red"
+    # lmePftData[[2]][[1]] = "orange"
+    # lmePftData[[3]][[1]] = "green"
+    # lmePftData[[4]][[1]] = "blue"
+    # lmePftData[[5]][[1]] = "purple"
 
     if(pftIndividual){
         i <- 1
         while(1){
             df <- split_list[[i]]
-            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = valueAsNumber, group = subjectId, colour = cohortDefinitionId) )
+            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = valueAsNumber, group = subjectId, colour = cohortDefinitionId ), size = 0.01, alpha = alpha)
             i <- i + 1
             if(i > length(cohortDefinitionIdSet) ) break
         }
     }
-    plotpft <- plotpft +
-        stat_function(fun = function(x)exp(lmePftData[[1]][[1]][1] + lmePftData[[1]][[1]][2]*x), geom = "line", size = 1, colour = 'red') +
-        stat_function(fun = function(x)exp(lmePftData[[2]][[1]][1] + lmePftData[[2]][[1]][2]*x), geom = "line", size = 1, colour = 'blue')
 
     plotpft <- plotpft +
-        geom_line(data = lmePftData[[1]][[2]], aes(x = time, y = lower), linetype = "longdash", size = .5, colour = 'red') +
-        geom_line(data = lmePftData[[1]][[2]], aes(x = time, y = upper), linetype = "longdash", size = .5, colour = 'red') +
-        geom_line(data = lmePftData[[2]][[2]], aes(x = time, y = lower), linetype = "longdash", size = .5, colour = 'blue') +
-        geom_line(data = lmePftData[[2]][[2]], aes(x = time, y = upper), linetype = "longdash", size = .5, colour = 'blue')
+        stat_function(fun = function(x)exp(lmePftData[[1]][[2]][1] + lmePftData[[1]][[2]][2]*x), geom = "line", size = 2, colour = 'red') +
+        geom_line(data = lmePftData[[1]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'red') +
+        geom_line(data = lmePftData[[1]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'red')
+
+    if(length(cohortDefinitionIdSet) == 2){
+        plotpft <- plotpft  +
+            stat_function(fun = function(x)exp(lmePftData[[2]][[2]][1] + lmePftData[[2]][[2]][2]*x), geom = "line", size = 2, colour = 'blue') +
+            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'blue') +
+            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'blue')
+    }
+
+    else if(length(cohortDefinitionIdSet) == 5){
+        plotpft <- plotpft  +
+            stat_function(fun = function(x)exp(lmePftData[[2]][[2]][1] + lmePftData[[2]][[2]][2]*x), geom = "line", size = 2, colour = 'orange') +
+            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'orange') +
+            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'orange')+
+            stat_function(fun = function(x)exp(lmePftData[[3]][[2]][1] + lmePftData[[3]][[2]][2]*x), geom = "line", size = 2, colour = 'green') +
+            geom_line(data = lmePftData[[3]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'green') +
+            geom_line(data = lmePftData[[3]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'green')+
+            stat_function(fun = function(x)exp(lmePftData[[4]][[2]][1] + lmePftData[[4]][[2]][2]*x), geom = "line", size = 2, colour = 'blue') +
+            geom_line(data = lmePftData[[4]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'blue') +
+            geom_line(data = lmePftData[[4]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'blue')+
+            stat_function(fun = function(x)exp(lmePftData[[5]][[2]][1] + lmePftData[[5]][[2]][2]*x), geom = "line", size = 2, colour = 'purple') +
+            geom_line(data = lmePftData[[5]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'purple') +
+            geom_line(data = lmePftData[[5]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'purple')
+    }
 
     return(plotpft)
 }
+##################################################################################################
 
 
-# #FEV1/FVC(%) = 3011505, FEV1(%) = 3011708
+# plotpftLmm <- function(pftmanufacData,
+#                        lmePftData,
+#                        cohortDefinitionIdSet,
+#                        pftIndividual = TRUE,
+#                        alpha = 0.002,
+#                        CIlineSize = 0){
+#
+#     plotpft <- ggplot(data = pftmanufacData)
+#     split_list <- split(pftmanufacData, pftmanufacData$cohortDefinitionId)
+#
+#     if(pftIndividual){
+#         i <- 1
+#         while(1){
+#             df <- split_list[[i]]
+#             plotpft <- plotpft + geom_line(data = df, aes(x = time, y = valueAsNumber, group = subjectId), size = 0.01, alpha = alpha, colour = "orange")
+#             i <- i + 1
+#             if(i > length(cohortDefinitionIdSet) ) break
+#         }
+#     }
+#
+#     plotpft <- plotpft +
+#         stat_function(fun = function(x)exp(lmePftData[[1]][[2]][1] + lmePftData[[1]][[2]][2]*x), geom = "line", size = 1, colour = 'brown') +
+#         geom_line(data = lmePftData[[1]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'brown')+
+#         geom_line(data = lmePftData[[1]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'brown')
+#
+#     if(length(cohortDefinitionIdSet) == 2){
+#         plotpft <- plotpft  +
+#             stat_function(fun = function(x)exp(lmePftData[[2]][[2]][1] + lmePftData[[2]][[2]][2]*x), geom = "line", size = 1, colour = 'blue') +
+#             geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'blue') +
+#             geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'blue')
+#     }
+#
+#     else if(length(cohortDefinitionIdSet) == 5){
+#         plotpft <- plotpft  +
+#             stat_function(fun = function(x)exp(lmePftData[[2]][[2]][1] + lmePftData[[2]][[2]][2]*x), geom = "line", size = 1, colour = 'orange') +
+#             geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'orange') +
+#             geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'orange')+
+#             stat_function(fun = function(x)exp(lmePftData[[3]][[2]][1] + lmePftData[[3]][[2]][2]*x), geom = "line", size = 1, colour = 'green') +
+#             geom_line(data = lmePftData[[3]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'green') +
+#             geom_line(data = lmePftData[[3]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'green')+
+#             stat_function(fun = function(x)exp(lmePftData[[4]][[2]][1] + lmePftData[[4]][[2]][2]*x), geom = "line", size = 1, colour = 'blue') +
+#             geom_line(data = lmePftData[[4]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'blue') +
+#             geom_line(data = lmePftData[[4]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'blue')+
+#             stat_function(fun = function(x)exp(lmePftData[[5]][[2]][1] + lmePftData[[5]][[2]][2]*x), geom = "line", size = 1, colour = 'purple') +
+#             geom_line(data = lmePftData[[5]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'purple') +
+#             geom_line(data = lmePftData[[5]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'purple')
+#     }
+#
+#     return(plotpft)
+# }
+
+#
+# # #FEV1/FVC(%) = 3011505, FEV1(%) = 3011708
 # pftmanfac_data<- PFTmanufacture(measurementData,
 #                                 measurementType = 3011708,
-#                                 cohortDefinitionIdSet = c(4,5))
+#                                 cohortDefinitionIdSet = c(51))
 # lmePft_data <- lmePft(pftmanufacData = pftmanfac_data)
-# plotpftLmm(PFTmanufacData = pftmanfac_data,
+# plotpftLmm(pftmanufacData = pftmanfac_data,
 #            lmePftData = lmePft_data,
-#            cohortDefinitionIdSet = c(4,5),
-#            pftIndividual = TRUE)
-# ggplot2::ggsave(file.path(outputFolder, "AERDATA_FEV1.png"))
+#            cohortDefinitionIdSet = c(51),
+#            pftIndividual = TRUE,
+#            alpha = 0.5,
+#            CIlineSize = 0)
+# # plot_aerd +
+# #     coord_cartesian(xlim = c(0,15),ylim = c(50,100)) +
+# #     theme_bw()
+# ggplot2::ggsave(file.path(outputFolder, "sub1_fev1_1.png"))
+#
+# pftmanfac_data<- PFTmanufacture(measurementData,
+#                                 measurementType = 3011505,
+#                                 cohortDefinitionIdSet = c(5,51,52,53,54))
+# pftmanfac_data %>% group_by(cohortDefinitionId) %>% summarise(count = n_distinct(subjectId))
