@@ -3,6 +3,7 @@ check.packages("Rcpp")
 check.packages("dplyr")
 check.packages("reshape2")
 check.packages("ggplot2")
+check.packages("plotly")
 check.packages("shiny")
 check.packages("SqlRender")
 check.packages("DatabaseConnector")
@@ -118,10 +119,10 @@ ui <- dashboardPage(
                                          fluidRow(
                                              box(title = "FEV1(%) change according to time flow",
                                                  width = 6,status = "primary",solidHeader = TRUE,
-                                                 plotOutput("FEV1plot")),
+                                                 plotlyOutput("FEV1plot")),
                                              box(title = "FEV1/FVC(%) change according to time flow",
                                                  width = 6,status = "warning",solidHeader = TRUE,
-                                                 plotOutput("FEV1FVCplot")
+                                                 plotlyOutput("FEV1FVCplot")
                                              )
                                          ),
                                          fluidRow(
@@ -498,8 +499,8 @@ server <- function(input, output, session) {
         FEV1plot <- plotPFT(PFTmanufactured = FEV1data)
         FEV1plot
     })
-    output$FEV1plot <- renderPlot({
-        plotFEV1()
+    output$FEV1plot <- renderPlotly({
+        ggplotly(plotFEV1())
     })
     #FEV1FVCplot
     plotFEV1FVC <- eventReactive(input$show_result_phe,{
@@ -510,8 +511,8 @@ server <- function(input, output, session) {
         FEV1FVCplot <- plotPFT(PFTmanufactured = FEV1FVCdata)
         FEV1FVCplot
     })
-    output$FEV1FVCplot <- renderPlot({
-        plotFEV1FVC()
+    output$FEV1FVCplot <- renderPlotly({
+        ggplotly(plotFEV1FVC())
     })
 
     #FEV1 table

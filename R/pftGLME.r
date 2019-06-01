@@ -7,19 +7,21 @@
 #                            cohortDefinitionIdSet){
 #
 #     out <- measurementData %>%
-#         filter( measurementConceptId == measurementType ) %>%
-#         filter( time >= 0 ) %>%
-#         filter( valueAsNumber < 200 ) %>%
-#         filter( cohortDefinitionId %in% cohortDefinitionIdSet )%>%
-#         mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
+#         filter(measurementConceptId == measurementType) %>%
+#         filter(time >= 0) %>%
+#         filter(valueAsNumber < 200) %>%
+#         filter(cohortDefinitionId %in% cohortDefinitionIdSet)%>%
+#         mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,51,52,53,54,100,101,300,301),
 #                                             labels = c("Asthma", "Non-Severe Asthma",
-#                                                        "Severe Asthma", "AERD",
-#                                                        "ATA"))) %>%
+#                                                        "Severe Asthma", "AERD","ATA",
+#                                                        "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4",
+#                                                        "exacerbation","GINA_STEP_4/5",
+#                                                        "exacerbation","non-exacerbation"))) %>%
 #         mutate( cohortDefinitionId = as.character(cohortDefinitionId) )
 #
 #     return(out)
 # }
-
+# fev1 <- PFTmanufacture(measureData, measurementType = 3011708, cohortDefinitionIdSet = c(300,301))
 
 #'use linear mixed model regression, find regression line and its CI 95%
 #'@import lme4
@@ -35,14 +37,10 @@ lmePft <- function(pftmanufacData){
     calLmm <- lapply(split_list, FUN = function(x){
 
         df <- as.data.frame(x)
-        lmm_randomSIind  <- lmer(formula = log(valueAsNumber) ~ time + (1|subjectId) + (0 + time|subjectId), data = df, REML = F )
+        lmm_randomSIind  <- lmer(formula = valueAsNumber ~ time + (1|subjectId) + (0 + time|subjectId), data = df, REML = F )
         fixef_value <- t(lme4::fixef(lmm_randomSIind))
 
         effect_value <- effects::effect("time", lmm_randomSIind)
-
-        effect_value$lower <- exp(effect_value$lower)
-        effect_value$upper <- exp(effect_value$upper)
-        effect_value$fit   <- exp(effect_value$fit)
 
         effect_value_df <- as.data.frame(effect_value)
 
@@ -74,7 +72,7 @@ plotpftLmm <- function(pftmanufacData,
                        lmePftData,
                        cohortDefinitionIdSet,
                        pftIndividual = TRUE,
-                       alpha = 0.002,
+                       alpha = 0.05,
                        CIlineSize = 0){
 
     plotpft <- ggplot(data = pftmanufacData)
