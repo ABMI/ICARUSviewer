@@ -1,7 +1,7 @@
-# check.packages("lme4")
-# check.packages("lmerTest")
-# check.packages("effects")
-#
+# # check.packages("lme4")
+# # check.packages("lmerTest")
+# # check.packages("effects")
+# #
 # PFTmanufacture <- function(measurementData,
 #                            measurementType,
 #                            cohortDefinitionIdSet){
@@ -19,6 +19,7 @@
 #
 #     return(out)
 # }
+
 
 #'use linear mixed model regression, find regression line and its CI 95%
 #'@import lme4
@@ -124,6 +125,8 @@ plotpftLmm <- function(pftmanufacData,
             geom_line(data = lmePftData[[5]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'purple')
     }
 
+    plotpft <- plotpft +
+        coord_cartesian(xlim = c(0,15))
     return(plotpft)
 }
 ##################################################################################################
