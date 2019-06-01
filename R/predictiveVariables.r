@@ -47,11 +47,12 @@ getPlpData <- function(connectionDetails,
     populationOut<- PatientLevelPrediction::createStudyPopulation(plpData = plpOut,
                                                                   outcomeId = outcomeCohortConceptId,
                                                                   binary = TRUE,
-                                                                  firstExposureOnly = TRUE,
+                                                                  firstExposureOnly = FALSE,
                                                                   washoutPeriod = washoutPeriod,
                                                                   removeSubjectsWithPriorOutcome = removeSubjectsWithPriorOutcome,
                                                                   riskWindowStart = riskWindowStart,
                                                                   riskWindowEnd = riskWindowEnd,
+                                                                  minTimeAtRisk = 7,
                                                                   addExposureDaysToEnd = FALSE,
                                                                   addExposureDaysToStart = FALSE)
 
@@ -65,10 +66,12 @@ getPlpData <- function(connectionDetails,
 #'@import  PatientLevelPrediction
 #'@param   getplpOut              get from getPlpData code
 #'@param   learningModel          input$ModelSelect
+#'@param   splitSeed              seed setting
 #'@param
 #'@export
 RunPlp <- function(getplpOut,
-                   learningModel){
+                   learningModel,
+                   splitSeed = 2354538){
 
     Sys.setlocale(category="LC_CTYPE", locale="C")
 
@@ -77,12 +80,13 @@ RunPlp <- function(getplpOut,
                                              modelSettings = learningModel,
                                              testSplit = "person",
                                              testFraction = 0.25,
-                                             nfold = 3,
+                                             nfold = 4,
                                              saveDirectory = outputFolder,
                                              savePlpData = F,
                                              savePlpResult = F,
                                              savePlpPlots = F,
-                                             saveEvaluation = F)
+                                             saveEvaluation = F,
+                                             splitSeed = splitSeed)
     #?PatientLevelPrediction::runPlp
     return(MLresult)
 }

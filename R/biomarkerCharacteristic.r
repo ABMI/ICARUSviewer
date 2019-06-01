@@ -3,7 +3,7 @@
 #'@param cohortDefinitionIdSet
 #'@param logTransformBiomarkerSet
 #'@export
-
+#'
 biomarkerManufac<-function(cohortDefinitionIdSet,
                            logTransformBiomarkerSet){
     biomarker <- measureData %>%
@@ -12,13 +12,13 @@ biomarkerManufac<-function(cohortDefinitionIdSet,
 
     out <- biomarker %>%
         mutate(cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,
-                                                                          51,52,53,54),
-                                           labels = c("Asthma", "Non-Severe Asthma",
-                                                      "Severe Asthma", "AERD","ATA",
-                                                      "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4") ),
+                                                                          51,52,53,54,
+                                                                          300,301),
+                                           labels = c("Asthma", "Non-Severe Asthma","Severe Asthma", "AERD","ATA",
+                                                      "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4",
+                                                      "exacerbation new", "non-exacerbation new") ),
                biomarker = factor(measurementConceptId, levels = measurementId$maesurementConceptId,
-                                  labels = measurementId$measureName) ) %>%
-        mutate(biomarker = as.character(biomarker))
+                                  labels = measurementId$measureName) )
 
     output <- out %>%
         filter(valueAsNumber > 0) %>%
@@ -57,15 +57,18 @@ BiomarkerAnalysis <- function(biomarkerData){
     biomarker <- measurementId$measureName
 
     outcome <- cbind(biomarker,outcome)
+
     totalPopulation <- demographicData %>%
         mutate(cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,
-                                                                          51,52,53,54),
-                                           labels = c("Asthma", "Non-Severe Asthma",
-                                                      "Severe Asthma", "AERD","ATA",
-                                                      "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4") ) )%>%
+                                                                          51,52,53,54,
+                                                                          300,301),
+                                           labels = c("Asthma", "Non-Severe Asthma","Severe Asthma", "AERD","ATA",
+                                                      "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4",
+                                                      "exacerbation new", "non-exacerbation new") ) )%>%
         filter(cohortDefinitionId %in% unique(biomarkerData$cohortDefinitionId) ) %>%
         group_by(cohortDefinitionId) %>%
-        summarise(totalPopulation = n_distinct(personId))
+        summarise(totalPopulation = n_distinct(personId)) %>%
+        mutate(cohortDefinitionId = as.character(cohortDefinitionId))
 
     totalPopulation <- data.frame( matrix(as.matrix(totalPopulation)[,2],nrow = 1) )
     totalPopulation <- cbind('totalPopulation',totalPopulation)
