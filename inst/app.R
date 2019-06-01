@@ -1,4 +1,5 @@
 # #check package ready
+check.packages("Rcpp")
 check.packages("dplyr")
 check.packages("reshape2")
 check.packages("ggplot2")
@@ -23,7 +24,7 @@ Sys.setlocale(category = "LC_ALL", locale = "us")
 ui <- dashboardPage(
 
     #header
-    dashboardHeader(title = "ICARUSviewer"),
+    dashboardHeader(title = "ICARUS WINGS"),
 
     #side bar menu
     dashboardSidebar(
@@ -34,7 +35,9 @@ ui <- dashboardPage(
             menuItem("Asthma Biomarker", tabName = "Biomarker"),
             menuItem("PFT In Detail", tabName = "PFTdetail"),
             menuItem("Clinical Characteristic", tabName = "Characteristic"),
-            menuItem("Biomarker Characteristic", tabName = "biomarker")
+            menuItem("Biomarker Characteristic", tabName = "biomarker"),
+            menuItem("Asthma Phenotype 2", tabName = "AsthmaPhenotype2"),
+            menuItem("Prediction Model Develop", tabName = "Prediction")
             # ,
             # menuItem("Comorbidity", tabName = "comorbidity")
         )
@@ -303,6 +306,34 @@ ui <- dashboardPage(
                              actionButton(inputId = "show_biomarker_charac", label = "SHOW") ),
                     fluidRow(box(tableOutput("meanSdTable_bio"), width = 10) ),
                     fluidRow(box(tableOutput("anovaPvalue_bio"), width = 10) )
+            ),
+            #########tab menu = Asthma Phenotype 2####################
+            tabItem(tabName = "AsthmaPhenotype2",
+                    titlePanel("Choose asthma phenotypes you want to compare"),
+                    fluidRow(box(selectInput("asthmaCohortSelect","choose cohorts you want to compare",
+                                             choices = c("Total asthma" = 1,
+                                                         "Non-severe asthma" = 2,
+                                                         "Severe asthma" = 3,
+                                                         "Aspirin exacerbated respiratory disease" = 4,
+                                                         "Aspirin tolerant asthma" = 5,
+                                                         "Create myself" = "CREATE"),
+                                             multiple = TRUE, selected = "Please choose cohort" ),
+                                 width = 4 ),
+                             box(conditionalPanel(condition = "input.asthmaCohortSelect.indexOf('CREATE') > -1",
+                                                  textInput("cohortName","cohort Name","") ),
+                                 conditionalPanel(condition = "input.asthmaCohortSelect.indexOf('CREATE') > -1",
+                                                  selectInput("drugSelect","asthma medication select",
+                                                              choices = c("don't care" = "Drugflip",
+                                                                          "all asthma medication",
+                                                                          "MD/HD-ICS + LABA start") ) ),
+                                 conditionalPanel(condition = "input.drugSelect != 'Drugflip'",
+                                                  numericInput("drugDuration","How long drug exposure continued","730") ),
+                                 conditionalPanel(condition = "input.asthmaCohortSelect.indexOf('CREATE') > -1",
+                                                  numericInput("exacerbationCount","How many asthma exacerbation occur","0") ),
+                                 conditionalPanel(condition = "input.exacerbationCount != 0",
+                                                  numericInput("exacerbationDuration","How long do you watch exacerbation","365") ),
+                                 width = 4 )
+                    )
             )
         )
 
@@ -362,6 +393,7 @@ server <- function(input, output, session) {
         selectInput(inputId = "selectcohort_phe", label = "Select Cohort Set",
                     choices = c("Severe Asthma vs Non-severe Asthma" ,
                                 "Aspirin Exacerbated Repiratory Disease vs Aspirin Tolerant Asthma" ,
+                                "Exacerbation vs Non-exacerbation",
                                 "AERD subtype compare" ),
                     multiple = FALSE)
     })
@@ -449,7 +481,6 @@ server <- function(input, output, session) {
                                               cohortDefinitionIdSet = switchcohortPhe())
         demographic_cal(charactManufac = demographic_ready,
                         dividedVariable = "bmi")
-
     })
     output$genderbmip_value <- renderText({
         bmigender_pvalue()
@@ -666,8 +697,8 @@ server <- function(input, output, session) {
                                     outcomeCohortConceptId = switchcohortPlp(),
                                     covariateSetting = covariateSetting,
                                     washoutPeriod = 0,
-                                    removeSubjectsWithPriorOutcome = TRUE,
-                                    riskWindowStart = 0,
+                                    removeSubjectsWithPriorOutcome = FALSE,
+                                    riskWindowStart = 1,
                                     riskWindowEnd = 365*15)
         readyPlp <<- readyPlpData
 
@@ -685,7 +716,8 @@ server <- function(input, output, session) {
         readyPlpData<-readyPlp
 
         machineLearningResult <- RunPlp(getplpOut = readyPlpData,
-                                        learningModel = switchModel())
+                                        learningModel = switchModel(),
+                                        splitSeed = -7946171)
 
         plot <- plotPredictiveVariables(machineLearningData = machineLearningResult,
                                         rankCount = 40)
@@ -801,7 +833,10 @@ server <- function(input, output, session) {
                                           "AERD subtype 2" = 52,
                                           "AERD subtype 3" = 53,
                                           "AERD subtype 4" = 54,
-                                          "Aspirin Tolerant Asthma" = 5)
+                                          "Aspirin Tolerant Asthma" = 5,
+                                          #"GINA step 4-5" = 200,
+                                          "exacerbation_new" = 300,
+                                          "non_exacerbation_new" = 301)
         )
     })
     ##############clinical characteristic###############
@@ -835,7 +870,10 @@ server <- function(input, output, session) {
                                           "AERD subtype 2" = 52,
                                           "AERD subtype 3" = 53,
                                           "AERD subtype 4" = 54,
-                                          "Aspirin Tolerant Asthma" = 5)
+                                          "Aspirin Tolerant Asthma" = 5,
+                                          #"GINA step 4-5" = 200,
+                                          "exacerbation_new" = 300,
+                                          "non_exacerbation_new" = 301 )
         )
     })
 
