@@ -15,6 +15,9 @@ check.packages("tidyverse")
 check.packages("epitools")
 check.packages("mgcv")
 check.packages("ICARUSviewer")
+check.packages("lme4")
+check.packages("lmerTest")
+check.packages("effects")
 
 outputFolder <<- Sys.getenv("outputFolder")
 
@@ -117,26 +120,31 @@ ui <- dashboardPage(
                                              titlePanel("Pulmonary Function Test changing comparison")
                                          ),
                                          fluidRow(
-                                             box(title = "FEV1(%) change according to time flow",
-                                                 width = 6,status = "primary",solidHeader = TRUE,
-                                                 plotlyOutput("FEV1plot")),
-                                             box(title = "FEV1/FVC(%) change according to time flow",
-                                                 width = 6,status = "warning",solidHeader = TRUE,
-                                                 plotlyOutput("FEV1FVCplot")
-                                             )
+                                             sidebarPanel(checkboxInput("pftIndividual", "Do you want to see all subjects' trajectories?", value = TRUE),
+                                                          checkboxInput("ConfidencialIntervalVisualize", "Do you want to see CI?", value = TRUE))
                                          ),
                                          fluidRow(
                                              box(title = "FEV1(%) change according to time flow",
-                                                 width = 6,status = "primary",solidHeader = TRUE,
-                                                 tableOutput("FEV1counttable"),
-                                                 tableOutput("FEV1predicttable")
-                                             ),
+                                                 width = 4, status = "primary",solidHeader = TRUE,
+                                                 plotlyOutput("FEV1plot")),
                                              box(title = "FEV1/FVC(%) change according to time flow",
-                                                 width = 6,status = "warning",solidHeader = TRUE,
-                                                 tableOutput("FEV1FVCcounttable"),
-                                                 tableOutput("FEV1FVCpredicttable")
+                                                 width = 4, status = "warning",solidHeader = TRUE,
+                                                 plotlyOutput("FEV1FVCplot")
                                              )
                                          )
+                                         # ,
+                                         # fluidRow(
+                                         #     box(title = "FEV1(%) change according to time flow",
+                                         #         width = 6,status = "primary",solidHeader = TRUE,
+                                         #         tableOutput("FEV1counttable"),
+                                         #         tableOutput("FEV1predicttable")
+                                         #     ),
+                                         #     box(title = "FEV1/FVC(%) change according to time flow",
+                                         #         width = 6,status = "warning",solidHeader = TRUE,
+                                         #         tableOutput("FEV1FVCcounttable"),
+                                         #         tableOutput("FEV1FVCpredicttable")
+                                         #     )
+                                         # )
                                 ),
                                 ############comorbidity analysis tab#####################
                                 tabPanel("comorbidity",
@@ -496,7 +504,13 @@ server <- function(input, output, session) {
         FEV1data <- PFTmanufacture(measurementData = measureData,
                                    measurementType = 3011708,
                                    cohortDefinitionIdSet = switchcohortPhe())
-        FEV1plot <- plotPFT(PFTmanufactured = FEV1data)
+
+        lmeFEV1data <- lmePft(pftmanufacData = FEV1data)
+
+        FEV1plot <- plotpftLmm(pftmanufacData = FEV1data,
+                               lmePftData = lmeFEV1data,
+                               pftIndividual = input$pftIndividual,
+                               ConfidencialIntervalVisualize = input$ConfidencialIntervalVisualize)
         FEV1plot
     })
     output$FEV1plot <- renderPlotly({
@@ -508,61 +522,68 @@ server <- function(input, output, session) {
         FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
                                       measurementType = 3011505,
                                       cohortDefinitionIdSet = switchcohortPhe())
-        FEV1FVCplot <- plotPFT(PFTmanufactured = FEV1FVCdata)
+
+        lmeFEV1FVCdata <- lmePft(pftmanufacData = FEV1FVCdata)
+
+        FEV1FVCplot <- plotpftLmm(pftmanufacData = FEV1FVCdata,
+                                  lmePftData = lmeFEV1FVCdata,
+                                  pftIndividual = input$pftIndividual,
+                                  ConfidencialIntervalVisualize = input$ConfidencialIntervalVisualize)
+
         FEV1FVCplot
     })
     output$FEV1FVCplot <- renderPlotly({
         ggplotly(plotFEV1FVC())
     })
 
-    #FEV1 table
-    tablecountFEV1 <- eventReactive(input$show_result_phe,{
-        FEV1data <- PFTmanufacture(measurementData = measureData,
-                                   measurementType = 3011708,
-                                   cohortDefinitionIdSet = switchcohortPhe())
-        FEV1countTable <- pft_count_table(PFTmanufactured = FEV1data)
-        FEV1countTable
-    })
-    tablepredictFEV1 <- eventReactive(input$show_result_phe,{
-        FEV1data <- PFTmanufacture(measurementData = measureData,
-                                   measurementType = 3011708,
-                                   cohortDefinitionIdSet = switchcohortPhe())
-        FEV1predictTable <- pft_predict_table(PFTmanufactured = FEV1data)
-        FEV1predictTable
-    })
-
-    output$FEV1counttable <- renderTable({
-        tablecountFEV1()
-    })
-
-    output$FEV1predicttable <- renderTable({
-        tablepredictFEV1()
-    })
-
-    #FEV1FVC table
-    tablecountFEV1FVC <- eventReactive(input$show_result_phe,{
-        FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
-                                      measurementType = 3011505,
-                                      cohortDefinitionIdSet = switchcohortPhe())
-        FEV1FVCcountTable <- pft_count_table(PFTmanufactured = FEV1FVCdata)
-        FEV1FVCcountTable
-    })
-
-    tablepredictFEV1FVC <- eventReactive(input$show_result_phe,{
-        FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
-                                      measurementType = 3011505,
-                                      cohortDefinitionIdSet = switchcohortPhe())
-        FEV1FVCpredictTable <- pft_predict_table(PFTmanufactured = FEV1FVCdata)
-        FEV1FVCpredictTable
-    })
-
-    output$FEV1FVCcounttable <- renderTable({
-        tablecountFEV1FVC()
-    })
-
-    output$FEV1FVCpredicttable <- renderTable({
-        tablepredictFEV1FVC()
-    })
+    # #FEV1 table
+    # tablecountFEV1 <- eventReactive(input$show_result_phe,{
+    #     FEV1data <- PFTmanufacture(measurementData = measureData,
+    #                                measurementType = 3011708,
+    #                                cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1countTable <- pft_count_table(PFTmanufactured = FEV1data)
+    #     FEV1countTable
+    # })
+    # tablepredictFEV1 <- eventReactive(input$show_result_phe,{
+    #     FEV1data <- PFTmanufacture(measurementData = measureData,
+    #                                measurementType = 3011708,
+    #                                cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1predictTable <- pft_predict_table(PFTmanufactured = FEV1data)
+    #     FEV1predictTable
+    # })
+    #
+    # output$FEV1counttable <- renderTable({
+    #     tablecountFEV1()
+    # })
+    #
+    # output$FEV1predicttable <- renderTable({
+    #     tablepredictFEV1()
+    # })
+    #
+    # #FEV1FVC table
+    # tablecountFEV1FVC <- eventReactive(input$show_result_phe,{
+    #     FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
+    #                                   measurementType = 3011505,
+    #                                   cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1FVCcountTable <- pft_count_table(PFTmanufactured = FEV1FVCdata)
+    #     FEV1FVCcountTable
+    # })
+    #
+    # tablepredictFEV1FVC <- eventReactive(input$show_result_phe,{
+    #     FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
+    #                                   measurementType = 3011505,
+    #                                   cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1FVCpredictTable <- pft_predict_table(PFTmanufactured = FEV1FVCdata)
+    #     FEV1FVCpredictTable
+    # })
+    #
+    # output$FEV1FVCcounttable <- renderTable({
+    #     tablecountFEV1FVC()
+    # })
+    #
+    # output$FEV1FVCpredicttable <- renderTable({
+    #     tablepredictFEV1FVC()
+    # })
 
     ##############comorbidity analysis result####################
 

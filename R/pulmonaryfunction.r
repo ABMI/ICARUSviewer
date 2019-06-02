@@ -14,12 +14,12 @@ PFTmanufacture <- function(measurementData,
         filter(time >= 0) %>%
         filter(valueAsNumber < 200) %>%
         filter(cohortDefinitionId %in% cohortDefinitionIdSet)%>%
-        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,51,52,53,54,100,101,200,201,204),
+        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,51,52,53,54,100,101,300,301),
                                             labels = c("Asthma", "Non-Severe Asthma",
                                                        "Severe Asthma", "AERD","ATA",
                                                        "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4",
                                                        "exacerbation","GINA_STEP_4/5",
-                                                       "GINA step 4-5","not_exacerbation_new","exacerbation_new"))) %>%
+                                                       "exacerbation","not_exacerbation"))) %>%
         mutate( cohortDefinitionId = as.character(cohortDefinitionId) )
 
     return(out)

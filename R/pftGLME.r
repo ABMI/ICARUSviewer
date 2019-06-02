@@ -1,6 +1,6 @@
-# # check.packages("lme4")
-# # check.packages("lmerTest")
-# # check.packages("effects")
+# check.packages("lme4")
+# check.packages("lmerTest")
+# check.packages("effects")
 # #
 # PFTmanufacture <- function(measurementData,
 #                            measurementType,
@@ -61,19 +61,15 @@ lmePft <- function(pftmanufacData){
 #'@import dplyr
 #'@param pftmanufacData
 #'@param lmePftData
-#'@param cohortDefinitionIdSet
-#'@param pftIndividual       logical (TRUE/FALSE)
-#'@param alpha
-#'@param CIlineSize
+#'@param pftIndividual                  logical (TRUE/FALSE)
+#'@param ConfidencialIntervalVisualize  logical (TRUE/FALSE)
 #'@export
 #'
 
 plotpftLmm <- function(pftmanufacData,
                        lmePftData,
-                       cohortDefinitionIdSet,
                        pftIndividual = TRUE,
-                       alpha = 0.05,
-                       CIlineSize = 0){
+                       ConfidencialIntervalVisualize = TRUE){
 
     plotpft <- ggplot(data = pftmanufacData)
     split_list <- split(pftmanufacData, pftmanufacData$cohortDefinitionId)
@@ -84,47 +80,36 @@ plotpftLmm <- function(pftmanufacData,
     # lmePftData[[3]][[1]] = "green"
     # lmePftData[[4]][[1]] = "blue"
     # lmePftData[[5]][[1]] = "purple"
+    colourList <- c("red","blue","green","orange","purple")
 
     if(pftIndividual){
         i <- 1
         while(1){
             df <- split_list[[i]]
-            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = valueAsNumber, group = subjectId, colour = cohortDefinitionId ), size = 0.01, alpha = alpha)
+            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = valueAsNumber, group = subjectId, colour = cohortDefinitionId ), size = 0.4, alpha = 0.5)
             i <- i + 1
-            if(i > length(cohortDefinitionIdSet) ) break
+            if(i > length( unique(pftmanufacData$cohortDefinitionId) ) ) break
+        }
+    }
+
+    intercept  <- function(x) lmePftData[[x]][[2]][1]
+    slope      <- function(x) lmePftData[[x]][[2]][2]
+
+    for (i in 1:length(unique(pftmanufacData$cohortDefinitionId))){
+        plotpft <- plotpft + geom_abline(intercept = intercept(i), slope = slope(i), colour = colourList[i], size = 1 )
+    }
+
+    if(ConfidencialIntervalVisualize){
+        for (i in 1:length(unique(pftmanufacData$cohortDefinitionId))){
+            plotpft <- plotpft +
+                geom_line(data = lmePftData[[i]][[3]], aes(x = time, y = lower), linetype = "longdash", size = 0.5, colour = colourList[i]) +
+                geom_line(data = lmePftData[[i]][[3]], aes(x = time, y = upper), linetype = "longdash", size = 0.5, colour = colourList[i])
         }
     }
 
     plotpft <- plotpft +
-        stat_function(fun = function(x)exp(lmePftData[[1]][[2]][1] + lmePftData[[1]][[2]][2]*x), geom = "line", size = 2, colour = 'red') +
-        geom_line(data = lmePftData[[1]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'red') +
-        geom_line(data = lmePftData[[1]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'red')
-
-    if(length(cohortDefinitionIdSet) == 2){
-        plotpft <- plotpft  +
-            stat_function(fun = function(x)exp(lmePftData[[2]][[2]][1] + lmePftData[[2]][[2]][2]*x), geom = "line", size = 2, colour = 'blue') +
-            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'blue') +
-            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'blue')
-    }
-
-    else if(length(cohortDefinitionIdSet) == 5){
-        plotpft <- plotpft  +
-            stat_function(fun = function(x)exp(lmePftData[[2]][[2]][1] + lmePftData[[2]][[2]][2]*x), geom = "line", size = 2, colour = 'orange') +
-            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'orange') +
-            geom_line(data = lmePftData[[2]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'orange')+
-            stat_function(fun = function(x)exp(lmePftData[[3]][[2]][1] + lmePftData[[3]][[2]][2]*x), geom = "line", size = 2, colour = 'green') +
-            geom_line(data = lmePftData[[3]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'green') +
-            geom_line(data = lmePftData[[3]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'green')+
-            stat_function(fun = function(x)exp(lmePftData[[4]][[2]][1] + lmePftData[[4]][[2]][2]*x), geom = "line", size = 2, colour = 'blue') +
-            geom_line(data = lmePftData[[4]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'blue') +
-            geom_line(data = lmePftData[[4]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'blue')+
-            stat_function(fun = function(x)exp(lmePftData[[5]][[2]][1] + lmePftData[[5]][[2]][2]*x), geom = "line", size = 2, colour = 'purple') +
-            geom_line(data = lmePftData[[5]][[3]], aes(x = time, y = lower), linetype = "longdash", size = CIlineSize, colour = 'purple') +
-            geom_line(data = lmePftData[[5]][[3]], aes(x = time, y = upper), linetype = "longdash", size = CIlineSize, colour = 'purple')
-    }
-
-    plotpft <- plotpft +
         coord_cartesian(xlim = c(0,15))
+
     return(plotpft)
 }
 ##################################################################################################
