@@ -175,24 +175,24 @@ ui <- dashboardPage(
                                          )
                                 ),
                                 ############exacerbation count analysis tab#####################
-                                tabPanel("exacerbationCount",
-                                         fluidRow(
-                                             titlePanel("Compare Exacerbation Count Between Two Cohort")
-                                         ),
-                                         fluidRow(
-                                             box(title = "Exacerbation Count Compare",
-                                                 width = 4,background = 'blue', solidHeader = TRUE,
-                                                 plotOutput("exacerbationPlot")
-                                             ),
-                                             box(title = "statistical analysis of Differences of exacerbation Count",
-                                                 width = 8,status = "info",solidHeader = TRUE,
-                                                 tableOutput("exacerbationTable")
-                                                 # ,
-                                                 # verbatimTextOutput("exacerbationPvalue")
-                                             )
-
-                                         )
-                                ),
+                                # tabPanel("exacerbationCount",
+                                #          fluidRow(
+                                #              titlePanel("Compare Exacerbation Count Between Two Cohort")
+                                #          ),
+                                #          fluidRow(
+                                #              box(title = "Exacerbation Count Compare",
+                                #                  width = 4,background = 'blue', solidHeader = TRUE,
+                                #                  plotOutput("exacerbationPlot")
+                                #              ),
+                                #              box(title = "statistical analysis of Differences of exacerbation Count",
+                                #                  width = 8,status = "info",solidHeader = TRUE,
+                                #                  tableOutput("exacerbationTable")
+                                #                  # ,
+                                #                  # verbatimTextOutput("exacerbationPvalue")
+                                #              )
+                                #
+                                #          )
+                                # ),
                                 ############PLP analysis tab#####################
                                 tabPanel("PredictiveVariable",
                                          fluidRow(
@@ -383,7 +383,8 @@ server <- function(input, output, session) {
         measureData <<- dataList[[2]]
         comorbidity <<- dataList[[3]]
         exacerbation <<- dataList[[4]]
-        totalCohort <<- dataList[[5]]
+        exacerbation_new <<- dataList[[5]]
+        totalCohort <<- dataList[[6]]
 
         setting()
 
@@ -665,17 +666,17 @@ server <- function(input, output, session) {
     # })
 
     #exacerbation Count Table
-    ExacerbationTable <-eventReactive(input$show_result_phe,{
-        exacerbationManufac <- exacerbaManufacture()
-        sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
-                                                    cohortDefinitionIdSet = switchcohortPhe() )
-        tableExacerbation <- tableExacerbationCoun(sumCountExacerbateData = sumCounExacerbation)
-
-        return(tableExacerbation)
-    })
-    output$exacerbationTable <- renderTable({
-        ExacerbationTable()
-    })
+    # ExacerbationTable <-eventReactive(input$show_result_phe,{
+    #     exacerbationManufac <- exacerbaManufacture()
+    #     sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
+    #                                                 cohortDefinitionIdSet = switchcohortPhe() )
+    #     tableExacerbation <- tableExacerbationCoun(sumCountExacerbateData = sumCounExacerbation)
+    #
+    #     return(tableExacerbation)
+    # })
+    # output$exacerbationTable <- renderTable({
+    #     ExacerbationTable()
+    # })
 
     # #p_value exacerbation Count
     # exacerbationPvalue <-eventReactive(input$show_result_phe,{
@@ -720,8 +721,8 @@ server <- function(input, output, session) {
                                     covariateSetting = covariateSetting,
                                     washoutPeriod = 0,
                                     removeSubjectsWithPriorOutcome = FALSE,
-                                    riskWindowStart = 1,
-                                    riskWindowEnd = 365*15)
+                                    riskWindowStart = 0,
+                                    riskWindowEnd = 365)
         readyPlp <<- readyPlpData
 
         removeModal()

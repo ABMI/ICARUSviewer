@@ -83,6 +83,13 @@ call_dataList<- function(connectionDetails,
     exacerbatuib_data<-DatabaseConnector::querySql(connection, sql)
     colnames(exacerbatuib_data)<-SqlRender::snakeCaseToCamelCase(colnames(exacerbatuib_data))
 
+    ##load exacerbation_new data
+    sql <- SqlRender::readSql("SQL/loadExacerbation_new.sql")
+    sql <- SqlRender::renderSql(sql,
+                                resultDatabaseSchema = resultDatabaseSchema)$sql
+    exacerbation_new_data<-DatabaseConnector::querySql(connection, sql)
+    colnames(exacerbation_new_data)<-SqlRender::snakeCaseToCamelCase(colnames(exacerbation_new_data))
+
     ##load asthma_cohort data
     sql <- SqlRender::readSql("SQL/loadAsthma_cohort.sql")
     sql <- SqlRender::renderSql(sql,
@@ -94,6 +101,7 @@ call_dataList<- function(connectionDetails,
                  measure_data,
                  comorbidity_data,
                  exacerbatuib_data,
+                 exacerbation_new_data,
                  asthmacohort_data)
 
     return(result)
