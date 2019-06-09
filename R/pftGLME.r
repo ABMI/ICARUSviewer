@@ -21,7 +21,7 @@
 #
 #     return(out)
 # }
-# fev1 <- PFTmanufacture(measureData, measurementType = 3011708, cohortDefinitionIdSet = c(300,301))
+# fev1 <- PFTmanufacture(measureData, measurementType = 3011708, cohortDefinitionIdSet = c(1001,1002,1003))
 
 #'use linear mixed model regression, find regression line and its CI 95%
 #'@import lme4
@@ -80,7 +80,7 @@ plotpftLmm <- function(pftmanufacData,
     # lmePftData[[3]][[1]] = "green"
     # lmePftData[[4]][[1]] = "blue"
     # lmePftData[[5]][[1]] = "purple"
-    colourList <- c("red","blue","green","orange","purple")
+    colourList <- c("red","green","blue","orange","purple")
 
     if(pftIndividual){
         i <- 1

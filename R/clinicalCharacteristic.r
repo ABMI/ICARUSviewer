@@ -22,10 +22,12 @@ clinicalCharManufacture<-function(cohortDefinitionIdSet){
     out <- out %>%
         mutate(cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,
                                                                           51,52,53,54,
-                                                                          300,301),
+                                                                          300,301,
+                                                                          1001,1002,1003),
                                            labels = c("Asthma", "Non-Severe Asthma","Severe Asthma", "AERD","ATA",
                                                       "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4",
-                                                      "exacerbation new", "non-exacerbation new") ) )
+                                                      "exacerbation new", "non-exacerbation new",
+                                                      "Declining","consistently low","consistently high") ) )
     return(out)
 }
 

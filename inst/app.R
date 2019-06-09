@@ -319,29 +319,35 @@ ui <- dashboardPage(
             #########tab menu = Asthma Phenotype 2####################
             tabItem(tabName = "AsthmaPhenotype2",
                     titlePanel("Choose asthma phenotypes you want to compare"),
-                    fluidRow(box(selectInput("asthmaCohortSelect","choose cohorts you want to compare",
-                                             choices = c("Total asthma" = 1,
-                                                         "Non-severe asthma" = 2,
-                                                         "Severe asthma" = 3,
-                                                         "Aspirin exacerbated respiratory disease" = 4,
-                                                         "Aspirin tolerant asthma" = 5,
-                                                         "Create myself" = "CREATE"),
-                                             multiple = TRUE, selected = "Please choose cohort" ),
-                                 width = 4 ),
-                             box(conditionalPanel(condition = "input.asthmaCohortSelect.indexOf('CREATE') > -1",
-                                                  textInput("cohortName","cohort Name","") ),
-                                 conditionalPanel(condition = "input.asthmaCohortSelect.indexOf('CREATE') > -1",
-                                                  selectInput("drugSelect","asthma medication select",
-                                                              choices = c("don't care" = "Drugflip",
-                                                                          "all asthma medication",
-                                                                          "MD/HD-ICS + LABA start") ) ),
-                                 conditionalPanel(condition = "input.drugSelect != 'Drugflip'",
-                                                  numericInput("drugDuration","How long drug exposure continued","730") ),
-                                 conditionalPanel(condition = "input.asthmaCohortSelect.indexOf('CREATE') > -1",
-                                                  numericInput("exacerbationCount","How many asthma exacerbation occur","0") ),
-                                 conditionalPanel(condition = "input.exacerbationCount != 0",
-                                                  numericInput("exacerbationDuration","How long do you watch exacerbation","365") ),
-                                 width = 4 )
+                    sidebarLayout(
+                        sidebarPanel(
+                            textInput("cohortName","cohort Name",""),
+                            numericInput("observationPeriod", "minimum follow up duration", "730"),
+                            selectInput("drugSelect","asthma medication select",
+                                        choices = c("don't care" = "Drugflip",
+                                                    "all asthma medication",
+                                                    "MD/HD-ICS + LABA start") ),
+                            conditionalPanel(condition = "input.drugSelect != 'Drugflip'",
+                                             sliderInput("drugDuration","How long drug exposure continued (year)", min=-4, max=4, value = c(0,0) ) ),
+                            numericInput("exacerbationCount","How many asthma exacerbation occur","0"),
+                            conditionalPanel(condition = "input.exacerbationCount != 0",
+                                             sliderInput("exacerbationDuration","How long do you watch exacerbation (year)", min=-4, max=4, value = c(0,0) ) ),
+                            actionButton("createCohort","CREATE"),
+                            width = 3
+                        ),
+                        mainPanel(
+                            box(checkboxGroupInput("compareSetSelect", "choose cohorts be compared with your cohort",
+                                                   choices = c("Total asthma" = 1,
+                                                               "Non-severe asthma" = 2,
+                                                               "Severe asthma" = 3,
+                                                               "Aspirin exacerbated respiratory disease" = 4,
+                                                               "Aspirin tolerant asthma" = 5,
+                                                               "My cohort" = 99999) ),
+                                actionButton("showResult", "SHOW") ),
+                            tableOutput("ClinicalCharacMycohort"),
+
+                            plotlyOutput("PFTplotMycohort")
+                        )
                     )
             )
         )
@@ -722,7 +728,7 @@ server <- function(input, output, session) {
                                     washoutPeriod = 0,
                                     removeSubjectsWithPriorOutcome = FALSE,
                                     riskWindowStart = 0,
-                                    riskWindowEnd = 365)
+                                    riskWindowEnd = 365*15)
         readyPlp <<- readyPlpData
 
         removeModal()
