@@ -80,7 +80,7 @@ plotpftLmm <- function(pftmanufacData,
     # lmePftData[[3]][[1]] = "green"
     # lmePftData[[4]][[1]] = "blue"
     # lmePftData[[5]][[1]] = "purple"
-    colourList <- c("red","green","blue","orange","purple")
+    colourList <- c("red","green","blue","purple","orange")
 
     if(pftIndividual){
         i <- 1
