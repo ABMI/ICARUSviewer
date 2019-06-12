@@ -6,17 +6,13 @@
 #'@param    resultsDatabaseSchema
 #'@param    cohortTable
 #'@param    cohortId
-#'@param    timeUnit
-#'@param    measurementConceptId
 #'@export
 #'
-getLongitudinal <- function(connectionDetails,
-                            cdmDatabaseSchema,
-                            resultsDatabaseSchema,
-                            cohortTable,
-                            cohortId,
-                            timeUnit = 'year',
-                            measurementConceptId){
+getAllLongitudinal <- function(connectionDetails,
+                               cdmDatabaseSchema,
+                               resultsDatabaseSchema,
+                               cohortTable,
+                               cohortId){
 
     temporalSettings <- createTemporalCovariateSettings(useMeasurementValue = TRUE,
                                                         temporalStartDays = 1:7300,
@@ -35,18 +31,30 @@ getLongitudinal <- function(connectionDetails,
 
     colnames(covariateData_rawdf) <- c("subjectId","covariateId","covariateValue","time")
 
-    covariateData_df <- covariateData_rawdf %>%
-        mutate(covariateId = floor(covariateId/1000000) )
+    allLongitudinalData <- covariateData_rawdf %>%
+        mutate(covariateId = floor(covariateId/1000000) ) %>%
+        mutate(cohortId = cohortId)
 
-    longitudinalData <- covariateData_df %>% filter(covariateId == measurementConceptId )
+    return(allLongitudinalData)
+}
 
-    if(timeUnit == 'year'){
-        longitudinalData <- longitudinalData %>%
-            mutate(time = time/365.25)
-    }
+#'subsetting features that have specific measurement_concept_id
+#'@import   dplyr
+#'@param    allLongitudinalData
+#'@param    measurementConceptId
+#'@param    timeUnit
+#'@export
+#'
+getLongitudinal <- function(allLongitudinalData,
+                            measurementConceptId,
+                            timeUnit = 'year'){
 
-    longitudinalData <- longitudinalData %>%
-        mutate(cohortId == cohortId)
+        longitudinalData <- allLongitudinalData %>% filter(covariateId == measurementConceptId )
 
-    return(longitudinalData)
+        if(timeUnit == 'year'){
+            longitudinalData <- longitudinalData %>%
+                mutate(time = time/365.25)
+        }
+
+        return(longitudinalData)
 }
