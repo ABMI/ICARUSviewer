@@ -15,9 +15,9 @@ getAllLongitudinal <- function(connectionDetails,
                                cohortId){
 
     temporalSettings <- createTemporalCovariateSettings(useMeasurementValue = TRUE,
-                                                        temporalStartDays = 1:7300,
-                                                        temporalEndDays = 1:7300+1,
-                                                        includedCovariateConceptIds = c(measurementConceptId))
+                                                        temporalStartDays = 0:7300,
+                                                        temporalEndDays = 0:7300+1,
+                                                        includedCovariateConceptIds = c(3011708))
 
     covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
                                            cdmDatabaseSchema = cdmDatabaseSchema,
@@ -57,4 +57,92 @@ getLongitudinal <- function(allLongitudinalData,
         }
 
         return(longitudinalData)
+}
+
+#'use linear mixed model regression, find regression line and its CI 95%
+#'@import lme4
+#'@import lmerTest
+#'@import effects
+#'@param  longitudinalData result of PFTmanufacture function
+#'@export
+#'
+lmePft <- function(longitudinalData){
+    split_list <- split(longitudinalData, longitudinalData$cohortId)
+
+    x<-split_list$`2`
+    f <- as.formula( covariateValue ~ time + (1|subjectId) + (0 + time|subjectId) )
+    lmm_randomSIind <- lme4::lmer(formula = f, data = df, REML = F)
+
+    calLmm <- lapply(split_list, FUN = function(x){
+
+        df <- x
+        f <- as.formula( covariateValue ~ time + (1|subjectId) + (0 + time|subjectId) )
+
+        lmm_randomSIind <- lme4::lmer(formula = f, data = df, REML = F)
+
+        fixef_value <- t(lme4::fixef(lmm_randomSIind))
+        effect_value <- effects::effect("time", lmm_randomSIind)
+        effect_value_df <- as.data.frame(effect_value)
+        cohortId <- unique(df$cohortId)
+
+        out <- list(cohortId,
+                    fixef_value,
+                    effect_value_df)
+        return(out)
+    })
+
+    return(calLmm)
+}
+
+#'plot pft trajectory line and its CI
+#'@import ggplot
+#'@import dplyr
+#'@param longitudinalData
+#'@param lmePftData
+#'@param pftIndividual                  logical (TRUE/FALSE)
+#'@param ConfidencialIntervalVisualize  logical (TRUE/FALSE)
+#'@export
+#'
+
+plotpftLmm <- function(longitudinalData,
+                       lmePftData,
+                       pftIndividual = TRUE,
+                       ConfidencialIntervalVisualize = TRUE){
+
+    plotpft <- ggplot(data = longitudinalData)
+    longitudinalData <- longitudinalData %>% mutate(cohortId = as.factor(cohortId))
+
+    split_list <- split(longitudinalData, longitudinalData$cohortId)
+
+    colourList <- c("red","blue")
+
+    if(pftIndividual){
+        i <- 1
+        while(1){
+            df <- split_list[[i]]
+            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = covariateValue, group = subjectId, colour = as.factor(cohortId) ), size = 0.4, alpha = 0.5)
+            i <- i + 1
+            if(i > length( unique(longitudinalData$cohortId) ) ) break
+        }
+    }
+
+    intercept  <- function(x) lmePftData[[x]][[2]][1]
+    slope      <- function(x) lmePftData[[x]][[2]][2]
+
+    for (i in 1:length(unique(longitudinalData$cohortId))){
+        plotpft <- plotpft + geom_abline(intercept = intercept(i), slope = slope(i), colour = colourList[i], size = 1 )
+    }
+
+    if(ConfidencialIntervalVisualize){
+        for (i in 1:length(unique(longitudinalData$cohortId))){
+            plotpft <- plotpft +
+                geom_line(data = lmePftData[[i]][[3]], aes(x = time, y = lower), linetype = "longdash", size = 0.5, colour = colourList[i]) +
+                geom_line(data = lmePftData[[i]][[3]], aes(x = time, y = upper), linetype = "longdash", size = 0.5, colour = colourList[i])
+        }
+    }
+
+    plotpft <- plotpft +
+        coord_cartesian(xlim = c(0,15))
+
+    return(plotpft)
 }
