@@ -72,7 +72,6 @@ eventIncidence <- function(eventData){
 
 #'plot for clinical event rate
 #'@import ggplot2
-#'@import dplyr
 #'@param  eventResult
 #'@export
 plotEventRate <- function(eventResult){
