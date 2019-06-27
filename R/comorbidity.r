@@ -79,41 +79,33 @@ baseline_comorbidity <- function(connectionDetails,
 
     baselineComorbidity <- rbind(baselineComorb_cohort_1,baselineComorb_cohort_2)
 
-    metabolic <- baselineComorbidity %>%
-        left_join( demographicData %>%
-                       group_by(cohortDefinitionId) %>% summarise(total = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
-        filter(diseaseId %in% c(11,12,13,14,15,16,19)) %>%
+    templete <- data.frame(cohortDefinitionId = rep( c(cohortId_1,cohortId_2),each = length(diseaseList$diseaseId) ),
+                           diseaseId = rep(diseaseList$diseaseId,2) )
+
+    out <- baselineComorbidity %>%
         group_by(cohortDefinitionId, diseaseId) %>%
-        summarise(Count = n_distinct(subjectId),
-                  totalCount = unique(total)) %>%
-        mutate(notdisease = totalCount - Count)
+        summarise(Count = n()) %>%
+        right_join( templete, by = c("cohortDefinitionId","diseaseId")) %>%
+        left_join( demographicData %>% group_by(cohortDefinitionId) %>% summarise(totalCount = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
+        mutate(notdisease = totalCount - Count) %>%
+        mutate(notdisease = if_else(is.na(notdisease),totalCount,notdisease))
 
-    immune <- baselineComorbidity %>%
-        left_join( demographicData %>%
-                       group_by(cohortDefinitionId) %>% summarise(total = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
-        filter(diseaseId %in% c(1,3,5,6,7,8,9,10)) %>%
-        group_by(cohortDefinitionId, diseaseId) %>%
-        summarise(Count = n_distinct(subjectId),
-                  totalCount = unique(total)) %>%
-        mutate(notdisease = totalCount - Count)
+    if( sum(is.na(out$Count))>0 ) out[is.na(out$Count),]$Count <- 0
 
-    ready <- list(metabolic = metabolic,
-                  immune = immune)
+    out<- as.data.frame(out)
 
-    return(ready)
+    return(out)
 }
 
 #'ready for calculate Relative Ratio and CI
 #'@import dplyr
 #'@import epitools
 #'@param comorbManufacData               the result of comorbManufacture code (list)
-#'@param whichDisease                    metabolic or immune disease
 #'@export
 #'
-calculateRR <- function(comorbManufacData,
-                        whichDisease){
+calculateRR <- function(comorbManufacData){
 
-    df <- comorbManufacData[[whichDisease]]
+    df <- comorbManufacData
     if ( min(df$cohortDefinitionId) == 2){
 
         split <- split(df, df$diseaseId)
@@ -181,15 +173,13 @@ RRplot <- function(RRResult){
 #'calculate co-prevalence rate
 #'@import dplyr
 #'@import reshape2
-#'@param comorbManufacData               the result of comorbManufacture code (list)
-#'@param whichDisease                    metabolic or immune disease
+#'@param comorbManufacData               the result of comorbManufacture code
 #'@export
 #'
 
-co_prevtable <- function(comorbManufacData,
-                         whichDisease){
+co_prevtable <- function(comorbManufacData){
 
-    df <- comorbManufacData[[whichDisease]]
+    df <- comorbManufacData
     #str(ready)
     df_coprev <- as.data.frame(df) %>%
         mutate(co_prevalence = paste0( round((Count/totalCount)*100,2),"%") ) %>%

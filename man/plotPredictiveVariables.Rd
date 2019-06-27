@@ -4,7 +4,7 @@
 \alias{plotPredictiveVariables}
 \title{ranking top n predictive variables and draw plot}
 \usage{
-plotPredictiveVariables(machineLearningData, rankCount = 20)
+plotPredictiveVariables(machineLearningData, rankCount = 40)
 }
 \arguments{
 \item{machineLearningData}{get from RunPlp code}

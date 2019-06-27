@@ -52,7 +52,6 @@ ui <- dashboardPage(
                                   font-size: 24px;
                                   }'))),
         tabItems(
-
             #########tab menu = DB connection##############
             tabItem(tabName = "db",
                     fluidRow(
@@ -62,7 +61,7 @@ ui <- dashboardPage(
                             uiOutput("sqltype"),
                             textInput("CDMschema","CDM Database Schema","ICARUS"),
                             textInput("Resultschema","CDM Results schema","ICARUS"),
-                            textInput("usr","USER",""),
+                            textInput("user","USER",""),
                             passwordInput("pw","PASSWORD",""),
                             actionButton("db_load","LOAD DB"),
                             width = 3
@@ -78,13 +77,13 @@ ui <- dashboardPage(
                     sidebarPanel(
                         numericInput("target_cohort","Target cohort ID",""),
                         numericInput("comparator_cohort","Comparator cohort ID",""),
-                        actionButton("do_analyze","Analysis"),
                         width = 2 ),
                     mainPanel(
                         tabsetPanel(type = "tabs",
                                     ############Demographics##########################################
                                     tabPanel("Demographics",
                                              fluidRow(titlePanel("Compare Demographic Charateristics") ),
+                                             fluidRow(column(1,actionButton("do_demographic_analyze","analyze") ) ),
                                              fluidRow(
                                                  box(title = "Comparison of clinical characteristics between two cohorts",
                                                      tableOutput("clinicalCharacteristicTable")),
@@ -180,7 +179,7 @@ server <- function(input, output, session) {
         connectionDetails <<- DatabaseConnector::createConnectionDetails(dbms = input$sqltype,
                                                                          server = input$ip,
                                                                          schema = input$Resultschema,
-                                                                         user = input$usr,
+                                                                         user = input$user,
                                                                          password = input$pw)
         connection <<-DatabaseConnector::connect(connectionDetails)
 
@@ -190,22 +189,30 @@ server <- function(input, output, session) {
                                  CDMschema = input$CDMschema)
 
         demographicData<<-dataList[[1]]
-        measureData <<- dataList[[2]]
-        comorbidity <<- dataList[[3]]
-        exacerbation <<- dataList[[4]]
-        exacerbation_new <<- dataList[[5]]
-        totalCohort <<- dataList[[6]]
+        totalCohort <<- dataList[[2]]
 
         setting()
 
         removeModal()
-        showModal(modalDialog(title = "Loading data complete", "Loading data were succeed!", footer = modalButton("OK")))
+        showModal(modalDialog(title = "Loading complete", "connecting success!", footer = modalButton("OK")))
 
     })
 
     output$DB_Connect <- renderText({
         DBconnect()
     })
+
+    ######################2. tab menu result : Comparing between two cohorts###########################
+
+    demographicTable <- eventReactive(input$do_demographic_analyze,{
+        demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(input$target_cohort,input$comparator_cohort) )
+        demographicSummary <- characteristic_summary(characteristic_manufac = demographicRaw)
+        return(demographicSummary)
+    })
+    output$clinicalCharacteristicTable <- renderTable({
+        demographicTable()
+    })
+
 
 }
 

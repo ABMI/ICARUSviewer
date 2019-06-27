@@ -83,3 +83,4 @@ characteristic_pvalue <- function(characteristic_manufac){
                      female_proportion = female_pvalue)
     return(df)
 }
+

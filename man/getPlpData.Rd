@@ -5,10 +5,10 @@
 \title{create Plp data and population data (ready for run Plp)}
 \usage{
 getPlpData(connectionDetails, connection, Resultschema, CDMschema,
-  cohortTable = "asthma_cohort", targetId = 1, outcomeCohortConceptId,
-  covariateSetting, washoutPeriod = 0,
-  removeSubjectsWithPriorOutcome = TRUE, riskWindowStart = 0,
-  riskWindowEnd = 365 * 15)
+  cohortTable = "asthma_cohort", targetCohortConceptId,
+  outcomeCohortConceptId, covariateSetting, washoutPeriod = 0,
+  removeSubjectsWithPriorOutcome = TRUE, riskWindowStart, riskWindowEnd,
+  minTimeAtRisk)
 }
 \arguments{
 \item{connectionDetails}{}
@@ -21,9 +21,7 @@ getPlpData(connectionDetails, connection, Resultschema, CDMschema,
 
 \item{cohortTable}{table name which contains asthma_cohort (default = 'asthma_cohort')}
 
-\item{targetId}{target cohort Id (default = 1)}
-
-\item{outcomeCohortConceptId}{outcome cohort Id (2 = NSA, 3 = SA, 4 = AERD, 5 = ATA)}
+\item{outcomeCohortConceptId}{outcome cohort Id}
 
 \item{covariateSetting}{}
 
@@ -31,9 +29,13 @@ getPlpData(connectionDetails, connection, Resultschema, CDMschema,
 
 \item{removeSubjectsWithPriorOutcome}{TRUE}
 
-\item{riskWindowStart}{1}
+\item{riskWindowStart}{}
 
-\item{riskWindowEnd}{365*15}
+\item{riskWindowEnd}{}
+
+\item{minTimeAtRisk}{}
+
+\item{targetId}{target cohort Id (default = 1)}
 }
 \description{
 create Plp data and population data (ready for run Plp)

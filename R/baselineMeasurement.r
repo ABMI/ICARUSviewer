@@ -64,13 +64,13 @@ baselineMeasure_compare <- function(connectionDetails,
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")
 
     cohort_1_baseline <- getBaselineCovariate(connectionDetails = connectionDetails,
-                                              cdmDatabaseSchema = CDMDatabaseSchema,
-                                              resultsDatabaseSchema = resultDatabaseSchema,
+                                              CDMschema = CDMDatabaseSchema,
+                                              Resultschema = resultDatabaseSchema,
                                               cohortTable = cohortTable,
                                               cohortId = cohortId_1)
     cohort_2_baseline <- getBaselineCovariate(connectionDetails = connectionDetails,
-                                              cdmDatabaseSchema = CDMDatabaseSchema,
-                                              resultsDatabaseSchema = resultDatabaseSchema,
+                                              CDMschema = CDMDatabaseSchema,
+                                              Resultschema = resultDatabaseSchema,
                                               cohortTable = cohortTable,
                                               cohortId = cohortId_2)
 

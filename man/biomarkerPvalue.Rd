@@ -2,7 +2,7 @@
 % Please edit documentation in R/biomarkerCharacteristic.r
 \name{biomarkerPvalue}
 \alias{biomarkerPvalue}
-\title{analysis of biomarker characteristics : p-value using ANOVA with Tukey}
+\title{analysis of biomarker characteristics : p-value if length of cohortDefinitionIdSet is bigger than 2, use ANOVA with Tukey else t.test}
 \usage{
 biomarkerPvalue(biomarkerData)
 }
@@ -10,5 +10,5 @@ biomarkerPvalue(biomarkerData)
 \item{biomarkerData}{result of biomarkerManufac}
 }
 \description{
-analysis of biomarker characteristics : p-value using ANOVA with Tukey
+analysis of biomarker characteristics : p-value if length of cohortDefinitionIdSet is bigger than 2, use ANOVA with Tukey else t.test
 }
