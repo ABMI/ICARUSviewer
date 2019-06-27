@@ -16,8 +16,7 @@ getAllLongitudinal <- function(connectionDetails,
 
     temporalSettings <- createTemporalCovariateSettings(useMeasurementValue = TRUE,
                                                         temporalStartDays = 0:7300,
-                                                        temporalEndDays = 0:7300+1,
-                                                        includedCovariateConceptIds = c(3011708))
+                                                        temporalEndDays = 0:7300+1)
 
     covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
                                            cdmDatabaseSchema = cdmDatabaseSchema,
@@ -40,18 +39,18 @@ getAllLongitudinal <- function(connectionDetails,
 
 #'subsetting features that have specific measurement_concept_id
 #'@import   dplyr
-#'@param    allLongitudinalData
-#'@param    measurementConceptId
-#'@param    timeUnit
+#'@param    all_longitudinal_data
+#'@param    measurement_concept_id
+#'@param    time_unit
 #'@export
 #'
-getLongitudinal <- function(allLongitudinalData,
-                            measurementConceptId,
-                            timeUnit = 'year'){
+getLongitudinal <- function(all_longitudinal_data,
+                            measurement_concept_id,
+                            time_unit = 'year'){
 
-        longitudinalData <- allLongitudinalData %>% filter(covariateId == measurementConceptId )
+        longitudinalData <- all_longitudinal_data %>% filter(covariateId == measurement_concept_id )
 
-        if(timeUnit == 'year'){
+        if(time_unit == 'year'){
             longitudinalData <- longitudinalData %>%
                 mutate(time = time/365.25)
         }
@@ -69,7 +68,7 @@ getLongitudinal <- function(allLongitudinalData,
 lmePft <- function(longitudinalData){
     split_list <- split(longitudinalData, longitudinalData$cohortId)
 
-    x<-split_list$`2`
+    df <- split_list[[1]]
     f <- as.formula( covariateValue ~ time + (1|subjectId) + (0 + time|subjectId) )
     lmm_randomSIind <- lme4::lmer(formula = f, data = df, REML = F)
 
@@ -146,3 +145,4 @@ plotpftLmm <- function(longitudinalData,
 
     return(plotpft)
 }
+

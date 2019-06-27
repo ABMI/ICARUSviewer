@@ -2,19 +2,22 @@
 #'@import   SqlRender
 #'@import   dplyr
 #'@param    connectionDetails
-#'@param    cdmDatabaseSchema
-#'@param    resultsDatabaseSchema
-#'@param    cohortTable
-#'@param    eventId
+#'@param    Resultschema
+#'@param    cohortId_1
+#'@param    cohortId_2
+#'@param    cohortId_event
 #'@export
 call_event <- function(connectionDetails,
-                       resultsDatabaseSchema,
+                       Resultschema,
                        cohortTable,
-                       eventId){
+                       cohortId_1,
+                       cohortId_2,
+                       cohortId_event){
 
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     connectionDetails <-connectionDetails
     connection <- DatabaseConnector::connect(connectionDetails)
+    eventId <- eventId
 
     Sys.setlocale(category="LC_CTYPE", locale="C")
 
@@ -22,20 +25,37 @@ call_event <- function(connectionDetails,
     sql <- SqlRender::renderSql(sql,
                                 resultDatabaseSchema = resultDatabaseSchema,
                                 cohortTable = cohortTable,
-                                eventId = eventId)$sql
-    eventData<-DatabaseConnector::querySql(connection, sql)
-    colnames(eventData)<-SqlRender::snakeCaseToCamelCase(colnames(eventData))
+                                eventId = cohortId_event)$sql
+    eventcohort<-DatabaseConnector::querySql(connection, sql)
+    colnames(eventcohort)<-SqlRender::snakeCaseToCamelCase(colnames(eventcohort))
+
+    sql <- 'select * FROM  @resultDatabaseSchema.@cohortTable WHERE cohort_definition_id in (@cohortId_1,@cohortId_2)'
+    sql <- SqlRender::renderSql(sql,
+                                resultDatabaseSchema = resultDatabaseSchema,
+                                cohortTable = cohortTable,
+                                cohortId_1 = cohortId_1,
+                                cohortId_2 = cohortId_2)$sql
+    cohortData<-DatabaseConnector::querySql(connection, sql)
+    colnames(cohortData)<-SqlRender::snakeCaseToCamelCase(colnames(cohortData))
+
+    out <- list(eventcohort = eventcohort,
+                cohortData = cohortData)
+
+    return(out)
 }
 
 #'combine and calculate incidence rate of clinical event
 #'@import   dplyr
-#'@param    eventData
+#'@param    callEvent_result
 #'@export
-eventIncidence <- function(eventData){
+event_incidence <- function(callEvent_result){
 
-    eventSubject <- eventData %>% select(subjectId, cohortStartDate)
+    event_data = callEvent_result[[1]]
+    cohort_data = callEvent_result[[2]]
+
+    eventSubject <- event_data %>% select(subjectId, cohortStartDate)
     colnames(eventSubject)[2] <- "eventStartDate"
-    eventInc <- inner_join(eventSubject,cohortData,by = "subjectId")
+    eventInc <- inner_join(eventSubject,cohort_data,by = "subjectId")
     eventAfterIndex <- eventInc %>% filter(cohortStartDate < eventStartDate)
     eventAfterIndex <- eventAfterIndex %>%
         mutate(eventDuration = as.numeric(difftime(eventStartDate,cohortStartDate,units = "days")),
@@ -44,7 +64,6 @@ eventIncidence <- function(eventData){
                observDurationYear = floor(observDuration/365.25) ) %>%
         mutate(observDurationYear = if_else(observDurationYear>20,20,observDurationYear) )
 
-    sub <- subset(eventAfterIndex,cohortDefinitionId == 2)
     eventResult <- data.frame()
     for(j in unique(eventAfterIndex$cohortDefinitionId) ){
 
@@ -72,10 +91,10 @@ eventIncidence <- function(eventData){
 
 #'plot for clinical event rate
 #'@import ggplot2
-#'@param  eventResult
+#'@param  event_result
 #'@export
-plotEventRate <- function(eventResult){
-    eventplot <- ggplot(data = eventResult) +
+plot_event_rate <- function(event_result){
+    eventplot <- ggplot(data = event_result) +
         geom_errorbar(aes(x = as.factor(year),ymin = lower,ymax = upper,group = cohortDefinitionId, colour = as.factor(cohortDefinitionId))) +
         geom_point(aes(x = as.factor(year),y = incidenceRate, group = cohortDefinitionId, colour = as.factor(cohortDefinitionId)), size = 1.5) +
         geom_line(aes(x = as.factor(year),y = incidenceRate, group = cohortDefinitionId, colour = as.factor(cohortDefinitionId)), size = 1) +
@@ -91,4 +110,6 @@ plotEventRate <- function(eventResult){
               axis.title.y = element_text(size = 13),
               strip.text.x = element_text(size = 15)) +
         scale_color_discrete(name = "Cohort Id")
+
+    return(eventplot)
 }
