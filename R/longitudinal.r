@@ -9,10 +9,15 @@
 #'@export
 #'
 getAllLongitudinal <- function(connectionDetails,
-                               cdmDatabaseSchema,
-                               resultsDatabaseSchema,
+                               CDMschema,
+                               Resultschema,
                                cohortTable,
                                cohortId){
+
+    cdmDatabaseSchema <- paste0(CDMschema,".dbo")
+    resultDatabaseSchema <- paste0(Resultschema,".dbo")
+    connectionDetails <-connectionDetails
+    connection <- DatabaseConnector::connect(connectionDetails)
 
     temporalSettings <- createTemporalCovariateSettings(useMeasurementValue = TRUE,
                                                         temporalStartDays = 0:7300,
@@ -66,31 +71,32 @@ getLongitudinal <- function(all_longitudinal_data,
 #'@export
 #'
 lmePft <- function(longitudinalData){
+
     split_list <- split(longitudinalData, longitudinalData$cohortId)
-
-    df <- split_list[[1]]
     f <- as.formula( covariateValue ~ time + (1|subjectId) + (0 + time|subjectId) )
-    lmm_randomSIind <- lme4::lmer(formula = f, data = df, REML = F)
 
-    calLmm <- lapply(split_list, FUN = function(x){
+    df_1 <- split_list[[1]]
+    lmm_randomSIind_1 <- lme4::lmer(formula = f, data = df_1, REML = F)
+    fixef_value_1 <- t(lme4::fixef(lmm_randomSIind_1))
+    effect_value_1 <- effects::effect("time", lmm_randomSIind_1)
+    effect_value_df_1 <- as.data.frame(effect_value_1)
+    cohortId_1 <- unique(df_1$cohortId)
 
-        df <- x
-        f <- as.formula( covariateValue ~ time + (1|subjectId) + (0 + time|subjectId) )
+    df_2 <- split_list[[2]]
+    lmm_randomSIind_2 <- lme4::lmer(formula = f, data = df_2, REML = F)
+    fixef_value_2 <- t(lme4::fixef(lmm_randomSIind_2))
+    effect_value_2 <- effects::effect("time", lmm_randomSIind_2)
+    effect_value_df_2 <- as.data.frame(effect_value_2)
+    cohortId_2 <- unique(df_2$cohortId)
 
-        lmm_randomSIind <- lme4::lmer(formula = f, data = df, REML = F)
+    out <- list( cohortId_1 = list(cohortId_1,
+                                   fixef_value_1,
+                                   effect_value_df_1),
+                 cohortId_2 = list(cohortId_2,
+                                   fixef_value_2,
+                                   effect_value_df_2) )
 
-        fixef_value <- t(lme4::fixef(lmm_randomSIind))
-        effect_value <- effects::effect("time", lmm_randomSIind)
-        effect_value_df <- as.data.frame(effect_value)
-        cohortId <- unique(df$cohortId)
-
-        out <- list(cohortId,
-                    fixef_value,
-                    effect_value_df)
-        return(out)
-    })
-
-    return(calLmm)
+    return(out)
 }
 
 #'plot pft trajectory line and its CI

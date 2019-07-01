@@ -85,14 +85,13 @@ baselineMeasure_compare <- function(connectionDetails,
     out_summary_list <- lapply(baseline_measure_list,FUN = baselineMeasure_summary)
     out_pvalue_list <- lapply(baseline_measure_list,FUN = baselineMeasure_pvalue)
 
-    summary_basemeasure <- data.frame(t(as.data.frame(out_list)))
+    summary_basemeasure <- data.frame(t(as.data.frame(out_summary_list)))
     names(summary_basemeasure) <- sort(unique(baseline_measure$cohortDefinitionId))
     summary_basemeasure <- cbind(measurementConceptId = sort(unique(baseline_measure$conceptId)),
                                  summary_basemeasure)
     pvalue_basemeasure <- data.frame(measurementConceptId = sort(unique(baseline_measure$conceptId)),
                                      pvalue = unlist(out_pvalue_list) )
     result <- left_join(summary_basemeasure,pvalue_basemeasure,by = "measurementConceptId")
-
     return(result)
 }
 

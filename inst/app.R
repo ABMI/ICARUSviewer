@@ -84,22 +84,20 @@ ui <- dashboardPage(
                                     tabPanel("Demographics",
                                              fluidRow(titlePanel("Compare Demographic Charateristics") ),
                                              fluidRow(column(1,actionButton("do_demographic_analyze","analyze") ) ),
-                                             fluidRow(
-                                                 box(title = "Comparison of clinical characteristics between two cohorts",
-                                                     tableOutput("clinicalCharacteristicTable")),
-                                                 box(title = "Comparison of Age and BMI",
-                                                     plotOutput("AgePlot"),plotOutput("BmiPlot")),
-                                                 box(title = "Comparison of Comorbidity Co-prevalence between two cohorts",
-                                                     tableOutput("comorbidityTable"),plotOutput("comorbidityPlot"))
-                                             )
+                                             fluidRow(box(title = "Comparison of clinical characteristics between two cohorts", width = 12,
+                                                          dataTableOutput("clinicalCharacteristicTable"),tableOutput("clinicalCharacteristicPvalue"),dataTableOutput("baselineMeasurementTable")) ),
+                                             fluidRow(box(title = "Comparison of baseline Comorbidity between two cohorts", width = 12,
+                                                          dataTableOutput("prevalenceTable"),dataTableOutput("RRTable")) )
                                     ),
                                     ############Longitudinal############################################
                                     tabPanel("Measurements",
                                              fluidRow(titlePanel("Longitudinal analysis of long-term measured values") ),
-                                             fluidRow(column(3,numericInput("measurementConceptId","Measurement Concept ID","") ),
+                                             fluidRow(column(1,actionButton("do_load_all_measurement","load All") ),
+                                                      column(3,numericInput("measurementConceptId","Measurement Concept ID","") ),
                                                       column(1,actionButton("do_search_measure","Search") ) ),
                                              fluidRow(
-                                                 box(title = "Longitudinal analysis",
+                                                 box(title = "Longitudinal analysis", width = 12,
+                                                     textOutput("load"),
                                                      plotlyOutput("longitudinalAnalysis"))
                                              )
                                     ),
@@ -108,10 +106,10 @@ ui <- dashboardPage(
                                              fluidRow(titlePanel("Clinical event rate per year") ),
                                              fluidRow(column(3,numericInput("ClinicalEventCohortId","Clinical Event Cohort ID","") ),
                                                       column(1,actionButton("do_search_event","Search") ) ),
-                                             fluidRow(
-                                                 box(title = "Clinical event rate per year in two cohort groups",
-                                                     plotOutput("ClinicalEvent"))
-                                             )
+                                             fluidRow(box(title = "Clinical event rate per year in two cohort groups", width = 12,
+                                                          plotOutput("ClinicalEventPlot")) ),
+                                             fluidRow(box(width = 12,
+                                                          dataTableOutput("ClinicalEventTable")))
                                     )
                         )
                     )
@@ -203,17 +201,111 @@ server <- function(input, output, session) {
     })
 
     ######################2. tab menu result : Comparing between two cohorts###########################
-
-    demographicTable <- eventReactive(input$do_demographic_analyze,{
+    #############1-1. demographic######################
+    demographic_result <- eventReactive(input$do_demographic_analyze,{
         demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(input$target_cohort,input$comparator_cohort) )
         demographicSummary <- characteristic_summary(characteristic_manufac = demographicRaw)
-        return(demographicSummary)
+        demographicpvalue <- characteristic_pvalue(characteristic_manufac)
+
+        result_out <- list(demographic_table = demographicSummary,
+                           demographic_pvelue = demographicpvalue)
+
+        return(result_out)
     })
-    output$clinicalCharacteristicTable <- renderTable({
-        demographicTable()
+    output$clinicalCharacteristicTable <- renderDataTable({ demographic_result()[[1]] })
+
+    output$clinicalCharacteristicPvalue <- renderTable({ as.data.frame(demographic_result()[[2]]) })
+
+    prevalenceTable <- eventReactive(input$do_demographic_analyze,{
+        comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
+                                               Resultschema = input$Resultschema,
+                                               CDMschema = input$CDMschema,
+                                               cohortTable = 'asthma_cohort',
+                                               cohortId_1 = input$target_cohort,
+                                               cohortId_2 = input$comparator_cohort)
+        prevalence <- co_prevtable(comorbManufacData = comorbidityRaw)
+        return(prevalence)
+    })
+    output$prevalenceTable <- renderDataTable({ prevalenceTable() })
+
+    prevalencePvalueTable <- eventReactive(input$do_demographic_analyze,{
+        comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
+                                               Resultschema = input$Resultschema,
+                                               CDMschema = input$CDMschema,
+                                               cohortTable = 'asthma_cohort',
+                                               cohortId_1 = input$target_cohort,
+                                               cohortId_2 = input$comparator_cohort)
+        prevalencePvalue <- calculateRR(comorbManufacData = comorbidityRaw)
+        return(prevalencePvalue)
+    })
+    output$RRTable <- renderDataTable({ prevalencePvalueTable() })
+
+    baselineMeasurementTable <- eventReactive(input$do_demographic_analyze,{
+        baselinemeasurement <- baselineMeasure_compare(connectionDetails = connectionDetails,
+                                                       Resultschema = input$Resultschema,
+                                                       CDMschema = input$CDMschema,
+                                                       cohortTable = 'asthma_cohort',
+                                                       cohortId_1 = input$target_cohort,
+                                                       cohortId_2 = input$comparator_cohort,
+                                                       measurementConceptIdSet = c(2,3,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469,
+                                                                                   3011708,3006504,3005322,3005600,3017501,3026514,3005791,3021940,
+                                                                                   3011505,3013115,3018010,3022096) )
+        return(baselinemeasurement)
+    })
+    output$baselineMeasurementTable <- renderDataTable({ baselineMeasurementTable() })
+    #############1-2. longitudinal###############
+    load_longitudinal <- eventReactive(input$do_load_all_measurement,{
+        allLongitudinal_target<- getAllLongitudinal(connectionDetails = connectionDetails,
+                                                    CDMschema = input$CDMschema,
+                                                    Resultschema = input$Resultschema,
+                                                    cohortTable = 'asthma_cohort',
+                                                    cohortId = input$target_cohort)
+        allLongitudinal_compare<- getAllLongitudinal(connectionDetails = connectionDetails,
+                                                     CDMschema = input$CDMschema,
+                                                     Resultschema = input$Resultschema,
+                                                     cohortTable = 'asthma_cohort',
+                                                     cohortId = input$comparator_cohort)
+        allLongitudinalData <<- rbind(allLongitudinal_target,allLongitudinal_compare)
+
+        removeModal()
+        showModal(modalDialog(title = "Loading complete", "load measurement data success!", footer = modalButton("OK")))
     })
 
+    output$load <- renderText({ load_longitudinal() })
 
+    longitudinalLME <- eventReactive(input$do_search_measure,{
+        longitudinal <- getLongitudinal(all_longitudinal_data = allLongitudinalData,
+                                        measurement_concept_id = input$measurementConceptId,
+                                        time_unit = 'year')
+
+        lme_result <- lmePft(longitudinalData = longitudinal)
+
+        plot_lme <- plotpftLmm(longitudinalData = longitudinal,
+                               lmePftData = lme_result,
+                               pftIndividual = TRUE,
+                               ConfidencialIntervalVisualize = TRUE)
+
+        return(plot_lme)
+    })
+    output$longitudinalAnalysis <- renderPlotly({ longitudinalLME() })
+
+    #############1-3. Clinical Events###############
+    clinicalEvent_frequency <- eventReactive(input$do_search_event,{
+        call_event_data <- call_event(connectionDetails = connectionDetails,
+                                      Resultschema = input$Resultschema,
+                                      cohortTable = 'asthma_cohort',
+                                      cohortId_1 = input$target_cohort,
+                                      cohortId_2 =  input$comparator_cohort,
+                                      cohortId_event = input$ClinicalEventCohortId)
+        event_table <- event_incidence(callEvent_result = call_event_data)
+        event_plot  <- plot_event_rate(event_result = event_table)
+
+        event_out <- list(eventTable = event_table,
+                          eventPlot = event_plot)
+        return(event_out)
+    })
+    output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
+    output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
 }
 
 # Run the application

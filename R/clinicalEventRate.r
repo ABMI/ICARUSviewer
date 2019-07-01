@@ -17,7 +17,6 @@ call_event <- function(connectionDetails,
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     connectionDetails <-connectionDetails
     connection <- DatabaseConnector::connect(connectionDetails)
-    eventId <- eventId
 
     Sys.setlocale(category="LC_CTYPE", locale="C")
 
