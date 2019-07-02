@@ -19,8 +19,8 @@ check.packages("lme4")
 check.packages("lmerTest")
 check.packages("effects")
 
-outputFolder <<- Sys.getenv("outputFolder")
-
+outputFolder <- Sys.getenv("outputFolder")
+options(fftempdir = Sys.getenv("fftemp"))
 Sys.setlocale(category = "LC_ALL", locale = "us")
 
 # UI
@@ -205,7 +205,7 @@ server <- function(input, output, session) {
     demographic_result <- eventReactive(input$do_demographic_analyze,{
         demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(input$target_cohort,input$comparator_cohort) )
         demographicSummary <- characteristic_summary(characteristic_manufac = demographicRaw)
-        demographicpvalue <- characteristic_pvalue(characteristic_manufac)
+        demographicpvalue <- characteristic_pvalue(characteristic_manufac = demographicRaw)
 
         result_out <- list(demographic_table = demographicSummary,
                            demographic_pvelue = demographicpvalue)

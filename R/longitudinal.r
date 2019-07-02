@@ -77,7 +77,7 @@ lmePft <- function(longitudinalData){
 
     df_1 <- split_list[[1]]
     lmm_randomSIind_1 <- lme4::lmer(formula = f, data = df_1, REML = T)
-        #nlme::lme(fixed = covariateValue ~ 1 + time, random = ~time|subjectId, data = df_1)
+    #nlme::lme(fixed = covariateValue ~ 1 + time, random = ~time|subjectId, data = df_1)
     fixef_value_1 <- t(lme4::fixef(lmm_randomSIind_1))
     effect_value_1 <- effects::effect("time", lmm_randomSIind_1)
     effect_value_df_1 <- as.data.frame(effect_value_1)
@@ -85,8 +85,8 @@ lmePft <- function(longitudinalData){
 
     df_2 <- split_list[[2]]
     lmm_randomSIind_2 <-lme4::lmer(formula = f, data = df_2, REML = T)
-        #nlme::lme(fixed = covariateValue ~ 1 + time, random = ~time|subjectId, data = df_2)
-        fixef_value_2 <- t(lme4::fixef(lmm_randomSIind_2))
+    #nlme::lme(fixed = covariateValue ~ 1 + time, random = ~time|subjectId, data = df_2)
+    fixef_value_2 <- t(lme4::fixef(lmm_randomSIind_2))
     effect_value_2 <- effects::effect("time", lmm_randomSIind_2)
     effect_value_df_2 <- as.data.frame(effect_value_2)
     cohortId_2 <- unique(df_2$cohortId)

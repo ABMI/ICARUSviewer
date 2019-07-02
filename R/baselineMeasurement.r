@@ -12,7 +12,6 @@ getBaselineCovariate <- function(connectionDetails,
                                  Resultschema,
                                  cohortTable,
                                  cohortId){
-
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")
 
@@ -21,8 +20,8 @@ getBaselineCovariate <- function(connectionDetails,
                                                                    useMeasurementValueAnyTimePrior = TRUE,
                                                                    longTermStartDays = -365)
     baselineData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
-                                          cdmDatabaseSchema = cdmDatabaseSchema,
-                                          cohortDatabaseSchema = resultsDatabaseSchema,
+                                          cdmDatabaseSchema = CDMDatabaseSchema,
+                                          cohortDatabaseSchema = resultDatabaseSchema,
                                           cohortTable = cohortTable,
                                           cohortId = cohortId,
                                           rowIdField = "subject_id",
@@ -59,18 +58,14 @@ baselineMeasure_compare <- function(connectionDetails,
                                     measurementConceptIdSet = c(2,3,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469,
                                                                 3011708,3006504,3005322,3005600,3017501,3026514,3005791,3021940,
                                                                 3011505,3013115,3018010,3022096) ){
-
-    resultDatabaseSchema <- paste0(Resultschema,".dbo")
-    CDMDatabaseSchema <- paste0(CDMschema,".dbo")
-
     cohort_1_baseline <- getBaselineCovariate(connectionDetails = connectionDetails,
-                                              CDMschema = CDMDatabaseSchema,
-                                              Resultschema = resultDatabaseSchema,
+                                              CDMschema = CDMschema,
+                                              Resultschema = Resultschema,
                                               cohortTable = cohortTable,
                                               cohortId = cohortId_1)
     cohort_2_baseline <- getBaselineCovariate(connectionDetails = connectionDetails,
-                                              CDMschema = CDMDatabaseSchema,
-                                              Resultschema = resultDatabaseSchema,
+                                              CDMschema = CDMschema,
+                                              Resultschema = Resultschema,
                                               cohortTable = cohortTable,
                                               cohortId = cohortId_2)
 
