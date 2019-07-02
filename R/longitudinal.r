@@ -53,14 +53,14 @@ getLongitudinal <- function(all_longitudinal_data,
                             measurement_concept_id,
                             time_unit = 'year'){
 
-        longitudinalData <- all_longitudinal_data %>% filter(covariateId == measurement_concept_id )
+    longitudinalData <- all_longitudinal_data %>% filter(covariateId == measurement_concept_id )
 
-        if(time_unit == 'year'){
-            longitudinalData <- longitudinalData %>%
-                mutate(time = time/365.25)
-        }
+    if(time_unit == 'year'){
+        longitudinalData <- longitudinalData %>%
+            mutate(time = time/365.25)
+    }
 
-        return(longitudinalData)
+    return(longitudinalData)
 }
 
 #'use linear mixed model regression, find regression line and its CI 95%
@@ -73,18 +73,20 @@ getLongitudinal <- function(all_longitudinal_data,
 lmePft <- function(longitudinalData){
 
     split_list <- split(longitudinalData, longitudinalData$cohortId)
-    f <- as.formula( covariateValue ~ time + (1|subjectId) + (0 + time|subjectId) )
+    f <- as.formula( covariateValue ~ time + (time||subjectId) )
 
     df_1 <- split_list[[1]]
-    lmm_randomSIind_1 <- lme4::lmer(formula = f, data = df_1, REML = F)
+    lmm_randomSIind_1 <- lme4::lmer(formula = f, data = df_1, REML = T)
+        #nlme::lme(fixed = covariateValue ~ 1 + time, random = ~time|subjectId, data = df_1)
     fixef_value_1 <- t(lme4::fixef(lmm_randomSIind_1))
     effect_value_1 <- effects::effect("time", lmm_randomSIind_1)
     effect_value_df_1 <- as.data.frame(effect_value_1)
     cohortId_1 <- unique(df_1$cohortId)
 
     df_2 <- split_list[[2]]
-    lmm_randomSIind_2 <- lme4::lmer(formula = f, data = df_2, REML = F)
-    fixef_value_2 <- t(lme4::fixef(lmm_randomSIind_2))
+    lmm_randomSIind_2 <-lme4::lmer(formula = f, data = df_2, REML = T)
+        #nlme::lme(fixed = covariateValue ~ 1 + time, random = ~time|subjectId, data = df_2)
+        fixef_value_2 <- t(lme4::fixef(lmm_randomSIind_2))
     effect_value_2 <- effects::effect("time", lmm_randomSIind_2)
     effect_value_df_2 <- as.data.frame(effect_value_2)
     cohortId_2 <- unique(df_2$cohortId)

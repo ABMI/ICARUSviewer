@@ -4,19 +4,19 @@
 \alias{getAllLongitudinal}
 \title{extract longitudinal analysis using FeatureExtraction}
 \usage{
-getAllLongitudinal(connectionDetails, cdmDatabaseSchema,
-  resultsDatabaseSchema, cohortTable, cohortId)
+getAllLongitudinal(connectionDetails, CDMschema, Resultschema, cohortTable,
+  cohortId)
 }
 \arguments{
 \item{connectionDetails}{}
 
-\item{cdmDatabaseSchema}{}
-
-\item{resultsDatabaseSchema}{}
-
 \item{cohortTable}{}
 
 \item{cohortId}{}
+
+\item{cdmDatabaseSchema}{}
+
+\item{resultsDatabaseSchema}{}
 }
 \description{
 extract longitudinal analysis using FeatureExtraction
