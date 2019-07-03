@@ -105,7 +105,7 @@ lmePft <- function(longitudinalData){
 }
 
 #'plot pft trajectory line and its CI
-#'@import ggplot
+#'@import ggplot2
 #'@import dplyr
 #'@param longitudinalData
 #'@param lmePftData
