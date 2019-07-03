@@ -4,8 +4,8 @@
 \alias{getConditionCovariate}
 \title{ready for plotting comorbidity data}
 \usage{
-getConditionCovariate(connectionDetails, Resultschema, CDMschema,
-  cohortTable, cohortId)
+getConditionCovariate(connectionDetails, Resultschema, CDMschema, cohortTable,
+  cohortId)
 }
 \description{
 ready for plotting comorbidity data

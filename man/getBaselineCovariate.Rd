@@ -4,8 +4,8 @@
 \alias{getBaselineCovariate}
 \title{get measurement baseline measurement data}
 \usage{
-getBaselineCovariate(connectionDetails, CDMschema, Resultschema,
-  cohortTable, cohortId)
+getBaselineCovariate(connectionDetails, CDMschema, Resultschema, cohortTable,
+  cohortId)
 }
 \description{
 get measurement baseline measurement data

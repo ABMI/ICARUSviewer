@@ -4,8 +4,8 @@
 \alias{baseline_comorbidity}
 \title{ready for calculate co-prevalence and RR}
 \usage{
-baseline_comorbidity(connectionDetails, Resultschema, CDMschema,
-  cohortTable, cohortId_1, cohortId_2)
+baseline_comorbidity(connectionDetails, Resultschema, CDMschema, cohortTable,
+  cohortId_1, cohortId_2)
 }
 \description{
 ready for calculate co-prevalence and RR
