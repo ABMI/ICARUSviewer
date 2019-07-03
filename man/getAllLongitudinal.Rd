@@ -10,13 +10,13 @@ getAllLongitudinal(connectionDetails, CDMschema, Resultschema, cohortTable,
 \arguments{
 \item{connectionDetails}{}
 
+\item{CDMschema}{}
+
+\item{Resultschema}{}
+
 \item{cohortTable}{}
 
 \item{cohortId}{}
-
-\item{cdmDatabaseSchema}{}
-
-\item{resultsDatabaseSchema}{}
 }
 \description{
 extract longitudinal analysis using FeatureExtraction

@@ -2,8 +2,8 @@
 #'@import   FeatureExtraction
 #'@import   dplyr
 #'@param    connectionDetails
-#'@param    cdmDatabaseSchema
-#'@param    resultsDatabaseSchema
+#'@param    CDMschema
+#'@param    Resultschema
 #'@param    cohortTable
 #'@param    cohortId
 #'@export
