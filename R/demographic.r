@@ -9,10 +9,9 @@ charactManufacture<-function(characteristicData,
     out <- characteristicData %>%
         filter(cohortDefinitionId %in% cohortDefinitionIdSet) %>%
         #filter(age >=12) %>%
-        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
-                                            labels = c("Asthma", "Non-Severe Asthma",
-                                                       "Severe Asthma", "AERD",
-                                                       "ATA"))) %>%
+        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,300,301),
+                                            labels = c("Asthma", "Non-Severe Asthma","Severe Asthma", "AERD","ATA",
+                                                       "Exacerbation","Non-exacerbation"))) %>%
         mutate( bmi = round(bmi, 2)) %>%
         mutate( ageSection = cut(age, breaks = c(11,19,49,100),
                                  labels = c("Adolescents (12-19)","Younger (19-49)","Older (50-100)")),
@@ -242,5 +241,7 @@ demographic_cal <- function(charactManufac,
     out<-paste("gender chi-square test : p.value = ", result$chi_square_p.value, "\n",
                by[4], " t-test : p.value = ", result$t.test_p.value,"\n",
                by[4], " wilcoxon test : p.value = ", result$wx.test_p.value, "\n")
+
+    return(out)
 }
 

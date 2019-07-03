@@ -4,12 +4,10 @@
 \alias{calculateRR}
 \title{ready for calculate Relative Ratio and CI}
 \usage{
-calculateRR(comorbManufacData, whichDisease)
+calculateRR(comorbManufacData)
 }
 \arguments{
 \item{comorbManufacData}{the result of comorbManufacture code (list)}
-
-\item{whichDisease}{metabolic or immune disease}
 }
 \description{
 ready for calculate Relative Ratio and CI
