@@ -123,7 +123,8 @@ longitudinal <- function(connectionDetails,
   lme_result_1 <- lme_logitudinal(longitudinalData = get_mea_cohort_1)
   lme_result_2 <- lme_logitudinal(longitudinalData = get_mea_cohort_2)
   
-  result <- list(lme_result_1,lme_result_2)
+  result <- list(cohort_1_result = list(cohortId_1,get_mea_cohort_1,lme_result_1),
+                 cohort_2_result = list(cohortId_2,get_mea_cohort_2,lme_result_2))
   
   return(result)
 }
@@ -131,53 +132,35 @@ longitudinal <- function(connectionDetails,
 #'plot trajectory line and its CI
 #'@import ggplot2
 #'@import dplyr
-#'@param longitudinalData
-#'@param lmeData
+#'@param longitudinal_result  result of longitudinal code
 #'@param pftIndividual                  logical (TRUE/FALSE)
-#'@param ConfidencialIntervalVisualize  logical (TRUE/FALSE)
 #'@export
 #'
 
-plotLmm <- function(longitudinalData,
-                    lmeData,
-                    pftIndividual = TRUE,
-                    ConfidencialIntervalVisualize = TRUE){
-
-    plotpft <- ggplot(data = longitudinalData)
-    longitudinalData <- longitudinalData %>% mutate(cohortId = as.factor(cohortId))
-
-    split_list <- split(longitudinalData, longitudinalData$cohortId)
-
-    colourList <- c("red","blue")
-
-    if(pftIndividual){
-        i <- 1
-        while(1){
-            df <- split_list[[i]]
-            plotpft <- plotpft + geom_line(data = df, aes(x = time, y = covariateValue, group = subjectId, colour = as.factor(cohortId) ), size = 0.4, alpha = 0.5)
-            i <- i + 1
-            if(i > length( unique(longitudinalData$cohortId) ) ) break
-        }
+plotLmm <- function(longitudinal_result,
+                    pftIndividual = TRUE){
+  
+  longitudinal_all <- rbind(longitudinal_result[[1]][[2]],
+                            longitudinal_result[[2]][[2]])
+  plotpft <- ggplot(data = longitudinal_all)
+  split_list <- split(longitudinalData, longitudinalData$cohortId)
+  colourList <- c("red","blue")
+  
+  if(pftIndividual){
+    i <- 1
+    while(1){
+      df <- split_list[[i]]
+      plotpft <- plotpft + geom_line(data = df, aes(x = time, y = covariateValue, group = subjectId, colour = as.factor(cohortId) ), size = 0.4, alpha = 0.5)
+      i <- i + 1
+      if(i > length( unique(longitudinalData$cohortId) ) ) break
     }
-
-    intercept  <- function(x) lmePftData[[x]][[2]][1]
-    slope      <- function(x) lmePftData[[x]][[2]][2]
-
-    for (i in 1:length(unique(longitudinalData$cohortId))){
-        plotpft <- plotpft + geom_abline(intercept = intercept(i), slope = slope(i), colour = colourList[i], size = 1 )
-    }
-
-    if(ConfidencialIntervalVisualize){
-        for (i in 1:length(unique(longitudinalData$cohortId))){
-            plotpft <- plotpft +
-                geom_line(data = lmeData[[i]][[3]], aes(x = time, y = lower), linetype = "longdash", size = 0.5, colour = colourList[i]) +
-                geom_line(data = lmeData[[i]][[3]], aes(x = time, y = upper), linetype = "longdash", size = 0.5, colour = colourList[i])
-        }
-    }
-
-    plotpft <- plotpft +
-        coord_cartesian(xlim = c(0,15))
-
-    return(plotpft)
+  }
+  
+  for (i in 1:length(unique(longitudinalData$cohortId))){
+    plotpft <- plotpft + geom_line(data = longitudinal_result[[i]][[3]],aes(x = time, y = predict),colour = colourList[i], size = 1)+
+      geom_ribbon(data = longitudinal_result[[i]][[3]], aes(ymin = lower, ymax = upper, x = time), colour = colourList[i], alpha = 0.5)
+  }
+  
+  return(plotpft)
 }
 
