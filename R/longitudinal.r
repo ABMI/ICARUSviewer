@@ -85,38 +85,19 @@ lme_logitudinal <- function(longitudinalData){
 }
 
 #'aggregate total code for longitudinal analysis 
-#'@param connectionDetails
-#'@param CDMschema
-#'@param Resultschema
-#'@param cohortId_1
-#'@param cohortId_2
+#'@param allLongitudinal_cohort_1
+#'@param allLongitudinal_cohort_2
 #'@param measurement_concept_id
 #'@export
-longitudinal <- function(connectionDetails,
-                         CDMschema,
-                         Resultschema,
-                         cohortTable,
-                         cohortId_1,
-                         cohortId_2,
+longitudinal <- function(allLongitudinal_cohort_1,
+                         allLongitudinal_cohort_2,
                          measurement_concept_id){
   
-  getlong_cohort_1 <- getAllLongitudinal(connectionDetails = connectionDetails,
-                                         CDMschema = CDMschema,
-                                         Resultschema = Resultschema,
-                                         cohortTable = cohortTable,
-                                         cohortId = cohortId_1)
-  
-  getlong_cohort_2 <- getAllLongitudinal(connectionDetails = connectionDetails,
-                                         CDMschema = CDMschema,
-                                         Resultschema = Resultschema,
-                                         cohortTable = cohortTable,
-                                         cohortId = cohortId_2)
-  
-  get_mea_cohort_1 <- getLongitudinal(all_longitudinal_data = getlong_cohort_1,
+  get_mea_cohort_1 <- getLongitudinal(all_longitudinal_data = allLongitudinal_cohort_1,
                                       measurement_concept_id = measurement_concept_id,
                                       time_unit = 'year')
   
-  get_mea_cohort_2 <- getLongitudinal(all_longitudinal_data = getlong_cohort_2,
+  get_mea_cohort_2 <- getLongitudinal(all_longitudinal_data = allLongitudinal_cohort_2,
                                       measurement_concept_id = measurement_concept_id,
                                       time_unit = 'year')
   
@@ -142,25 +123,26 @@ plotLmm <- function(longitudinal_result,
   
   longitudinal_all <- rbind(longitudinal_result[[1]][[2]],
                             longitudinal_result[[2]][[2]])
-  plotpft <- ggplot(data = longitudinal_all)
-  split_list <- split(longitudinalData, longitudinalData$cohortId)
+  plotlongitudinal <- ggplot(data = longitudinal_all)
+  split_list <- split(longitudinal_all, longitudinal_all$cohortId)
   colourList <- c("red","blue")
   
   if(pftIndividual){
     i <- 1
     while(1){
       df <- split_list[[i]]
-      plotpft <- plotpft + geom_line(data = df, aes(x = time, y = covariateValue, group = subjectId, colour = as.factor(cohortId) ), size = 0.4, alpha = 0.5)
+      plotlongitudinal <- plotlongitudinal + geom_line(data = df, aes(x = time, y = covariateValue, group = subjectId, colour = as.factor(cohortId) ), size = 0.4, alpha = 0.5)
       i <- i + 1
-      if(i > length( unique(longitudinalData$cohortId) ) ) break
+      if(i > length( unique(longitudinal_all$cohortId) ) ) break
     }
   }
   
-  for (i in 1:length(unique(longitudinalData$cohortId))){
-    plotpft <- plotpft + geom_line(data = longitudinal_result[[i]][[3]],aes(x = time, y = predict),colour = colourList[i], size = 1)+
-      geom_ribbon(data = longitudinal_result[[i]][[3]], aes(ymin = lower, ymax = upper, x = time), colour = colourList[i], alpha = 0.5)
+  for (i in 1:length(unique(longitudinal_all$cohortId))){
+    plotlongitudinal <- plotlongitudinal + geom_line(data = longitudinal_result[[i]][[3]],aes(x = time, y = predict),colour = colourList[i], size = 1)+
+      geom_ribbon(data = longitudinal_result[[i]][[3]], aes(ymin = lower, ymax = upper, x = time), fill = colourList[i], alpha = 0.25 )
   }
-  
-  return(plotpft)
+  plotlongitudinal <- plotlongitudinal + theme_bw() + xlab("time (years)") + 
+    theme(legend.title = element_blank(), axis.title.x = element_text(size=13), axis.title.y = element_text(size = 13), axis.text.x = element_text(size = 13),axis.text.y = element_text(size = 13)) 
+  return(plotlongitudinal)
 }
 

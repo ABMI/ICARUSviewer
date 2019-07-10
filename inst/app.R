@@ -257,18 +257,17 @@ server <- function(input, output, session) {
     output$baselineMeasurementTable <- renderDataTable({ baselineMeasurementTable() })
     #############1-2. longitudinal###############
     load_longitudinal <- eventReactive(input$do_load_all_measurement,{
-        allLongitudinal_target<- getAllLongitudinal(connectionDetails = connectionDetails,
+        allLongitudinal_target<<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                     CDMschema = input$CDMschema,
                                                     Resultschema = input$Resultschema,
                                                     cohortTable = 'asthma_cohort',
                                                     cohortId = input$target_cohort)
-        allLongitudinal_compare<- getAllLongitudinal(connectionDetails = connectionDetails,
+        allLongitudinal_compare<<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                      CDMschema = input$CDMschema,
                                                      Resultschema = input$Resultschema,
                                                      cohortTable = 'asthma_cohort',
                                                      cohortId = input$comparator_cohort)
-        allLongitudinalData <<- rbind(allLongitudinal_target,allLongitudinal_compare)
-
+        
         removeModal()
         showModal(modalDialog(title = "Loading complete", "load measurement data success!", footer = modalButton("OK")))
     })
@@ -276,16 +275,14 @@ server <- function(input, output, session) {
     output$load <- renderText({ load_longitudinal() })
 
     longitudinalLME <- eventReactive(input$do_search_measure,{
-        longitudinal <- getLongitudinal(all_longitudinal_data = allLongitudinalData,
-                                        measurement_concept_id = input$measurementConceptId,
-                                        time_unit = 'year')
-
-        lme_result <- lmePft(longitudinalData = longitudinal)
-
-        plot_lme <- plotpftLmm(longitudinalData = longitudinal,
-                               lmePftData = lme_result,
-                               pftIndividual = TRUE,
-                               ConfidencialIntervalVisualize = TRUE)
+      longitudinal_data <- longitudinal(allLongitudinal_cohort_1 = allLongitudinal_target,
+                                        allLongitudinal_cohort_2 = allLongitudinal_compare,
+                                        measurement_concept_id = input$measurementConceptId )
+      
+      plot_lme<- plotLmm(longitudinal_result = longitudinal_data,
+                         pftIndividual = TRUE)
+      return(plot_lme)
+      
     })
     output$longitudinalAnalysis <- renderPlotly({ longitudinalLME() })
 

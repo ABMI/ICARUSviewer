@@ -4,13 +4,12 @@
 \alias{plotLmm}
 \title{plot trajectory line and its CI}
 \usage{
-plotLmm(longitudinalData, lmeData, pftIndividual = TRUE,
-  ConfidencialIntervalVisualize = TRUE)
+plotLmm(longitudinal_result, pftIndividual = TRUE)
 }
 \arguments{
-\item{pftIndividual}{logical (TRUE/FALSE)}
+\item{longitudinal_result}{result of longitudinal code}
 
-\item{ConfidencialIntervalVisualize}{logical (TRUE/FALSE)}
+\item{pftIndividual}{logical (TRUE/FALSE)}
 }
 \description{
 plot trajectory line and its CI

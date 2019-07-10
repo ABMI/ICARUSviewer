@@ -4,8 +4,8 @@
 \alias{longitudinal}
 \title{aggregate total code for longitudinal analysis}
 \usage{
-longitudinal(connectionDetails, CDMschema, Resultschema, cohortTable,
-  cohortId_1, cohortId_2, measurement_concept_id)
+longitudinal(allLongitudinal_cohort_1, allLongitudinal_cohort_2,
+  measurement_concept_id)
 }
 \description{
 aggregate total code for longitudinal analysis
