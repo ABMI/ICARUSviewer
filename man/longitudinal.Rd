@@ -4,8 +4,11 @@
 \alias{longitudinal}
 \title{aggregate total code for longitudinal analysis}
 \usage{
-longitudinal(allLongitudinal_cohort_1, allLongitudinal_cohort_2,
-  measurement_concept_id)
+longitudinal(cohortId_1, cohortId_2, allLongitudinal_cohort_1,
+  allLongitudinal_cohort_2, measurement_concept_id)
+}
+\arguments{
+\item{cohortId_2}{}
 }
 \description{
 aggregate total code for longitudinal analysis

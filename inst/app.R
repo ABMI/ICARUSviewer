@@ -275,7 +275,9 @@ server <- function(input, output, session) {
     output$load <- renderText({ load_longitudinal() })
 
     longitudinalLME <- eventReactive(input$do_search_measure,{
-      longitudinal_data <- longitudinal(allLongitudinal_cohort_1 = allLongitudinal_target,
+      longitudinal_data <- longitudinal(cohortId_1 = input$target_cohort,
+                                        cohortId_2 = input$comparator_cohort,
+                                        allLongitudinal_cohort_1 = allLongitudinal_target,
                                         allLongitudinal_cohort_2 = allLongitudinal_compare,
                                         measurement_concept_id = input$measurementConceptId )
       

@@ -84,12 +84,16 @@ lme_logitudinal <- function(longitudinalData){
   return(out)
 }
 
-#'aggregate total code for longitudinal analysis 
+#'aggregate total code for longitudinal analysis
+#'@param cohortId_1
+#'@param cohortId_2 
 #'@param allLongitudinal_cohort_1
 #'@param allLongitudinal_cohort_2
 #'@param measurement_concept_id
 #'@export
-longitudinal <- function(allLongitudinal_cohort_1,
+longitudinal <- function(cohortId_1,
+                         cohortId_2,
+                         allLongitudinal_cohort_1,
                          allLongitudinal_cohort_2,
                          measurement_concept_id){
   
