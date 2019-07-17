@@ -37,6 +37,7 @@ ui <- dashboardPage(
             menuItem("DB connection", tabName = "db"),
             menuItem("Asthma Phenotype", tabName = "AsthmaPhenotype"),
             menuItem("Asthma Biomarker", tabName = "Biomarker"),
+
             menuItem("PFT In Detail", tabName = "PFTdetail"),
             menuItem("Clinical Characteristic", tabName = "Characteristic"),
             menuItem("Biomarker Characteristic", tabName = "biomarker"),
@@ -279,6 +280,7 @@ ui <- dashboardPage(
 
             #########tab menu = PFT compare more detail########
             tabItem(tabName = "PFTdetail",
+
                     titlePanel("Pulmonary Function Test Compare in more detail"),
                     sidebarPanel( uiOutput("PFTselect") ,
                                   uiOutput("cohortSelect"),
@@ -315,46 +317,14 @@ ui <- dashboardPage(
                              actionButton(inputId = "show_biomarker_charac", label = "SHOW") ),
                     fluidRow(box(tableOutput("meanSdTable_bio"), width = 10) ),
                     fluidRow(box(tableOutput("anovaPvalue_bio"), width = 10) )
-            ),
-            #########tab menu = Asthma Phenotype 2####################
-            tabItem(tabName = "AsthmaPhenotype2",
-                    titlePanel("Choose asthma phenotypes you want to compare"),
-                    sidebarLayout(
-                        sidebarPanel(
-                            textInput("cohortName","cohort Name",""),
-                            numericInput("observationPeriod", "minimum follow up duration", "730"),
-                            selectInput("drugSelect","asthma medication select",
-                                        choices = c("don't care" = "Drugflip",
-                                                    "all asthma medication",
-                                                    "MD/HD-ICS + LABA start") ),
-                            conditionalPanel(condition = "input.drugSelect != 'Drugflip'",
-                                             sliderInput("drugDuration","How long drug exposure continued (year)", min=-4, max=4, value = c(0,0) ) ),
-                            numericInput("exacerbationCount","How many asthma exacerbation occur","0"),
-                            conditionalPanel(condition = "input.exacerbationCount != 0",
-                                             sliderInput("exacerbationDuration","How long do you watch exacerbation (year)", min=-4, max=4, value = c(0,0) ) ),
-                            actionButton("createCohort","CREATE"),
-                            width = 3
-                        ),
-                        mainPanel(
-                            box(checkboxGroupInput("compareSetSelect", "choose cohorts be compared with your cohort",
-                                                   choices = c("Total asthma" = 1,
-                                                               "Non-severe asthma" = 2,
-                                                               "Severe asthma" = 3,
-                                                               "Aspirin exacerbated respiratory disease" = 4,
-                                                               "Aspirin tolerant asthma" = 5,
-                                                               "My cohort" = 99999) ),
-                                actionButton("showResult", "SHOW") ),
-                            tableOutput("ClinicalCharacMycohort"),
-
-                            plotlyOutput("PFTplotMycohort")
-                        )
-                    )
             )
         )
 
     ),
     skin = "black"
 )
+
+
 
 
 ####server##########################
@@ -777,6 +747,8 @@ server <- function(input, output, session) {
         out[[3]]
     })
 
+
+
     ######################3. tab menu result : PFT In Detail################
     ##############ui update###############
     output$PFTselect <- renderUI({
@@ -789,6 +761,7 @@ server <- function(input, output, session) {
                            choices = list("All Asthma Patient" = 1,
                                           "Non-severe Asthma" = 2,
                                           "Severe Asthma" = 3,
+
                                           "Aspirin Exacerbated Respiratory Disease" = 4,
                                           "AERD subtype 1" = 51,
                                           "AERD subtype 2" = 52,
@@ -799,6 +772,7 @@ server <- function(input, output, session) {
     })
 
     ##############PFT in detail analysis result###################
+
     #pft plot
     PFT_indetail_plot <- eventReactive(input$show_pft_in_detail ,{
 
@@ -931,6 +905,7 @@ server <- function(input, output, session) {
     output$anovaPvalue_bio <- renderTable({
         biomarker_pvalue()
     })
+
 }
 
 # Run the application
