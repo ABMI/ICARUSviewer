@@ -305,6 +305,7 @@ server <- function(input, output, session) {
     })
     output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
     output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
+
 }
 
 # Run the application
