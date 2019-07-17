@@ -4,7 +4,7 @@
 \alias{biomarkerManufac}
 \title{analysis of demographic characteristics according to disease cohort}
 \usage{
-biomarkerManufac(cohortDefinitionIdSet)
+biomarkerManufac(cohortDefinitionIdSet, logTransformBiomarkerSet)
 }
 \description{
 analysis of demographic characteristics according to disease cohort

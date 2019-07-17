@@ -4,12 +4,14 @@
 \alias{RunPlp}
 \title{Run Plp}
 \usage{
-RunPlp(getplpOut, learningModel)
+RunPlp(getplpOut, learningModel, splitSeed = NULL)
 }
 \arguments{
 \item{getplpOut}{get from getPlpData code}
 
 \item{learningModel}{input$ModelSelect}
+
+\item{splitSeed}{seed setting}
 }
 \description{
 Run Plp

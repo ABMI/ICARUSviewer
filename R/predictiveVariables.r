@@ -1,5 +1,4 @@
 #'create Plp data and population data (ready for run Plp)
-#'
 #'@import PatientLevelPrediction
 #'@import FeatureExtraction
 #'@param  connectionDetails
@@ -8,12 +7,13 @@
 #'@param  CDMschema
 #'@param  cohortTable                             table name which contains asthma_cohort (default = 'asthma_cohort')
 #'@param  targetId                                target cohort Id (default = 1)
-#'@param  outcomeCohortConceptId                  outcome cohort Id (2 = NSA, 3 = SA, 4 = AERD, 5 = ATA)
+#'@param  outcomeCohortConceptId                  outcome cohort Id
 #'@param  covariateSetting
 #'@param  washoutPeriod                           0
 #'@param  removeSubjectsWithPriorOutcome          TRUE
-#'@param  riskWindowStart                         1
-#'@param  riskWindowEnd                           365*15
+#'@param  riskWindowStart
+#'@param  riskWindowEnd
+#'@param  minTimeAtRisk
 #'@export
 
 getPlpData <- function(connectionDetails,
@@ -21,13 +21,14 @@ getPlpData <- function(connectionDetails,
                        Resultschema,
                        CDMschema,
                        cohortTable = 'asthma_cohort',
-                       targetId = 1,
+                       targetCohortConceptId,
                        outcomeCohortConceptId,
                        covariateSetting,
                        washoutPeriod = 0,
                        removeSubjectsWithPriorOutcome = TRUE,
-                       riskWindowStart = 0,
-                       riskWindowEnd = 365*15){
+                       riskWindowStart,
+                       riskWindowEnd,
+                       minTimeAtRisk){
 
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")
@@ -38,7 +39,7 @@ getPlpData <- function(connectionDetails,
                                                 cdmDatabaseSchema = CDMDatabaseSchema,
                                                 cohortDatabaseSchema = resultDatabaseSchema,
                                                 cohortTable = cohortTable,
-                                                cohortId = targetId,
+                                                cohortId = targetCohortConceptId,
                                                 covariateSettings = covariateSetting,
                                                 outcomeDatabaseSchema = resultDatabaseSchema,
                                                 outcomeTable = cohortTable,
@@ -52,7 +53,7 @@ getPlpData <- function(connectionDetails,
                                                                   removeSubjectsWithPriorOutcome = removeSubjectsWithPriorOutcome,
                                                                   riskWindowStart = riskWindowStart,
                                                                   riskWindowEnd = riskWindowEnd,
-                                                                  minTimeAtRisk = 7,
+                                                                  minTimeAtRisk = minTimeAtRisk,
                                                                   addExposureDaysToEnd = FALSE,
                                                                   addExposureDaysToStart = FALSE)
 
@@ -71,7 +72,7 @@ getPlpData <- function(connectionDetails,
 #'@export
 RunPlp <- function(getplpOut,
                    learningModel,
-                   splitSeed = 2354538){
+                   splitSeed = NULL){
 
     Sys.setlocale(category="LC_CTYPE", locale="C")
 
@@ -99,7 +100,7 @@ RunPlp <- function(getplpOut,
 #'@export
 
 plotPredictiveVariables <- function(machineLearningData,
-                                    rankCount = 20){
+                                    rankCount = 40){
 
     MLresult <- machineLearningData
 
@@ -149,7 +150,7 @@ tablePredictiveVariables <- function(machineLearningData,
         select( conceptId,covariateName,covariateValue,CovariateCount) %>%
         mutate( notNullProportion = ( CovariateCount/sum(demographicData$cohortDefinitionId==1)*100 ) )
 
-    colnames(table)[5] <- 'not Null percent (%)'
+    colnames(table)[5] <- 'non-missing percent (%)'
 
     return(table)
 }
@@ -176,30 +177,4 @@ AUROCcurve <- function(machineLearningData){
 
     return(AUROC)
 }
-#
-# machineLearningData
-# plp<-getPlpData(connectionDetails, connection, Resultschema = 'ICARUS', CDMschema = 'ICARUS', outcomeCohortConceptId = 4,
-#                 covariateSetting = covariateSetting)
-#
-# plp$populationOut
-#
-# run<-RunPlp(getplpOut = plp,
-#             learningModel)
-#
-# plotSparseRoc(run$performanceEvaluation )+
-#     annotate("text", label = paste0("AUC = ",AUC_round[1],"(",AUC_round[2],"-",AUC_round[3],")"), x = 0.75, y = 0.15, size = 6)
-#
-#
-# st<-run$performanceEvaluation$evaluationStatistics
-#
-# dff<-as.data.frame(st)
-#
-# AUC <- dff[which(dff$Eval == 'test' & dff$Metric == c('AUC.auc','AUC.auc_lb95ci','AUC.auc_ub95ci')),]$Value
-# AUC_round<-round(as.numeric(as.character(AUC)), 3)
-#
-# plotSparseRoc(result$performanceEvaluation,
-#               fileName=file.path(filename, 'plots','sparseROC.pdf'),
-#               type = type)
-#
-# plot<-plotPredictiveVariables(machineLearningData = run,
-#                                           rankCount = 20)
+

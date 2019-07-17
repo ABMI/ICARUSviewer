@@ -1,63 +1,111 @@
 #'ready for plotting comorbidity data
 #'@import dplyr
-#'@param comorbidityData
-#'@param cohortDefinitionIdSet
+#'@import FeatureExtraction
+#'@param connectionDetails
+#'@param Resultschema
+#'@param CDMschema
+#'@param cohortTable
+#'@param cohortId
 #'@export
 #'
+getConditionCovariate <- function(connectionDetails,
+                                  Resultschema,
+                                  CDMschema,
+                                  cohortTable,
+                                  cohortId){
 
-comorbManufacture <- function(comorbidityData,
-                              cohortDefinitionIdSet){
+    resultDatabaseSchema <- paste0(Resultschema,".dbo")
+    CDMDatabaseSchema <- paste0(CDMschema,".dbo")
 
-    out <- comorbidityData %>%
-        mutate(gapBetween = difftime(conditionStartDate,cohortStartDate, units = "day") ) %>%
-        group_by(cohortDefinitionId, subjectId, cohortStartDate, conditionConceptId) %>%
-        summarise(gapBetween = min(abs(gapBetween))) %>%
-        filter(cohortDefinitionId %in% cohortDefinitionIdSet) %>%
+    condition_covariate<- FeatureExtraction::createCovariateSettings(useConditionOccurrenceLongTerm = TRUE)
+    covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
+                                           cdmDatabaseSchema = CDMDatabaseSchema,
+                                           cohortDatabaseSchema = resultDatabaseSchema,
+                                           cohortTable = cohortTable,
+                                           cohortId = cohortId,
+                                           rowIdField = "subject_id",
+                                           covariateSettings = condition_covariate)
+    covariateId <- ff::as.ram(covariateData_ff$covariateRef$covariateId)
+    conceptId <- ff::as.ram(covariateData_ff$covariateRef$conceptId)
+    conceptIdMapping_df <- data.frame(covariateId,conceptId)
+    condition_rawdf <- ff::as.ram(covariateData_ff$covariates)
+    condition_df <- condition_rawdf %>% left_join(conceptIdMapping_df, by = "covariateId")
+    colnames(condition_df) <- c("subjectId","covariateId","covariateValue","conceptId")
+
+    out <- condition_df %>%
+        mutate(cohortDefinitionId = cohortId) %>%
+        filter(conceptId %in% unlist(diseaseList$conceptIdSet)) %>%
         mutate(diseaseId = NA)
 
     for(i in 1:length(diseaseList$diseaseId)){
-        out[out$conditionConceptId %in% diseaseList$conceptIdSet[[i]],]$diseaseId <- diseaseList$diseaseId[[i]]
+        if( nrow(out[out$conceptId %in% diseaseList$conceptIdSet[[i]],]) == 0 ) next
+        out[out$conceptId %in% diseaseList$conceptIdSet[[i]],]$diseaseId <- diseaseList$diseaseId[[i]]
     }
 
-    out_joindemographic <- left_join(out, demographicData, by = c("cohortDefinitionId"="cohortDefinitionId","subjectId" = "personId"))
+    out <- out %>%
+        select(cohortDefinitionId, subjectId, diseaseId, conceptId)
 
-    metabolic <- out_joindemographic %>%
-        filter(age>=50) %>%
-        left_join( demographicData %>% filter(age>=50) %>% group_by(cohortDefinitionId) %>% summarise(total = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
-        filter(diseaseId %in% c(11,12,13,14,15,16,19)) %>%
+    return(out)
+}
+
+#'ready for calculate co-prevalence and RR
+#'@import dplyr
+#'@param connectionDetails
+#'@param Resultschema
+#'@param CDMschema
+#'@param cohortTable
+#'@param cohortId_1
+#'@param cohortId_2
+#'@export
+#'
+baseline_comorbidity <- function(connectionDetails,
+                                 Resultschema,
+                                 CDMschema,
+                                 cohortTable,
+                                 cohortId_1,
+                                 cohortId_2){
+
+    baselineComorb_cohort_1 <- getConditionCovariate(connectionDetails = connectionDetails,
+                                                     Resultschema = Resultschema,
+                                                     CDMschema = CDMschema,
+                                                     cohortTable = cohortTable,
+                                                     cohortId = cohortId_1)
+
+    baselineComorb_cohort_2 <- getConditionCovariate(connectionDetails = connectionDetails,
+                                                     Resultschema = Resultschema,
+                                                     CDMschema = CDMschema,
+                                                     cohortTable = cohortTable,
+                                                     cohortId = cohortId_2)
+
+    baselineComorbidity <- rbind(baselineComorb_cohort_1,baselineComorb_cohort_2)
+
+    templete <- data.frame(cohortDefinitionId = rep( c(cohortId_1,cohortId_2),each = length(diseaseList$diseaseId) ),
+                           diseaseId = rep(diseaseList$diseaseId,2) )
+
+    out <- baselineComorbidity %>%
         group_by(cohortDefinitionId, diseaseId) %>%
-        summarise(Count = n_distinct(subjectId),
-                  totalCount = unique(total)) %>%
-        mutate(notdisease = totalCount - Count)
+        summarise(Count = n()) %>%
+        right_join( templete, by = c("cohortDefinitionId","diseaseId")) %>%
+        left_join( demographicData %>% group_by(cohortDefinitionId) %>% summarise(totalCount = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
+        mutate(notdisease = totalCount - Count) %>%
+        mutate(notdisease = if_else(is.na(notdisease),totalCount,notdisease))
 
-    immune <- out_joindemographic %>%
-        filter(age>=12)  %>%
-        left_join( demographicData %>% filter(age>=12) %>% group_by(cohortDefinitionId) %>% summarise(total = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
-        filter(diseaseId %in% c(1,3,5,6,7,8,9,10)) %>%
-        group_by(cohortDefinitionId, diseaseId) %>%
-        summarise(Count = n_distinct(subjectId),
-                  totalCount = unique(total)) %>%
-        mutate(notdisease = totalCount - Count)
+    if( sum(is.na(out$Count))>0 ) out[is.na(out$Count),]$Count <- 0
 
-    ready <- list(metabolic = metabolic,
-                  immune = immune)
+    out<- as.data.frame(out)
 
-    return(ready)
-
+    return(out)
 }
 
 #'ready for calculate Relative Ratio and CI
 #'@import dplyr
 #'@import epitools
 #'@param comorbManufacData               the result of comorbManufacture code (list)
-#'@param whichDisease                    metabolic or immune disease
 #'@export
 #'
-calculateRR <- function(comorbManufacData,
-                        whichDisease){
+calculateRR <- function(comorbManufacData){
 
-    df <- comorbManufacData[[whichDisease]]
-    #str(ready)
+    df <- comorbManufacData
     if ( min(df$cohortDefinitionId) == 2){
 
         split <- split(df, df$diseaseId)
@@ -66,7 +114,10 @@ calculateRR <- function(comorbManufacData,
             simply <- simply[c(2,1),]
             row.names(simply)<-x$cohortDefinitionId[c(2,1)]
             RR_cal<-epitools::riskratio(as.matrix(simply))
-            RR_cal$measure[2,]
+
+            c(diseaseName = diseaseList$diseaseName[which(diseaseList$diseaseId == unique(x$diseaseId))],
+              RR_cal$measure[2,],
+              pvalue = RR_cal$p.value[6])
         })
 
     } else {
@@ -76,7 +127,9 @@ calculateRR <- function(comorbManufacData,
             simply <- x[,c("Count","notdisease")]
             row.names(simply)<-x$cohortDefinitionId
             RR_cal<-epitools::riskratio(as.matrix(simply))
-            RR_cal$measure[2,]
+            c(diseaseName = diseaseList$diseaseName[which(diseaseList$diseaseId == unique(x$diseaseId))],
+              RR_cal$measure[2,],
+              pvalue = RR_cal$p.value[6])
         })
     }
 
@@ -108,7 +161,6 @@ RRplot <- function(RRResult){
         theme_bw()+
         theme(legend.title = element_blank(),
               strip.text = element_text(size = 15),
-              #legend.position = "none",
               legend.text = element_text(size = 11),
               axis.title.x = element_blank(),
               axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
@@ -121,25 +173,19 @@ RRplot <- function(RRResult){
 #'calculate co-prevalence rate
 #'@import dplyr
 #'@import reshape2
-#'@param comorbManufacData               the result of comorbManufacture code (list)
-#'@param whichDisease                    metabolic or immune disease
+#'@param comorbManufacData               the result of comorbManufacture code
 #'@export
 #'
 
-co_prevtable <- function(comorbManufacData,
-                         whichDisease){
+co_prevtable <- function(comorbManufacData){
 
-    df <- comorbManufacData[[whichDisease]]
+    df <- comorbManufacData
     #str(ready)
     df_coprev <- as.data.frame(df) %>%
         mutate(co_prevalence = paste0( round((Count/totalCount)*100,2),"%") ) %>%
         mutate(result = paste0(Count,"(",co_prevalence,")")) %>%
         mutate(diseaseName = factor(diseaseId, levels = diseaseList$diseaseId,
                                     labels = diseaseList$diseaseName) ) %>%
-        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5),
-                                            labels = c("Asthma", "Non-Severe Asthma",
-                                                       "Severe Asthma", "AERD",
-                                                       "ATA"))) %>%
         select(cohortDefinitionId, diseaseName, result)
 
     out <- dcast(df_coprev, diseaseName~cohortDefinitionId)

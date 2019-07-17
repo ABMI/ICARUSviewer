@@ -8,8 +8,9 @@ setting <- function(){
                                      5,6,7,8,9,10, #8disease
                                      11,12,13,14,15,16,
                                      #17,18,
-                                     19,
-                                     20, 21), #7disease
+                                     19
+                                     #,20, 21
+                                     ), #7disease
                        diseaseName = c("rhinosinusitis",#"pneumonia",
                                        "urticaria_angioedema",
                                        #"urticaria",
@@ -19,8 +20,9 @@ setting <- function(){
                                        "anaphylaxis",
                                        "hypertension","diabetesMellitus","osteoporosis","depression","arthritis","GERD",
                                        #"Pneumothorax","chronicHeartFailure",
-                                       "ischemicHeartDisease",
-                                       "atopy_total","CRS_total"),
+                                       "ischemicHeartDisease"
+                                       #,"atopy_total","CRS_total"
+                       ),
                        conceptIdSet = list(c(25297,26711,28060,132932,134661,134668,139841,256439,257007,257012,259848,440140,441321,4230641,4280726,4305500),
                                            #c(252947,253234,316452,318789,433233,434975,435298,437588,438175,439853,443890,444084,4112673),
                                            c(132707,132983,135032,135618,138501,139100,139900,139902,140803,200169,432585,432870,437241,440372,441259,441264,442579,4023944,4064036,4066819,4066820,4101602,4137430,4146239,4194652,4277280,432791,433740,434219,441202,441488,4083784,4098626,4105886,43530807),
@@ -40,8 +42,8 @@ setting <- function(){
                                            c(30437,4144111),
                                            #c(253796,255302,258787),
                                            #c(316139,319835,439846),
-                                           c(312327,314666,315286,315296,316427,317576,319038,319844,321318,438168,438172,444406,4092936,4108215,4108217,4108218,4108219,4108220,4108677,4108678,4108679,4108680,4119953,4124683,4176969,4296653,45766075,45766116),
-                                           c(1),c(2)
+                                           c(312327,314666,315286,315296,316427,317576,319038,319844,321318,438168,438172,444406,4092936,4108215,4108217,4108218,4108219,4108220,4108677,4108678,4108679,4108680,4119953,4124683,4176969,4296653,45766075,45766116)
+                                           #,c(1),c(2)
                        ))
 
     cohortList <<- list(diseaseId = c(1,2,3,4,5,
@@ -62,13 +64,11 @@ setting <- function(){
                                                                     useDemographicsAge = TRUE,
                                                                     useDemographicsAgeGroup = FALSE,
                                                                     useObservationAnyTimePrior = TRUE,
-                                                                    useProcedureOccurrenceAnyTimePrior = TRUE,
+                                                                    useProcedureOccurrenceAnyTimePrior = FALSE,
                                                                     useMeasurementValueAnyTimePrior = TRUE,
                                                                     useMeasurementRangeGroupAnyTimePrior = FALSE,
                                                                     includedCovariateConceptIds = c(), addDescendantsToInclude = FALSE,
-                                                                    excludedCovariateConceptIds = c(), addDescendantsToExclude = FALSE,
+                                                                    excludedCovariateConceptIds = c(),
+                                                                    addDescendantsToExclude = FALSE,
                                                                     includedCovariateIds = c())
-
-
-
 }

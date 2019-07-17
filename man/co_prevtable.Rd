@@ -4,12 +4,10 @@
 \alias{co_prevtable}
 \title{calculate co-prevalence rate}
 \usage{
-co_prevtable(comorbManufacData, whichDisease)
+co_prevtable(comorbManufacData)
 }
 \arguments{
-\item{comorbManufacData}{the result of comorbManufacture code (list)}
-
-\item{whichDisease}{metabolic or immune disease}
+\item{comorbManufacData}{the result of comorbManufacture code}
 }
 \description{
 calculate co-prevalence rate
