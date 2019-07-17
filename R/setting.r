@@ -42,22 +42,29 @@ setting <- function(){
                                            #c(316139,319835,439846),
                                            c(312327,314666,315286,315296,316427,317576,319038,319844,321318,438168,438172,444406,4092936,4108215,4108217,4108218,4108219,4108220,4108677,4108678,4108679,4108680,4119953,4124683,4176969,4296653,45766075,45766116),
                                            c(1),c(2)
-                                           ))
+                       ))
 
-    cohortList <<- list(diseaseId = c(1,2,3,4,5,51,52,53,54),
-                        diseaseName = c("Asthma", "Non-Severe Asthma",
-                                        "Severe Asthma", "AERD","ATA",
-                                        "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4")
-                        )
+    cohortList <<- list(diseaseId = c(1,2,3,4,5,
+                                      51,52,53,54,
+                                      100,101,
+                                      300,301),
+                        diseaseName = c("Asthma", "Non-Severe Asthma","Severe Asthma", "AERD","ATA",
+                                        "AERDsubtype1","AERDsubtype2","AERDsubtype3","AERDsubtype4",
+                                        "exacerbation","GINA_STEP_4/5",
+                                        "exacerbation_new", "not_exacerbation_new" )
+    )
 
     measurementId <<- list(maesurementConceptId = c(2,3,4,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469),
                            measureName = c("EDN","periostin","eotaxin1","eotaxin2","SP_D","DPP10","MBL","TGFb1","chitinase","TIMP1","OPN","IL8","MPO")
-                           )
+    )
 
     covariateSetting <<- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
                                                                     useDemographicsAge = TRUE,
+                                                                    useDemographicsAgeGroup = FALSE,
+                                                                    useObservationAnyTimePrior = TRUE,
+                                                                    useProcedureOccurrenceAnyTimePrior = TRUE,
                                                                     useMeasurementValueAnyTimePrior = TRUE,
-                                                                    useMeasurementRangeGroupAnyTimePrior = TRUE,
+                                                                    useMeasurementRangeGroupAnyTimePrior = FALSE,
                                                                     includedCovariateConceptIds = c(), addDescendantsToInclude = FALSE,
                                                                     excludedCovariateConceptIds = c(), addDescendantsToExclude = FALSE,
                                                                     includedCovariateIds = c())

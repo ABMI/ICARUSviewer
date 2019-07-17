@@ -1,7 +1,9 @@
 # #check package ready
+check.packages("Rcpp")
 check.packages("dplyr")
 check.packages("reshape2")
 check.packages("ggplot2")
+check.packages("plotly")
 check.packages("shiny")
 check.packages("SqlRender")
 check.packages("DatabaseConnector")
@@ -13,6 +15,9 @@ check.packages("tidyverse")
 check.packages("epitools")
 check.packages("mgcv")
 check.packages("ICARUSviewer")
+check.packages("lme4")
+check.packages("lmerTest")
+check.packages("effects")
 
 outputFolder <<- Sys.getenv("outputFolder")
 
@@ -23,7 +28,7 @@ Sys.setlocale(category = "LC_ALL", locale = "us")
 ui <- dashboardPage(
 
     #header
-    dashboardHeader(title = "ICARUSviewer"),
+    dashboardHeader(title = "ICARUS WINGS"),
 
     #side bar menu
     dashboardSidebar(
@@ -35,7 +40,9 @@ ui <- dashboardPage(
 
             menuItem("PFT In Detail", tabName = "PFTdetail"),
             menuItem("Clinical Characteristic", tabName = "Characteristic"),
-            menuItem("Biomarker Characteristic", tabName = "biomarker")
+            menuItem("Biomarker Characteristic", tabName = "biomarker"),
+            menuItem("Asthma Phenotype 2", tabName = "AsthmaPhenotype2"),
+            menuItem("Prediction Model Develop", tabName = "Prediction")
             # ,
             # menuItem("Comorbidity", tabName = "comorbidity")
         )
@@ -114,26 +121,31 @@ ui <- dashboardPage(
                                              titlePanel("Pulmonary Function Test changing comparison")
                                          ),
                                          fluidRow(
-                                             box(title = "FEV1(%) change according to time flow",
-                                                 width = 6,status = "primary",solidHeader = TRUE,
-                                                 plotOutput("FEV1plot")),
-                                             box(title = "FEV1/FVC(%) change according to time flow",
-                                                 width = 6,status = "warning",solidHeader = TRUE,
-                                                 plotOutput("FEV1FVCplot")
-                                             )
+                                             sidebarPanel(checkboxInput("pftIndividual", "Do you want to see all subjects' trajectories?", value = TRUE),
+                                                          checkboxInput("ConfidencialIntervalVisualize", "Do you want to see CI?", value = TRUE))
                                          ),
                                          fluidRow(
                                              box(title = "FEV1(%) change according to time flow",
-                                                 width = 6,status = "primary",solidHeader = TRUE,
-                                                 tableOutput("FEV1counttable"),
-                                                 tableOutput("FEV1predicttable")
-                                             ),
+                                                 width = 4, status = "primary",solidHeader = TRUE,
+                                                 plotlyOutput("FEV1plot")),
                                              box(title = "FEV1/FVC(%) change according to time flow",
-                                                 width = 6,status = "warning",solidHeader = TRUE,
-                                                 tableOutput("FEV1FVCcounttable"),
-                                                 tableOutput("FEV1FVCpredicttable")
+                                                 width = 4, status = "warning",solidHeader = TRUE,
+                                                 plotlyOutput("FEV1FVCplot")
                                              )
                                          )
+                                         # ,
+                                         # fluidRow(
+                                         #     box(title = "FEV1(%) change according to time flow",
+                                         #         width = 6,status = "primary",solidHeader = TRUE,
+                                         #         tableOutput("FEV1counttable"),
+                                         #         tableOutput("FEV1predicttable")
+                                         #     ),
+                                         #     box(title = "FEV1/FVC(%) change according to time flow",
+                                         #         width = 6,status = "warning",solidHeader = TRUE,
+                                         #         tableOutput("FEV1FVCcounttable"),
+                                         #         tableOutput("FEV1FVCpredicttable")
+                                         #     )
+                                         # )
                                 ),
                                 ############comorbidity analysis tab#####################
                                 tabPanel("comorbidity",
@@ -164,24 +176,24 @@ ui <- dashboardPage(
                                          )
                                 ),
                                 ############exacerbation count analysis tab#####################
-                                tabPanel("exacerbationCount",
-                                         fluidRow(
-                                             titlePanel("Compare Exacerbation Count Between Two Cohort")
-                                         ),
-                                         fluidRow(
-                                             box(title = "Exacerbation Count Compare",
-                                                 width = 4,background = 'blue', solidHeader = TRUE,
-                                                 plotOutput("exacerbationPlot")
-                                             ),
-                                             box(title = "statistical analysis of Differences of exacerbation Count",
-                                                 width = 8,status = "info",solidHeader = TRUE,
-                                                 tableOutput("exacerbationTable")
-                                                 # ,
-                                                 # verbatimTextOutput("exacerbationPvalue")
-                                             )
-
-                                         )
-                                ),
+                                # tabPanel("exacerbationCount",
+                                #          fluidRow(
+                                #              titlePanel("Compare Exacerbation Count Between Two Cohort")
+                                #          ),
+                                #          fluidRow(
+                                #              box(title = "Exacerbation Count Compare",
+                                #                  width = 4,background = 'blue', solidHeader = TRUE,
+                                #                  plotOutput("exacerbationPlot")
+                                #              ),
+                                #              box(title = "statistical analysis of Differences of exacerbation Count",
+                                #                  width = 8,status = "info",solidHeader = TRUE,
+                                #                  tableOutput("exacerbationTable")
+                                #                  # ,
+                                #                  # verbatimTextOutput("exacerbationPvalue")
+                                #              )
+                                #
+                                #          )
+                                # ),
                                 ############PLP analysis tab#####################
                                 tabPanel("PredictiveVariable",
                                          fluidRow(
@@ -301,10 +313,10 @@ ui <- dashboardPage(
             tabItem(tabName = "biomarker",
                     titlePanel("Comparison of Biomarker profiles among asthma cohorts"),
                     fluidRow(box(uiOutput("cohortbioSelect"), width = 6),
+                             box(uiOutput("logTransforSelect"), width = 6),
                              actionButton(inputId = "show_biomarker_charac", label = "SHOW") ),
                     fluidRow(box(tableOutput("meanSdTable_bio"), width = 10) ),
                     fluidRow(box(tableOutput("anovaPvalue_bio"), width = 10) )
-
             )
         )
 
@@ -347,7 +359,8 @@ server <- function(input, output, session) {
         measureData <<- dataList[[2]]
         comorbidity <<- dataList[[3]]
         exacerbation <<- dataList[[4]]
-        totalCohort <<- dataList[[5]]
+        exacerbation_new <<- dataList[[5]]
+        totalCohort <<- dataList[[6]]
 
         setting()
 
@@ -366,6 +379,7 @@ server <- function(input, output, session) {
         selectInput(inputId = "selectcohort_phe", label = "Select Cohort Set",
                     choices = c("Severe Asthma vs Non-severe Asthma" ,
                                 "Aspirin Exacerbated Repiratory Disease vs Aspirin Tolerant Asthma" ,
+                                "Exacerbation vs Non-exacerbation",
                                 "AERD subtype compare" ),
                     multiple = FALSE)
     })
@@ -453,7 +467,6 @@ server <- function(input, output, session) {
                                               cohortDefinitionIdSet = switchcohortPhe())
         demographic_cal(charactManufac = demographic_ready,
                         dividedVariable = "bmi")
-
     })
     output$genderbmip_value <- renderText({
         bmigender_pvalue()
@@ -468,11 +481,17 @@ server <- function(input, output, session) {
         FEV1data <- PFTmanufacture(measurementData = measureData,
                                    measurementType = 3011708,
                                    cohortDefinitionIdSet = switchcohortPhe())
-        FEV1plot <- plotPFT(PFTmanufactured = FEV1data)
+
+        lmeFEV1data <- lmePft(pftmanufacData = FEV1data)
+
+        FEV1plot <- plotpftLmm(pftmanufacData = FEV1data,
+                               lmePftData = lmeFEV1data,
+                               pftIndividual = input$pftIndividual,
+                               ConfidencialIntervalVisualize = input$ConfidencialIntervalVisualize)
         FEV1plot
     })
-    output$FEV1plot <- renderPlot({
-        plotFEV1()
+    output$FEV1plot <- renderPlotly({
+        ggplotly(plotFEV1())
     })
     #FEV1FVCplot
     plotFEV1FVC <- eventReactive(input$show_result_phe,{
@@ -480,61 +499,68 @@ server <- function(input, output, session) {
         FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
                                       measurementType = 3011505,
                                       cohortDefinitionIdSet = switchcohortPhe())
-        FEV1FVCplot <- plotPFT(PFTmanufactured = FEV1FVCdata)
+
+        lmeFEV1FVCdata <- lmePft(pftmanufacData = FEV1FVCdata)
+
+        FEV1FVCplot <- plotpftLmm(pftmanufacData = FEV1FVCdata,
+                                  lmePftData = lmeFEV1FVCdata,
+                                  pftIndividual = input$pftIndividual,
+                                  ConfidencialIntervalVisualize = input$ConfidencialIntervalVisualize)
+
         FEV1FVCplot
     })
-    output$FEV1FVCplot <- renderPlot({
-        plotFEV1FVC()
+    output$FEV1FVCplot <- renderPlotly({
+        ggplotly(plotFEV1FVC())
     })
 
-    #FEV1 table
-    tablecountFEV1 <- eventReactive(input$show_result_phe,{
-        FEV1data <- PFTmanufacture(measurementData = measureData,
-                                   measurementType = 3011708,
-                                   cohortDefinitionIdSet = switchcohortPhe())
-        FEV1countTable <- pft_count_table(PFTmanufactured = FEV1data)
-        FEV1countTable
-    })
-    tablepredictFEV1 <- eventReactive(input$show_result_phe,{
-        FEV1data <- PFTmanufacture(measurementData = measureData,
-                                   measurementType = 3011708,
-                                   cohortDefinitionIdSet = switchcohortPhe())
-        FEV1predictTable <- pft_predict_table(PFTmanufactured = FEV1data)
-        FEV1predictTable
-    })
-
-    output$FEV1counttable <- renderTable({
-        tablecountFEV1()
-    })
-
-    output$FEV1predicttable <- renderTable({
-        tablepredictFEV1()
-    })
-
-    #FEV1FVC table
-    tablecountFEV1FVC <- eventReactive(input$show_result_phe,{
-        FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
-                                      measurementType = 3011505,
-                                      cohortDefinitionIdSet = switchcohortPhe())
-        FEV1FVCcountTable <- pft_count_table(PFTmanufactured = FEV1FVCdata)
-        FEV1FVCcountTable
-    })
-
-    tablepredictFEV1FVC <- eventReactive(input$show_result_phe,{
-        FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
-                                      measurementType = 3011505,
-                                      cohortDefinitionIdSet = switchcohortPhe())
-        FEV1FVCpredictTable <- pft_predict_table(PFTmanufactured = FEV1FVCdata)
-        FEV1FVCpredictTable
-    })
-
-    output$FEV1FVCcounttable <- renderTable({
-        tablecountFEV1FVC()
-    })
-
-    output$FEV1FVCpredicttable <- renderTable({
-        tablepredictFEV1FVC()
-    })
+    # #FEV1 table
+    # tablecountFEV1 <- eventReactive(input$show_result_phe,{
+    #     FEV1data <- PFTmanufacture(measurementData = measureData,
+    #                                measurementType = 3011708,
+    #                                cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1countTable <- pft_count_table(PFTmanufactured = FEV1data)
+    #     FEV1countTable
+    # })
+    # tablepredictFEV1 <- eventReactive(input$show_result_phe,{
+    #     FEV1data <- PFTmanufacture(measurementData = measureData,
+    #                                measurementType = 3011708,
+    #                                cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1predictTable <- pft_predict_table(PFTmanufactured = FEV1data)
+    #     FEV1predictTable
+    # })
+    #
+    # output$FEV1counttable <- renderTable({
+    #     tablecountFEV1()
+    # })
+    #
+    # output$FEV1predicttable <- renderTable({
+    #     tablepredictFEV1()
+    # })
+    #
+    # #FEV1FVC table
+    # tablecountFEV1FVC <- eventReactive(input$show_result_phe,{
+    #     FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
+    #                                   measurementType = 3011505,
+    #                                   cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1FVCcountTable <- pft_count_table(PFTmanufactured = FEV1FVCdata)
+    #     FEV1FVCcountTable
+    # })
+    #
+    # tablepredictFEV1FVC <- eventReactive(input$show_result_phe,{
+    #     FEV1FVCdata <- PFTmanufacture(measurementData = measureData,
+    #                                   measurementType = 3011505,
+    #                                   cohortDefinitionIdSet = switchcohortPhe())
+    #     FEV1FVCpredictTable <- pft_predict_table(PFTmanufactured = FEV1FVCdata)
+    #     FEV1FVCpredictTable
+    # })
+    #
+    # output$FEV1FVCcounttable <- renderTable({
+    #     tablecountFEV1FVC()
+    # })
+    #
+    # output$FEV1FVCpredicttable <- renderTable({
+    #     tablepredictFEV1FVC()
+    # })
 
     ##############comorbidity analysis result####################
 
@@ -616,17 +642,17 @@ server <- function(input, output, session) {
     # })
 
     #exacerbation Count Table
-    ExacerbationTable <-eventReactive(input$show_result_phe,{
-        exacerbationManufac <- exacerbaManufacture()
-        sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
-                                                    cohortDefinitionIdSet = switchcohortPhe() )
-        tableExacerbation <- tableExacerbationCoun(sumCountExacerbateData = sumCounExacerbation)
-
-        return(tableExacerbation)
-    })
-    output$exacerbationTable <- renderTable({
-        ExacerbationTable()
-    })
+    # ExacerbationTable <-eventReactive(input$show_result_phe,{
+    #     exacerbationManufac <- exacerbaManufacture()
+    #     sumCounExacerbation <- sumCountExacerbation(exacerbationCount = exacerbationManufac,
+    #                                                 cohortDefinitionIdSet = switchcohortPhe() )
+    #     tableExacerbation <- tableExacerbationCoun(sumCountExacerbateData = sumCounExacerbation)
+    #
+    #     return(tableExacerbation)
+    # })
+    # output$exacerbationTable <- renderTable({
+    #     ExacerbationTable()
+    # })
 
     # #p_value exacerbation Count
     # exacerbationPvalue <-eventReactive(input$show_result_phe,{
@@ -670,7 +696,7 @@ server <- function(input, output, session) {
                                     outcomeCohortConceptId = switchcohortPlp(),
                                     covariateSetting = covariateSetting,
                                     washoutPeriod = 0,
-                                    removeSubjectsWithPriorOutcome = TRUE,
+                                    removeSubjectsWithPriorOutcome = FALSE,
                                     riskWindowStart = 0,
                                     riskWindowEnd = 365*15)
         readyPlp <<- readyPlpData
@@ -689,7 +715,8 @@ server <- function(input, output, session) {
         readyPlpData<-readyPlp
 
         machineLearningResult <- RunPlp(getplpOut = readyPlpData,
-                                        learningModel = switchModel())
+                                        learningModel = switchModel(),
+                                        splitSeed = -7946171)
 
         plot <- plotPredictiveVariables(machineLearningData = machineLearningResult,
                                         rankCount = 40)
@@ -809,7 +836,10 @@ server <- function(input, output, session) {
                                           "AERD subtype 2" = 52,
                                           "AERD subtype 3" = 53,
                                           "AERD subtype 4" = 54,
-                                          "Aspirin Tolerant Asthma" = 5)
+                                          "Aspirin Tolerant Asthma" = 5,
+                                          #"GINA step 4-5" = 200,
+                                          "exacerbation_new" = 300,
+                                          "non_exacerbation_new" = 301)
         )
     })
     ##############clinical characteristic###############
@@ -843,13 +873,22 @@ server <- function(input, output, session) {
                                           "AERD subtype 2" = 52,
                                           "AERD subtype 3" = 53,
                                           "AERD subtype 4" = 54,
-                                          "Aspirin Tolerant Asthma" = 5)
+                                          "Aspirin Tolerant Asthma" = 5,
+                                          #"GINA step 4-5" = 200,
+                                          "exacerbation_new" = 300,
+                                          "non_exacerbation_new" = 301 )
         )
     })
 
+    output$logTransforSelect <- renderUI({
+        checkboxGroupInput("biomarkerlogTransform", "Do you want to transform into log?",
+                            choices = measurementId$measureName
+        )
+    })
     ##############biomarker characteristic###################
     biomarker_meanSd <- eventReactive(input$show_biomarker_charac,{
-        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)) )
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)),
+                                         logTransformBiomarkerSet = as.character(as.vector(input$biomarkerlogTransform)))
         biomarkerMeanSd <- BiomarkerAnalysis(biomarkerData = biomarkerMan)
         return(biomarkerMeanSd)
     })
@@ -858,7 +897,8 @@ server <- function(input, output, session) {
     })
 
     biomarker_pvalue <- eventReactive(input$show_biomarker_charac,{
-        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)))
+        biomarkerMan <- biomarkerManufac(cohortDefinitionIdSet = as.numeric(as.vector(input$cohortbioSelect)),
+                                         logTransformBiomarkerSet = as.character(as.vector(input$biomarkerlogTransform)))
         biomarkerPvalue <- biomarkerPvalue(biomarkerData = biomarkerMan)
         return(biomarkerPvalue)
     })
