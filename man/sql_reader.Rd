@@ -4,7 +4,8 @@
 \alias{sql_reader}
 \title{code for reading query and calling the data (using SqlRender)}
 \usage{
-sql_reader(sqlquery, Resultschema, CDMschema, connectionDetails, connection)
+sql_reader(sqlquery, Resultschema, CDMschema, connectionDetails,
+  connection)
 }
 \description{
 code for reading query and calling the data (using SqlRender)

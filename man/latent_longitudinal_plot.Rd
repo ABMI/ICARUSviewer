@@ -4,12 +4,15 @@
 \alias{latent_longitudinal_plot}
 \title{trajectory plot clustered by lcmm}
 \usage{
-latent_longitudinal_plot(lcmm_out, cluster_number)
+latent_longitudinal_plot(lcmm_classification_result_list,
+  individual_trajectories = TRUE, cluster_number)
 }
 \arguments{
-\item{lcmm_out}{result of PFTmanufacture function}
+\item{lcmm_classification_result_list}{result of latent_class_classification function}
 
-\item{cluster_number}{}
+\item{individual_trajectories}{logical value (TRUE/FALSE) ; being individual trajectories?}
+
+\item{cluster_number}{the number of clusters}
 }
 \description{
 trajectory plot clustered by lcmm

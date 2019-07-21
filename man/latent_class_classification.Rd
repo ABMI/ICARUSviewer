@@ -4,12 +4,18 @@
 \alias{latent_class_classification}
 \title{using latent class linear mixed model (LCMM), create groups according to longitudinally measured data trajectories}
 \usage{
-latent_class_classification(longitudinal_data, cluster_number = 3)
+latent_class_classification(all_longitudinal_data_for_cluster,
+  measurementConceptId_Trajectory, cluster_number,
+  save_lcmm_result = FALSE)
 }
 \arguments{
-\item{longitudinal_data}{result of PFTmanufacture function}
+\item{all_longitudinal_data_for_cluster}{result of getAllLongitudinal code}
 
-\item{cluster_number}{}
+\item{measurementConceptId_Trajectory}{which measurement_concept_id do you want to use to cluster cohort}
+
+\item{cluster_number}{the number of clusters}
+
+\item{save_lcmm_result}{logical value (TRUE/FALSE) ; saving lcmm result at outputFolder?}
 }
 \description{
 using latent class linear mixed model (LCMM), create groups according to longitudinally measured data trajectories
