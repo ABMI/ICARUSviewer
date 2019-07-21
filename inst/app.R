@@ -17,10 +17,11 @@ check.packages("mgcv")
 check.packages("ICARUSviewer")
 check.packages("lme4")
 check.packages("lmerTest")
+check.packages("lcmm")
 #check.packages("effects")
 
-outputFolder <- Sys.getenv("outputFolder")
-options(fftempdir = Sys.getenv("local_fftempdir"))
+outputFolder <- Sys.getenv('/home/dbwls5223/outputFolder')
+options(fftempdir = '/home/dbwls5223/FFtemp')
 Sys.setlocale(category = "LC_ALL", locale = "us")
 
 # UI
