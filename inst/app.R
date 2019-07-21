@@ -120,15 +120,15 @@ ui <- dashboardPage(
                     titlePanel("Trajectory Clustering"),
                     sidebarPanel(
                         numericInput("cohortId_trajectory","Cohort ID",""),
+                        actionButton("do_load_all_measurement_for_lcmm","load All"),
                         numericInput("measurementConceptId_Trajectory","Measurement Concept ID",""),
                         numericInput("clusterNumber","Cluster Count","3"),
                         actionButton("do_cluster","Analysis"),
                         width = 2),
                     mainPanel(
-                        fluidRow(titlePanel("Long-term measured value trajectory clustering") ),
-                        fluidRow(
-                            box(plotlyOutput("TrajectoryClustering") )
-                        )
+                        fluidRow(titlePanel("Long-term measured value trajectory clustering"), textOutput("load_for_cluster") ),
+                        fluidRow( box( plotlyOutput("TrajectoryClustering"), width = 12 ) ),
+                        fluidRow( box( dataTableOutput("TrajectoryClusteringTable"), width = 12 ) )
                     )
             ),
             #########tab menu = Prediction Model#########################
@@ -306,7 +306,41 @@ server <- function(input, output, session) {
     })
     output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
     output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
-
+    ######################3. tab menu result : Trajectory Clustering###################################
+    #############1-1. trajectiry
+    load_for_clustering <- eventReactive(input$do_load_all_measurement_for_lcmm,{
+      allclustering_target<<- getAllLongitudinal(connectionDetails = connectionDetails,
+                                                 CDMschema = input$CDMschema,
+                                                 Resultschema = input$Resultschema,
+                                                 cohortTable = 'asthma_cohort',
+                                                 cohortId = input$cohortId_trajectory)
+      removeModal()
+      showModal(modalDialog(title = "Loading complete", "load measurement data success!", footer = modalButton("OK")))
+    })
+    output$load_for_cluster <- renderText({ load_for_clustering() })
+    
+    plot_lcmm_cluster <- eventReactive(input$do_cluster,{
+      lcmm_cluster_result_list<- latent_class_classification(all_longitudinal_data_for_cluster = allclustering_target,
+                                                             measurementConceptId_Trajectory = input$measurementConceptId_Trajectory,
+                                                             cluster_number = input$clusterNumber,
+                                                             save_lcmm_result = TRUE)
+      plot_cluster <- latent_longitudinal_plot(lcmm_classification_result_list = lcmm_cluster_result_list,
+                                               individual_trajectories = TRUE,
+                                               cluster_number = input$clusterNumber)
+      return(plot_cluster)
+    })
+    output$TrajectoryClustering<- renderPlotly({ plot_lcmm_cluster() })
+    
+    table_lcmm_cluster <- eventReactive(input$do_cluster,{
+      lcmm_cluster_result_list<- latent_class_classification(all_longitudinal_data_for_cluster = allclustering_target,
+                                                             measurementConceptId_Trajectory = input$measurementConceptId_Trajectory,
+                                                             cluster_number = input$clusterNumber,
+                                                             save_lcmm_result = TRUE)
+      table_cluster <- latent_longitudinal_table(lcmm_classification_result_list = lcmm_cluster_result_list,
+                                                 cluster_number = input$clusterNumber)
+      return(table_cluster)
+    })
+    output$TrajectoryClusteringTable <- renderDataTable({ table_lcmm_cluster() })
 }
 
 # Run the application
