@@ -9,12 +9,13 @@
 #'
 latent_class_classification <- function(all_longitudinal_data_for_cluster,
                                         measurementConceptId_Trajectory,
-                                        cluster_number,
-                                        save_lcmm_result = FALSE){
+                                        cluster_number
+                                        # ,save_lcmm_result = FALSE
+                                        ){
   
   newdata <- data.frame(time = seq(0,15,length.out = 100) )
   
-  sub_measure <- getLongitudinal(all_longitudinal_data = all_longitudinal_data_for_cluster,
+  sub_measure <<- getLongitudinal(all_longitudinal_data = all_longitudinal_data_for_cluster,
                                  measurement_concept_id = measurementConceptId_Trajectory,
                                  time_unit = 'year')
   #sub_measure %>% filter(subjectId == 2094755) %>% arrange(time)
@@ -40,9 +41,9 @@ latent_class_classification <- function(all_longitudinal_data_for_cluster,
                       estimate_cluster_result = clustering_class_with_estimated,
                       summary_fit_result = summary_fit_result )
   
-  if(save_lcmm_result){
-    saveRDS(lcmm_cluster3_result, file = file.path(outputFolder,"result_190604.rds"))
-  }
+  # if(save_lcmm_result){
+  #   saveRDS(lcmm_result, file = file.path(outputFolder,"result_190604.rds"))
+  # }
   return(lcmm_result)
 }
 
