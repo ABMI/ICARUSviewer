@@ -4,7 +4,6 @@
 #'@param  all_longitudinal_data_for_cluster    result of getAllLongitudinal code
 #'@param  measurementConceptId_Trajectory      which measurement_concept_id do you want to use to cluster cohort  
 #'@param  cluster_number                       the number of clusters 
-#'@param  save_lcmm_result                     logical value (TRUE/FALSE) ; saving lcmm result at outputFolder?
 #'@export
 #'
 latent_class_classification <- function(all_longitudinal_data_for_cluster,

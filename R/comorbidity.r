@@ -17,7 +17,8 @@ getConditionCovariate <- function(connectionDetails,
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")
 
-    condition_covariate<- FeatureExtraction::createCovariateSettings(useConditionOccurrenceLongTerm = TRUE)
+    condition_covariate<- FeatureExtraction::createCovariateSettings(useConditionOccurrenceLongTerm = TRUE, endDays = 365)
+    
     covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
                                            cdmDatabaseSchema = CDMDatabaseSchema,
                                            cohortDatabaseSchema = resultDatabaseSchema,
