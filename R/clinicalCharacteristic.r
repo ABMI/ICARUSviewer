@@ -35,7 +35,7 @@ characteristic_summary <- function(characteristic_manufac){
         mutate(female_prop = round((female_count/total_count)*100,2) ) %>%
         mutate(female_prop_result = paste0(female_count,"(",female_prop,"%)") )
 
-    df <- data.frame(cohort_definition_id = unique(characteristic_manufac$cohortDefinitionId),
+    df <- data.frame(cohort_definition_id = sort(unique(characteristic_manufac$cohortDefinitionId)),
                      age = age_result,
                      follow_up_duration = followUpDuration_result,
                      bmi = bmi_result,
