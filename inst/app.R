@@ -307,7 +307,7 @@ server <- function(input, output, session) {
     output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
     output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
     ######################3. tab menu result : Trajectory Clustering###################################
-    #############1-1. trajectiry
+    #############1-1. trajectory
     load_for_clustering <- eventReactive(input$do_load_all_measurement_for_lcmm,{
       allclustering_target<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                 CDMschema = input$CDMschema,
@@ -344,6 +344,10 @@ server <- function(input, output, session) {
       return(table_cluster)
     })
     output$TrajectoryClusteringTable <- renderDataTable({ table_lcmm_cluster() })
+    
+    ######################4. tab menu result : Prediction model###################################
+    #############1-1. prediction model
+    
 }
 
 # Run the application

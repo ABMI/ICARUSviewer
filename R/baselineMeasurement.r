@@ -94,20 +94,11 @@ baselineMeasure_compare <- function(connectionDetails,
 #'@param x
 #'@export
 baselineMeasure_summary <- function(x){
-    value <- x$covariateValue
-    shapiro <- shapiro.test(value)
-    if(shapiro$p.value >= 0.05){
-        mean_x          <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = T),2) )
-        sd_x            <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = T),2) )
-        count_x         <- tapply(x$subjectId,x$cohortDefinitionId,FUN = function(x) length(unique(x)) )
-        result          <- paste0(mean_x,"+/-",sd_x,"(",count_x,")")
-    } else {
-        median_x        <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) median(x, na.rm = T) )
-        inquantile_x    <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) paste0(quantile(x, na.rm = T)[2],",",quantile(x, na.rm = T)[4] ) )
-        count_x         <- tapply(x$subjectId,x$cohortDefinitionId,FUN = function(x) length(unique(x)) )
-        result          <- paste0(median_x,"(",inquantile_x,")","(",count_x,")")
-    }
-    return(result)
+  mean_x          <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = T),2) )
+  sd_x            <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = T),2) )
+  count_x         <- tapply(x$subjectId,x$cohortDefinitionId,FUN = function(x) length(unique(x)) )
+  result          <- paste0(mean_x,"+/-",sd_x,"(",count_x,")")
+  return(result)
 }
 
 #'function for calculate p-value of measurement values

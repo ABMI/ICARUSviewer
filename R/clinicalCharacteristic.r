@@ -18,27 +18,18 @@ charterstic_manufacture<-function(cohort_definition_id_set){
 #'@export
 
 characteristic_summary <- function(characteristic_manufac){
-    normality <- function(x){
-        shapiro <- shapiro.test(x)
-        if(shapiro$p.value >= 0.05){
-            mean_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = T),2) )
-            sd_x   <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = T),2) )
-            out <- paste0(mean_x,"+/-",sd_x)
-        } else {
-            median_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) median(x, na.rm = T) )
-            inquantile_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) paste0(quantile(x, na.rm = T)[2],",",quantile(x, na.rm = T)[4] ) )
-            out <- paste0(median_x,"(",inquantile_x,")")
-        }
-        return(out)
+    medianSD <- function(x){
+      mean_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = T),2) )
+      sd_x   <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = T),2) )
+      out <- paste0(mean_x,"+/-",sd_x)
     }
-
     total_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(total_count = n_distinct(personId) )
     bmi_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(bmi_count = sum(!is.na(bmi)) )
     female_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(female_count = sum(genderConceptId == 8532) )
 
-    age_result <- normality(characteristic_manufac$age)
-    followUpDuration_result <- normality(characteristic_manufac$followUpDuration)
-    bmi_result <- normality(characteristic_manufac$bmi)
+    age_result <- medianSD(characteristic_manufac$age)
+    followUpDuration_result <- medianSD(characteristic_manufac$followUpDuration)
+    bmi_result <- medianSD(characteristic_manufac$bmi)
     female_result <- female_count %>%
         left_join(total_count, by = "cohortDefinitionId") %>%
         mutate(female_prop = round((female_count/total_count)*100,2) ) %>%
