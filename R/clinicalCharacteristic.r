@@ -3,13 +3,16 @@
 #'@param cohort_definition_id_set
 #'@export
 charterstic_manufacture<-function(cohort_definition_id_set){
-    out <- demographicData %>%
-        filter(cohortDefinitionId %in% cohort_definition_id_set) %>%
-        #filter(age >=12) %>%
-        mutate( followUpDuration = round(followUpDuration/365.25, 2) ) %>%
-        mutate( bmi = round(bmi,2)) %>%
-        select( cohortDefinitionId,personId, genderConceptId, age, followUpDuration, bmi )
-    return(out)
+  out <- demographicData %>%
+    filter( cohortDefinitionId %in% cohort_definition_id_set) %>%
+    #filter(age >=12) %>%
+    mutate( followUpDuration = round(followUpDuration/365.25, 2) ) %>%
+    mutate( bmi = round(bmi,2)) %>%
+    select( cohortDefinitionId,personId, genderConceptId, age, followUpDuration, bmi )
+  out[which(out$bmi > 100),]$bmi <- NA
+  out[which(out$followUpDuration <= 0),]$followUpDuration <- NA
+  
+  return(out)
 }
 
 #'analysis of demographic characteristics; if the value has normality, calculate mean +/- sd, if not median (25%, 75% quantile) in continuous value
@@ -24,7 +27,7 @@ characteristic_summary <- function(characteristic_manufac){
       out <- paste0(mean_x,"+/-",sd_x)
     }
     total_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(total_count = n_distinct(personId) )
-    bmi_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(bmi_count = sum(!is.na(bmi)) )
+    bmi_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(bmi_count = sum( !is.na(bmi)) )
     female_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(female_count = sum(genderConceptId == 8532) )
 
     age_result <- medianSD(characteristic_manufac$age)

@@ -21,6 +21,8 @@ getPlpData(connectionDetails, connection, Resultschema, CDMschema,
 
 \item{cohortTable}{table name which contains asthma_cohort (default = 'asthma_cohort')}
 
+\item{targetCohortConceptId}{target cohort Id (default = 1)}
+
 \item{outcomeCohortConceptId}{outcome cohort Id}
 
 \item{covariateSetting}{}
@@ -34,8 +36,6 @@ getPlpData(connectionDetails, connection, Resultschema, CDMschema,
 \item{riskWindowEnd}{}
 
 \item{minTimeAtRisk}{}
-
-\item{targetId}{target cohort Id (default = 1)}
 }
 \description{
 create Plp data and population data (ready for run Plp)

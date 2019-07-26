@@ -6,7 +6,7 @@
 #'@param  Resultschema
 #'@param  CDMschema
 #'@param  cohortTable                             table name which contains asthma_cohort (default = 'asthma_cohort')
-#'@param  targetId                                target cohort Id (default = 1)
+#'@param  targetCohortConceptId                   target cohort Id (default = 1)
 #'@param  outcomeCohortConceptId                  outcome cohort Id
 #'@param  covariateSetting
 #'@param  washoutPeriod                           0

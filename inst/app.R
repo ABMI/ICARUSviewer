@@ -14,7 +14,6 @@ check.packages("shiny")
 check.packages("tidyverse")
 check.packages("epitools")
 check.packages("mgcv")
-check.packages("ICARUSviewer")
 check.packages("lme4")
 check.packages("lmerTest")
 check.packages("lcmm")
@@ -141,7 +140,8 @@ ui <- dashboardPage(
                         numericInput("Risk_window_end","Risk window end",""),
                         numericInput("Minimum_TAR","Minimum time at risk",""),
                         uiOutput("modelSelect"),
-                        actionButton("do_predict","Analysis"),
+                        actionButton("do_predict","Predict"),
+                        actionButton("do_predictionOutput","Show Result"),
                         width = 2),
                     mainPanel(
                         fluidRow(titlePanel("Prediction Model Develop") ),
@@ -149,7 +149,7 @@ ui <- dashboardPage(
                             box(plotOutput("contributedCovariates"), width = 8),
                             box(plotOutput("AUROCcurve"),width = 4) ),
                         fluidRow(
-                            box(tableOutput("covariateTable"), width = 12)
+                            box(dataTableOutput("covariateTable"), width = 12)
                         )
                     )
             )
@@ -347,7 +347,49 @@ server <- function(input, output, session) {
     
     ######################4. tab menu result : Prediction model###################################
     #############1-1. prediction model
+    output$modelSelect <- renderUI({
+      selectInput("modelSelect","Machine Learning Model Select",choices = c("Lasso Logistic","Gradient Boosting"))
+    })
+    switchModelSelect <- reactive({ switchselect_model(input$modelSelect) })
     
+    prediction <- eventReactive(input$do_predict,{
+      plpdata <- getPlpData(connectionDetails = connectionDetails,
+                            connection = connection,
+                            CDMschema = input$CDMschema,
+                            Resultschema = input$Resultschema,
+                            cohortTable = 'asthma_cohort',
+                            targetCohortConceptId = input$Target_cohort,
+                            outcomeCohortConceptId = input$Outcome_cohort,
+                            covariateSetting = covariateSetting,
+                            washoutPeriod = 0,
+                            removeSubjectsWithPriorOutcome = FALSE,
+                            riskWindowStart = input$Risk_window_start,
+                            riskWindowEnd = input$Risk_window_end,
+                            minTimeAtRisk = input$Minimum_TAR)
+      plp_result <<- RunPlp(getplpOut = plpdata,
+                            learningModel = switchModelSelect(),
+                            splitSeed = NULL)
+    })
+    
+    contributedCovariatePlot <- eventReactive(input$do_predictionOutput,{
+      predictiveVariable <- plotPredictiveVariables(machineLearningData = plp_result,
+                                                    rankCount = 40)
+      return(predictiveVariable)
+    })
+    output$contributedCovariates <- renderPlot({ contributedCovariatePlot() })
+    
+    AUROCplot <- eventReactive(input$do_predictionOutput,{
+      auroc <- AUROCcurve(machineLearningData = plp_result)
+      return(auroc)
+    })
+    output$AUROCcurve <- renderPlot({ AUROCplot() })
+    
+    contributedCovariateTable <- eventReactive(input$do_predictionOutput,{
+      covariateTable <- tablePredictiveVariables(machineLearningData = plp_result,
+                                                 rankCount = 40)
+      return(covariateTable)
+    })
+    output$covariateTable <- renderDataTable({ contributedCovariateTable() })
 }
 
 # Run the application

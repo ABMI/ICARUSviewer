@@ -13,8 +13,6 @@ latent_class_classification(all_longitudinal_data_for_cluster,
 \item{measurementConceptId_Trajectory}{which measurement_concept_id do you want to use to cluster cohort}
 
 \item{cluster_number}{the number of clusters}
-
-\item{save_lcmm_result}{logical value (TRUE/FALSE) ; saving lcmm result at outputFolder?}
 }
 \description{
 using latent class linear mixed model (LCMM), create groups according to longitudinally measured data trajectories
