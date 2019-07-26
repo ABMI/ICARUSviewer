@@ -144,13 +144,12 @@ ui <- dashboardPage(
                         actionButton("do_predictionOutput","Show Result"),
                         width = 2),
                     mainPanel(
-                        fluidRow(titlePanel("Prediction Model Develop") ),
+                        fluidRow(titlePanel("Prediction Model Develop"), textOutput("prediction_done") ),
                         fluidRow(
-                            box(plotOutput("contributedCovariates"), width = 8),
-                            box(plotOutput("AUROCcurve"),width = 4) ),
+                            box(plotOutput("contributedCovariates"), width = 6),
+                            box(plotOutput("AUROCcurve")           , width = 6) ),
                         fluidRow(
-                            box(dataTableOutput("covariateTable"), width = 12)
-                        )
+                            box(dataTableOutput("covariateTable")  , width = 12) )
                     )
             )
         )
@@ -368,8 +367,13 @@ server <- function(input, output, session) {
                             minTimeAtRisk = input$Minimum_TAR)
       plp_result <<- RunPlp(getplpOut = plpdata,
                             learningModel = switchModelSelect(),
-                            splitSeed = NULL)
+                            splitSeed = NULL,
+                            outputFolder = outputFolder)
+      removeModal()
+      showModal(modalDialog(title = "Prediction complete", "Prediction was completed, show the results!", footer = modalButton("OK")))
+      
     })
+    output$prediction_done <- renderText({ prediction() })
     
     contributedCovariatePlot <- eventReactive(input$do_predictionOutput,{
       predictiveVariable <- plotPredictiveVariables(machineLearningData = plp_result,

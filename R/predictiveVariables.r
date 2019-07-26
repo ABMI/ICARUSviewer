@@ -72,9 +72,10 @@ getPlpData <- function(connectionDetails,
 #'@export
 RunPlp <- function(getplpOut,
                    learningModel,
-                   splitSeed = NULL){
+                   splitSeed = NULL,
+                   outputFolder = outputFolder){
 
-    Sys.setlocale(category="LC_CTYPE", locale="C")
+    # Sys.setlocale(category="LC_CTYPE", locale="C")
 
     MLresult<-PatientLevelPrediction::runPlp(population = getplpOut[[2]],
                                              plpData = getplpOut[[1]],
