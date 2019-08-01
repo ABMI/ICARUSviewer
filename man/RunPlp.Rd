@@ -4,7 +4,8 @@
 \alias{RunPlp}
 \title{Run Plp}
 \usage{
-RunPlp(getplpOut, learningModel, splitSeed = NULL)
+RunPlp(getplpOut, learningModel, splitSeed = NULL,
+  outputFolder = outputFolder)
 }
 \arguments{
 \item{getplpOut}{get from getPlpData code}

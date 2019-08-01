@@ -3,13 +3,16 @@
 #'@param cohort_definition_id_set
 #'@export
 charterstic_manufacture<-function(cohort_definition_id_set){
-    out <- demographicData %>%
-        filter(cohortDefinitionId %in% cohort_definition_id_set) %>%
-        #filter(age >=12) %>%
-        mutate( followUpDuration = round(followUpDuration/365.25, 2) ) %>%
-        mutate( bmi = round(bmi,2)) %>%
-        select( cohortDefinitionId,personId, genderConceptId, age, followUpDuration, bmi )
-    return(out)
+  out <- demographicData %>%
+    filter( cohortDefinitionId %in% cohort_definition_id_set) %>%
+    #filter(age >=12) %>%
+    mutate( followUpDuration = round(followUpDuration/365.25, 2) ) %>%
+    mutate( bmi = round(bmi,2)) %>%
+    select( cohortDefinitionId,personId, genderConceptId, age, followUpDuration, bmi )
+  out[which(out$bmi > 100),]$bmi <- NA
+  out[which(out$followUpDuration <= 0),]$followUpDuration <- NA
+  
+  return(out)
 }
 
 #'analysis of demographic characteristics; if the value has normality, calculate mean +/- sd, if not median (25%, 75% quantile) in continuous value
@@ -18,33 +21,24 @@ charterstic_manufacture<-function(cohort_definition_id_set){
 #'@export
 
 characteristic_summary <- function(characteristic_manufac){
-    normality <- function(x){
-        shapiro <- shapiro.test(x)
-        if(shapiro$p.value >= 0.05){
-            mean_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = T),2) )
-            sd_x   <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = T),2) )
-            out <- paste0(mean_x,"+/-",sd_x)
-        } else {
-            median_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) median(x, na.rm = T) )
-            inquantile_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) paste0(quantile(x, na.rm = T)[2],",",quantile(x, na.rm = T)[4] ) )
-            out <- paste0(median_x,"(",inquantile_x,")")
-        }
-        return(out)
+    medianSD <- function(x){
+      mean_x <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = T),2) )
+      sd_x   <- tapply(x,characteristic_manufac$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = T),2) )
+      out <- paste0(mean_x,"+/-",sd_x)
     }
-
     total_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(total_count = n_distinct(personId) )
-    bmi_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(bmi_count = sum(!is.na(bmi)) )
+    bmi_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(bmi_count = sum( !is.na(bmi)) )
     female_count <- characteristic_manufac %>% group_by(cohortDefinitionId) %>% summarise(female_count = sum(genderConceptId == 8532) )
 
-    age_result <- normality(characteristic_manufac$age)
-    followUpDuration_result <- normality(characteristic_manufac$followUpDuration)
-    bmi_result <- normality(characteristic_manufac$bmi)
+    age_result <- medianSD(characteristic_manufac$age)
+    followUpDuration_result <- medianSD(characteristic_manufac$followUpDuration)
+    bmi_result <- medianSD(characteristic_manufac$bmi)
     female_result <- female_count %>%
         left_join(total_count, by = "cohortDefinitionId") %>%
         mutate(female_prop = round((female_count/total_count)*100,2) ) %>%
         mutate(female_prop_result = paste0(female_count,"(",female_prop,"%)") )
 
-    df <- data.frame(cohort_definition_id = unique(characteristic_manufac$cohortDefinitionId),
+    df <- data.frame(cohort_definition_id = sort(unique(characteristic_manufac$cohortDefinitionId)),
                      age = age_result,
                      follow_up_duration = followUpDuration_result,
                      bmi = bmi_result,

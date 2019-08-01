@@ -20,7 +20,7 @@ getAllLongitudinal <- function(connectionDetails,
     connection <- DatabaseConnector::connect(connectionDetails)
 
     temporalSettings <- createTemporalCovariateSettings(useMeasurementValue = TRUE,
-                                                        temporalStartDays = 0:7300-1,
+                                                        temporalStartDays = 0:7300,
                                                         temporalEndDays = 0:7300)
 
     covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,

@@ -6,7 +6,7 @@
 #'@param  Resultschema
 #'@param  CDMschema
 #'@param  cohortTable                             table name which contains asthma_cohort (default = 'asthma_cohort')
-#'@param  targetId                                target cohort Id (default = 1)
+#'@param  targetCohortConceptId                   target cohort Id (default = 1)
 #'@param  outcomeCohortConceptId                  outcome cohort Id
 #'@param  covariateSetting
 #'@param  washoutPeriod                           0
@@ -72,9 +72,10 @@ getPlpData <- function(connectionDetails,
 #'@export
 RunPlp <- function(getplpOut,
                    learningModel,
-                   splitSeed = NULL){
+                   splitSeed = NULL,
+                   outputFolder = outputFolder){
 
-    Sys.setlocale(category="LC_CTYPE", locale="C")
+    # Sys.setlocale(category="LC_CTYPE", locale="C")
 
     MLresult<-PatientLevelPrediction::runPlp(population = getplpOut[[2]],
                                              plpData = getplpOut[[1]],

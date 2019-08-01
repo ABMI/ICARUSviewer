@@ -27,10 +27,10 @@ switchselect_plp <- function(input){
 #'
 switchselect_model <- function(input){
     switch(input,
-           "lassologistic" = PatientLevelPrediction::setLassoLogisticRegression(),
-           "gradientboosting" = PatientLevelPrediction::setGradientBoostingMachine(maxDepth = c(4,6),
-                                                                                   ntrees = c(1,10,100),
-                                                                                   minRows = c(2,10,20)),
+           "Lasso Logistic" = PatientLevelPrediction::setLassoLogisticRegression(),
+           "Gradient Boosting" = PatientLevelPrediction::setGradientBoostingMachine(maxDepth = c(4,6),
+                                                                                    ntrees = c(1,10,100),
+                                                                                    minRows = c(2,10,20)),
            "randomforest" = PatientLevelPrediction::setRandomForest()
     )
 }

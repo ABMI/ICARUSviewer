@@ -17,7 +17,8 @@ getConditionCovariate <- function(connectionDetails,
     resultDatabaseSchema <- paste0(Resultschema,".dbo")
     CDMDatabaseSchema <- paste0(CDMschema,".dbo")
 
-    condition_covariate<- FeatureExtraction::createCovariateSettings(useConditionOccurrenceLongTerm = TRUE)
+    condition_covariate<- FeatureExtraction::createCovariateSettings(useConditionOccurrenceLongTerm = TRUE, endDays = 30)
+    
     covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
                                            cdmDatabaseSchema = CDMDatabaseSchema,
                                            cohortDatabaseSchema = resultDatabaseSchema,
@@ -84,7 +85,7 @@ baseline_comorbidity <- function(connectionDetails,
 
     out <- baselineComorbidity %>%
         group_by(cohortDefinitionId, diseaseId) %>%
-        summarise(Count = n()) %>%
+        summarise(Count = n_distinct(subjectId)) %>%
         right_join( templete, by = c("cohortDefinitionId","diseaseId")) %>%
         left_join( demographicData %>% group_by(cohortDefinitionId) %>% summarise(totalCount = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
         mutate(notdisease = totalCount - Count) %>%

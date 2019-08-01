@@ -14,13 +14,12 @@ check.packages("shiny")
 check.packages("tidyverse")
 check.packages("epitools")
 check.packages("mgcv")
-check.packages("ICARUSviewer")
 check.packages("lme4")
 check.packages("lmerTest")
-#check.packages("effects")
+check.packages("lcmm")
 
-outputFolder <- Sys.getenv("outputFolder")
-options(fftempdir = Sys.getenv("local_fftempdir"))
+outputFolder <- '/home/dbwls5223/outputFolder'
+options(fftempdir = '/home/dbwls5223/FFtemp')
 Sys.setlocale(category = "LC_ALL", locale = "us")
 
 # UI
@@ -121,13 +120,14 @@ ui <- dashboardPage(
                         numericInput("cohortId_trajectory","Cohort ID",""),
                         numericInput("measurementConceptId_Trajectory","Measurement Concept ID",""),
                         numericInput("clusterNumber","Cluster Count","3"),
+                        actionButton("do_load_all_measurement_for_lcmm","Load Data"),
                         actionButton("do_cluster","Analysis"),
                         width = 2),
                     mainPanel(
-                        fluidRow(titlePanel("Long-term measured value trajectory clustering") ),
-                        fluidRow(
-                            box(plotlyOutput("TrajectoryClustering") )
-                        )
+                        fluidRow( titlePanel("Long-term measured value trajectory clustering"), textOutput("load_for_cluster") ),
+                        fluidRow( box( plotOutput("TrajectoryClustering_withIndividual"), width = 6 ),
+                                  box( plotOutput("TrajectoryClustering_onlyCI")        , width = 6 ) ),
+                        fluidRow( box( dataTableOutput("TrajectoryClusteringTable")     , width = 12 ) )
                     )
             ),
             #########tab menu = Prediction Model#########################
@@ -140,16 +140,16 @@ ui <- dashboardPage(
                         numericInput("Risk_window_end","Risk window end",""),
                         numericInput("Minimum_TAR","Minimum time at risk",""),
                         uiOutput("modelSelect"),
-                        actionButton("do_predict","Analysis"),
+                        actionButton("do_predict","Predict"),
+                        actionButton("do_predictionOutput","Show Result"),
                         width = 2),
                     mainPanel(
-                        fluidRow(titlePanel("Prediction Model Develop") ),
+                        fluidRow(titlePanel("Prediction Model Develop"), textOutput("prediction_done") ),
                         fluidRow(
-                            box(plotOutput("contributedCovariates"), width = 8),
-                            box(plotOutput("AUROCcurve"),width = 4) ),
+                            box(plotOutput("contributedCovariates"), width = 6),
+                            box(plotOutput("AUROCcurve")           , width = 6) ),
                         fluidRow(
-                            box(tableOutput("covariateTable"), width = 12)
-                        )
+                            box(dataTableOutput("covariateTable")  , width = 12) )
                     )
             )
         )
@@ -305,7 +305,95 @@ server <- function(input, output, session) {
     })
     output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
     output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
-
+    ######################3. tab menu result : Trajectory Clustering###################################
+    #############1-1. trajectory
+    load_for_clustering <- eventReactive(input$do_load_all_measurement_for_lcmm,{
+      allclustering_target<- getAllLongitudinal(connectionDetails = connectionDetails,
+                                                CDMschema = input$CDMschema,
+                                                Resultschema = input$Resultschema,
+                                                cohortTable = 'asthma_cohort',
+                                                cohortId = input$cohortId_trajectory)
+      lcmm_cluster_result_list <<- latent_class_classification(all_longitudinal_data_for_cluster = allclustering_target,
+                                                               measurementConceptId_Trajectory = input$measurementConceptId_Trajectory,
+                                                               cluster_number = input$clusterNumber)
+      removeModal()
+      showModal(modalDialog(title = "Loading complete", "load measurement data success!", footer = modalButton("OK")))
+    })
+    output$load_for_cluster <- renderText({ load_for_clustering() })
+    
+    plot_lcmm_cluster_withIndividual <- eventReactive(input$do_cluster,{
+      plot_cluster <- latent_longitudinal_plot(lcmm_classification_result_list = lcmm_cluster_result_list,
+                                               individual_trajectories = TRUE,
+                                               cluster_number = input$clusterNumber)
+      return(plot_cluster)
+    })
+    output$TrajectoryClustering_withIndividual<- renderPlot({ plot_lcmm_cluster_withIndividual() })
+    
+    plot_lcmm_cluster_onlyCI <- eventReactive(input$do_cluster,{
+      plot_cluster <- latent_longitudinal_plot(lcmm_classification_result_list = lcmm_cluster_result_list,
+                                               individual_trajectories = FALSE,
+                                               cluster_number = input$clusterNumber)
+      return(plot_cluster)
+    })
+    output$TrajectoryClustering_onlyCI<- renderPlot({ plot_lcmm_cluster_onlyCI() })
+    
+    table_lcmm_cluster <- eventReactive(input$do_cluster,{
+      table_cluster <- latent_longitudinal_table(lcmm_classification_result_list = lcmm_cluster_result_list,
+                                                 cluster_number = input$clusterNumber)
+      return(table_cluster)
+    })
+    output$TrajectoryClusteringTable <- renderDataTable({ table_lcmm_cluster() })
+    
+    ######################4. tab menu result : Prediction model###################################
+    #############1-1. prediction model
+    output$modelSelect <- renderUI({
+      selectInput("modelSelect","Machine Learning Model Select",choices = c("Lasso Logistic","Gradient Boosting"))
+    })
+    switchModelSelect <- reactive({ switchselect_model(input$modelSelect) })
+    
+    prediction <- eventReactive(input$do_predict,{
+      plpdata <- getPlpData(connectionDetails = connectionDetails,
+                            connection = connection,
+                            CDMschema = input$CDMschema,
+                            Resultschema = input$Resultschema,
+                            cohortTable = 'asthma_cohort',
+                            targetCohortConceptId = input$Target_cohort,
+                            outcomeCohortConceptId = input$Outcome_cohort,
+                            covariateSetting = covariateSetting,
+                            washoutPeriod = 0,
+                            removeSubjectsWithPriorOutcome = FALSE,
+                            riskWindowStart = input$Risk_window_start,
+                            riskWindowEnd = input$Risk_window_end,
+                            minTimeAtRisk = input$Minimum_TAR)
+      plp_result <<- RunPlp(getplpOut = plpdata,
+                            learningModel = switchModelSelect(),
+                            splitSeed = NULL,
+                            outputFolder = outputFolder)
+      removeModal()
+      showModal(modalDialog(title = "Prediction complete", "Prediction was completed, show the results!", footer = modalButton("OK")))
+      
+    })
+    output$prediction_done <- renderText({ prediction() })
+    
+    contributedCovariatePlot <- eventReactive(input$do_predictionOutput,{
+      predictiveVariable <- plotPredictiveVariables(machineLearningData = plp_result,
+                                                    rankCount = 40)
+      return(predictiveVariable)
+    })
+    output$contributedCovariates <- renderPlot({ contributedCovariatePlot() })
+    
+    AUROCplot <- eventReactive(input$do_predictionOutput,{
+      auroc <- AUROCcurve(machineLearningData = plp_result)
+      return(auroc)
+    })
+    output$AUROCcurve <- renderPlot({ AUROCplot() })
+    
+    contributedCovariateTable <- eventReactive(input$do_predictionOutput,{
+      covariateTable <- tablePredictiveVariables(machineLearningData = plp_result,
+                                                 rankCount = 40)
+      return(covariateTable)
+    })
+    output$covariateTable <- renderDataTable({ contributedCovariateTable() })
 }
 
 # Run the application
