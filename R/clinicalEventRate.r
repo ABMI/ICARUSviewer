@@ -98,7 +98,7 @@ plot_event_rate <- function(event_result){
         geom_point(aes(x = as.factor(year),y = incidenceRate, group = cohortDefinitionId, colour = as.factor(cohortDefinitionId)), size = 1.5) +
         geom_line(aes(x = as.factor(year),y = incidenceRate, group = cohortDefinitionId, colour = as.factor(cohortDefinitionId)), size = 1) +
         xlab("time (years)") +
-        ylab("Clinical event rate per 1 year")+
+        ylab("Mean clinical event count per 1 year")+
         coord_cartesian(xlim = c(0,16))+
         theme_bw()+
         theme(legend.position = c(0.9,0.85),

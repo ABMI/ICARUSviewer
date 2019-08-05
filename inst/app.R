@@ -60,6 +60,7 @@ ui <- dashboardPage(
                             uiOutput("sqltype"),
                             textInput("CDMschema","CDM Database Schema","ICARUS"),
                             textInput("Resultschema","CDM Results schema","ICARUS"),
+                            textInput("cohortTable","cohort table","asthma_cohort"),
                             textInput("user","USER",""),
                             passwordInput("pw","PASSWORD",""),
                             actionButton("db_load","LOAD DB"),
@@ -95,9 +96,15 @@ ui <- dashboardPage(
                                                       column(3,numericInput("measurementConceptId","Measurement Concept ID","") ),
                                                       column(1,actionButton("do_search_measure","Search") ) ),
                                              fluidRow(
-                                                 box(title = "Longitudinal analysis", width = 12,
+                                                 box(title = "Longitudinal analysis", width = 6,
                                                      textOutput("load"),
-                                                     plotlyOutput("longitudinalAnalysis"))
+                                                     plotOutput("longitudinalAnalysis")),
+                                                 box(title = "Only estimated profiles", width = 6,
+                                                     plotOutput("longutidinalAnalysis_only"))
+                                             ),
+                                             fluidRow(
+                                               box(title = "estimted profile and 95% CI", width = 12,
+                                                   dataTableOutput("longitudinalTable"))
                                              )
                                     ),
                                     ############Clinical Events#############################################
@@ -222,7 +229,7 @@ server <- function(input, output, session) {
         comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
                                                Resultschema = input$Resultschema,
                                                CDMschema = input$CDMschema,
-                                               cohortTable = 'asthma_cohort',
+                                               cohortTable = input$cohortTable,
                                                cohortId_1 = input$target_cohort,
                                                cohortId_2 = input$comparator_cohort)
         prevalence <- co_prevtable(comorbManufacData = comorbidityRaw)
@@ -234,7 +241,7 @@ server <- function(input, output, session) {
         comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
                                                Resultschema = input$Resultschema,
                                                CDMschema = input$CDMschema,
-                                               cohortTable = 'asthma_cohort',
+                                               cohortTable = input$cohortTable,
                                                cohortId_1 = input$target_cohort,
                                                cohortId_2 = input$comparator_cohort)
         prevalencePvalue <- calculateRR(comorbManufacData = comorbidityRaw)
@@ -246,7 +253,7 @@ server <- function(input, output, session) {
         baselinemeasurement <- baselineMeasure_compare(connectionDetails = connectionDetails,
                                                        Resultschema = input$Resultschema,
                                                        CDMschema = input$CDMschema,
-                                                       cohortTable = 'asthma_cohort',
+                                                       cohortTable = input$cohortTable,
                                                        cohortId_1 = input$target_cohort,
                                                        cohortId_2 = input$comparator_cohort,
                                                        measurementConceptIdSet = c(2,3,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469,
@@ -260,12 +267,12 @@ server <- function(input, output, session) {
         allLongitudinal_target<<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                     CDMschema = input$CDMschema,
                                                     Resultschema = input$Resultschema,
-                                                    cohortTable = 'asthma_cohort',
+                                                    cohortTable = input$cohortTable,
                                                     cohortId = input$target_cohort)
         allLongitudinal_compare<<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                      CDMschema = input$CDMschema,
                                                      Resultschema = input$Resultschema,
-                                                     cohortTable = 'asthma_cohort',
+                                                     cohortTable = input$cohortTable,
                                                      cohortId = input$comparator_cohort)
         
         removeModal()
@@ -281,18 +288,26 @@ server <- function(input, output, session) {
                                         allLongitudinal_cohort_2 = allLongitudinal_compare,
                                         measurement_concept_id = input$measurementConceptId )
       
-      plot_lme<- plotLmm(longitudinal_result = longitudinal_data,
-                         pftIndividual = TRUE)
-      return(plot_lme)
+      plot_lme_allMeasurement<- plotLmm(longitudinal_result = longitudinal_data,
+                                        pftIndividual = TRUE)
+      plot_lme_onlyEstimated<- plotLmm(longitudinal_result = longitudinal_data,
+                                       pftIndividual = FALSE)
+      table_lme_Estimated <- tableLmm(longitudinal_result = longitudinal_data) 
       
+      lme_result <- list(plot_lme_allMeasurement,plot_lme_onlyEstimated,table_lme_Estimated)
+      
+      return(lme_result)
     })
-    output$longitudinalAnalysis <- renderPlotly({ longitudinalLME() })
+    output$longitudinalAnalysis <- renderPlot({ longitudinalLME()[[1]] })
 
+    output$longutidinalAnalysis_only <- renderPlot({ longitudinalLME()[[2]] })
+    
+    output$longitudinalTable <- renderDataTable({ longitudinalLME()[[3]] })
     #############1-3. Clinical Events###############
     clinicalEvent_frequency <- eventReactive(input$do_search_event,{
         call_event_data <- call_event(connectionDetails = connectionDetails,
                                       Resultschema = input$Resultschema,
-                                      cohortTable = 'asthma_cohort',
+                                      cohortTable = input$cohortTable,
                                       cohortId_1 = input$target_cohort,
                                       cohortId_2 =  input$comparator_cohort,
                                       cohortId_event = input$ClinicalEventCohortId)
@@ -311,7 +326,7 @@ server <- function(input, output, session) {
       allclustering_target<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                 CDMschema = input$CDMschema,
                                                 Resultschema = input$Resultschema,
-                                                cohortTable = 'asthma_cohort',
+                                                cohortTable = input$cohortTable,
                                                 cohortId = input$cohortId_trajectory)
       lcmm_cluster_result_list <<- latent_class_classification(all_longitudinal_data_for_cluster = allclustering_target,
                                                                measurementConceptId_Trajectory = input$measurementConceptId_Trajectory,
@@ -356,7 +371,7 @@ server <- function(input, output, session) {
                             connection = connection,
                             CDMschema = input$CDMschema,
                             Resultschema = input$Resultschema,
-                            cohortTable = 'asthma_cohort',
+                            cohortTable = input$cohortTable,
                             targetCohortConceptId = input$Target_cohort,
                             outcomeCohortConceptId = input$Outcome_cohort,
                             covariateSetting = covariateSetting,

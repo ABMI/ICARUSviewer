@@ -75,12 +75,17 @@ lme_logitudinal <- function(longitudinalData){
   newdata_lmm <- data.frame(x=seq(0,15,length.out=100))
   mm <- model.matrix(~x,newdata_lmm)
   lmm_randomSIind_1 <- lme4::lmer(formula = f, data = longitudinalData, REML = T)
-  predict_lmm <- mm%*%fixef(lmm_randomSIind_1) 
+  predict_lmm <- mm%*%lme4::fixef(lmm_randomSIind_1) 
   pvar1 <- Matrix::diag(mm %*% Matrix::tcrossprod(vcov(lmm_randomSIind_1),mm))
-  out <- data.frame(time = newdata_lmm$x,
-                    predict = predict_lmm,
-                    upper = predict_lmm+1.96*sqrt(pvar1),
-                    lower = predict_lmm-1.96*sqrt(pvar1) )
+  result_fixef <- lme4::fixef(lmm_randomSIind_1) 
+  result_ci <- lme4::confint.merMod(lmm_randomSIind_1)
+  result_slope <- paste0(round(result_fixef[2],3), "(", paste0(round(result_ci[5,],3), collapse = ","), ")" )
+  
+  result_df <- data.frame(time = newdata_lmm$x,
+                          predict = predict_lmm,
+                          upper = predict_lmm+1.96*sqrt(pvar1),
+                          lower = predict_lmm-1.96*sqrt(pvar1) )
+  out <- list(result_slope,result_df)
   return(out)
 }
 
@@ -108,8 +113,8 @@ longitudinal <- function(cohortId_1,
   lme_result_1 <- lme_logitudinal(longitudinalData = get_mea_cohort_1)
   lme_result_2 <- lme_logitudinal(longitudinalData = get_mea_cohort_2)
   
-  result <- list(cohort_1_result = list(cohortId_1,get_mea_cohort_1,lme_result_1),
-                 cohort_2_result = list(cohortId_2,get_mea_cohort_2,lme_result_2))
+  result <- list(cohort_1_result = list(cohortId_1,get_mea_cohort_1,lme_result_1[[2]],lme_result_1[[1]]),
+                 cohort_2_result = list(cohortId_2,get_mea_cohort_2,lme_result_2[[2]],lme_result_2[[1]]))
   
   return(result)
 }
@@ -118,13 +123,13 @@ longitudinal <- function(cohortId_1,
 #'@import ggplot2
 #'@import dplyr
 #'@param longitudinal_result  result of longitudinal code
-#'@param pftIndividual                  logical (TRUE/FALSE)
+#'@param pftIndividual        logical (TRUE/FALSE)
 #'@export
 #'
 
 plotLmm <- function(longitudinal_result,
                     pftIndividual = TRUE){
-  
+
   longitudinal_all <- rbind(longitudinal_result[[1]][[2]],
                             longitudinal_result[[2]][[2]])
   plotlongitudinal <- ggplot(data = longitudinal_all)
@@ -150,3 +155,27 @@ plotLmm <- function(longitudinal_result,
   return(plotlongitudinal)
 }
 
+#'table for representative estimated profile trajectory and its CI
+#'@import dplyr
+#'@param longitudinal_result  result of longitudinal code
+#'@export
+#'
+
+tableLmm <- function(longitudinal_result){
+  
+  list_stuck <- list()
+  for(i in 1:length(longitudinal_result)){
+    predict_sub <- longitudinal_result[[i]][[3]] %>%
+      filter(time %in% c(0,5,10,15) ) %>%
+      mutate(summaryPredict = paste0(round(predict,3), "(" , round(lower,3) , "," , round(upper,3) , ")" ) ) 
+    cohortId        <- longitudinal_result[[i]][[1]]
+    estimated_value <- predict_sub$summaryPredict
+    slope           <- longitudinal_result[[i]][[4]]
+    result          <- c(cohortId, estimated_value, slope)
+    names(result)   <- c("cohortId","time = 0","time = 5","time = 10","time = 15","slope")
+    list_stuck[[i]] <- result
+  }
+  
+  out_dataframe <- as.data.frame(rbind(list_stuck[[1]],list_stuck[[2]]))
+  return(out_dataframe)
+}
