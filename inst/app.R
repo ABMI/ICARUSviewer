@@ -374,7 +374,6 @@ server <- function(input, output, session) {
     
     prediction <- eventReactive(input$do_predict,{
       plpdata <- getPlpData(connectionDetails = connectionDetails,
-                            connection = connection,
                             CDMschema = input$CDMschema,
                             Resultschema = input$Resultschema,
                             cohortTable = input$cohortTable,

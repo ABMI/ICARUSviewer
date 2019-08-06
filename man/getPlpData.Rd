@@ -4,7 +4,7 @@
 \alias{getPlpData}
 \title{create Plp data and population data (ready for run Plp)}
 \usage{
-getPlpData(connectionDetails, connection, Resultschema, CDMschema,
+getPlpData(connectionDetails, Resultschema, CDMschema,
   cohortTable = "asthma_cohort", targetCohortConceptId,
   outcomeCohortConceptId, covariateSetting, washoutPeriod = 0,
   removeSubjectsWithPriorOutcome = TRUE, riskWindowStart, riskWindowEnd,
@@ -12,8 +12,6 @@ getPlpData(connectionDetails, connection, Resultschema, CDMschema,
 }
 \arguments{
 \item{connectionDetails}{}
-
-\item{connection}{}
 
 \item{Resultschema}{}
 

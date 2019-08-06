@@ -2,7 +2,6 @@
 #'@import PatientLevelPrediction
 #'@import FeatureExtraction
 #'@param  connectionDetails
-#'@param  connection
 #'@param  Resultschema
 #'@param  CDMschema
 #'@param  cohortTable                             table name which contains asthma_cohort (default = 'asthma_cohort')
@@ -17,7 +16,6 @@
 #'@export
 
 getPlpData <- function(connectionDetails,
-                       connection,
                        Resultschema,
                        CDMschema,
                        cohortTable = 'asthma_cohort',
