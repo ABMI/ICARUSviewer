@@ -13,6 +13,8 @@ RunPlp(getplpOut, learningModel, splitSeed = NULL,
 \item{learningModel}{input$ModelSelect}
 
 \item{splitSeed}{seed setting}
+
+\item{outputFolder}{}
 }
 \description{
 Run Plp

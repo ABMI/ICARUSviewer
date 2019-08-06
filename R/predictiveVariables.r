@@ -66,7 +66,7 @@ getPlpData <- function(connectionDetails,
 #'@param   getplpOut              get from getPlpData code
 #'@param   learningModel          input$ModelSelect
 #'@param   splitSeed              seed setting
-#'@param
+#'@param   outputFolder
 #'@export
 RunPlp <- function(getplpOut,
                    learningModel,
