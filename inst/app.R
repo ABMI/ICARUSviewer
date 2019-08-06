@@ -84,10 +84,12 @@ ui <- dashboardPage(
                                     tabPanel("Demographics",
                                              fluidRow(titlePanel("Compare Demographic Charateristics") ),
                                              fluidRow(column(1,actionButton("do_demographic_analyze","analyze") ) ),
-                                             fluidRow(box(title = "Comparison of clinical characteristics between two cohorts", width = 12,
+                                             fluidRow(box(title = "Comparison of clinical characteristics between two cohorts and P value", width = 12,
                                                           dataTableOutput("clinicalCharacteristicTable"),tableOutput("clinicalCharacteristicPvalue"),dataTableOutput("baselineMeasurementTable")) ),
-                                             fluidRow(box(title = "Comparison of baseline Comorbidity between two cohorts", width = 12,
-                                                          dataTableOutput("prevalenceTable"),dataTableOutput("RRTable")) )
+                                             fluidRow(box(title = "Comparison of baseline Comorbidity between two cohorts ( co-prevalence (%) )", width = 12,
+                                                          dataTableOutput("prevalenceTable")) ),
+                                             fluidRow(box(title = "comorbidity relative ratio of target cohort", width = 12,
+                                                          plotOutput("RRplot"),dataTableOutput("RRTable")) )
                                     ),
                                     ############Longitudinal############################################
                                     tabPanel("Measurements",
@@ -237,17 +239,21 @@ server <- function(input, output, session) {
     })
     output$prevalenceTable <- renderDataTable({ prevalenceTable() })
 
-    prevalencePvalueTable <- eventReactive(input$do_demographic_analyze,{
+    RRresultList <- eventReactive(input$do_demographic_analyze,{
         comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
                                                Resultschema = input$Resultschema,
                                                CDMschema = input$CDMschema,
                                                cohortTable = input$cohortTable,
                                                cohortId_1 = input$target_cohort,
                                                cohortId_2 = input$comparator_cohort)
-        prevalencePvalue <- calculateRR(comorbManufacData = comorbidityRaw)
-        return(prevalencePvalue)
+        RR_pvalue  <- calculateRR(comorbManufacData = comorbidityRaw)
+        RRplot     <- RRplot(RRResult = RR_pvalue)
+        
+        RRresult <- list(RR_pvalue, RRplot)
+        return(RRresult)
     })
-    output$RRTable <- renderDataTable({ prevalencePvalueTable() })
+    output$RRTable <- renderDataTable({ RRresultList()[[1]] })
+    output$RRplot  <- renderPlot({ RRresultList()[[2]] })
 
     baselineMeasurementTable <- eventReactive(input$do_demographic_analyze,{
         baselinemeasurement <- baselineMeasure_compare(connectionDetails = connectionDetails,
@@ -321,7 +327,7 @@ server <- function(input, output, session) {
     output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
     output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
     ######################3. tab menu result : Trajectory Clustering###################################
-    #############1-1. trajectory
+    #############1-1. trajectory#############
     load_for_clustering <- eventReactive(input$do_load_all_measurement_for_lcmm,{
       allclustering_target<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                 CDMschema = input$CDMschema,
@@ -360,7 +366,7 @@ server <- function(input, output, session) {
     output$TrajectoryClusteringTable <- renderDataTable({ table_lcmm_cluster() })
     
     ######################4. tab menu result : Prediction model###################################
-    #############1-1. prediction model
+    #############1-1. prediction model###########
     output$modelSelect <- renderUI({
       selectInput("modelSelect","Machine Learning Model Select",choices = c("Lasso Logistic","Gradient Boosting"))
     })

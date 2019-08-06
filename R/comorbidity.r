@@ -107,21 +107,21 @@ baseline_comorbidity <- function(connectionDetails,
 calculateRR <- function(comorbManufacData){
 
     df <- comorbManufacData
-    if ( min(df$cohortDefinitionId) == 2){
-
-        split <- split(df, df$diseaseId)
-        RRresult <- lapply(split, FUN = function(x){
-            simply <- x[,c("Count","notdisease")]
-            simply <- simply[c(2,1),]
-            row.names(simply)<-x$cohortDefinitionId[c(2,1)]
-            RR_cal<-epitools::riskratio(as.matrix(simply))
-
-            c(diseaseName = diseaseList$diseaseName[which(diseaseList$diseaseId == unique(x$diseaseId))],
-              RR_cal$measure[2,],
-              pvalue = RR_cal$p.value[6])
-        })
-
-    } else {
+    # if ( min(df$cohortDefinitionId) == 2){
+    # 
+    #     split <- split(df, df$diseaseId)
+    #     RRresult <- lapply(split, FUN = function(x){
+    #         simply <- x[,c("Count","notdisease")]
+    #         simply <- simply[c(2,1),]
+    #         row.names(simply)<-x$cohortDefinitionId[c(2,1)]
+    #         RR_cal<-epitools::riskratio(as.matrix(simply))
+    # 
+    #         c(diseaseName = diseaseList$diseaseName[which(diseaseList$diseaseId == unique(x$diseaseId))],
+    #           RR_cal$measure[2,],
+    #           pvalue = RR_cal$p.value[6])
+    #     })
+    # 
+    # } else {
 
         split <- split(df, df$diseaseId)
         RRresult <- lapply(split, FUN = function(x){
@@ -132,7 +132,7 @@ calculateRR <- function(comorbManufacData){
               RR_cal$measure[2,],
               pvalue = RR_cal$p.value[6])
         })
-    }
+    # }
 
     output <- t(as.data.frame(RRresult))
     output <- data.frame(output)
@@ -145,30 +145,32 @@ calculateRR <- function(comorbManufacData){
 #'@param RRResult       the result of calculateRR code
 #'@export
 #'
-
-RRplot <- function(RRResult){
-    RR <- RRResult %>%
-        mutate(comorbId = as.numeric(gsub("X","",row.names(RRResult)) ) ) %>%
-        mutate(comorbName = factor(comorbId, levels = diseaseList$diseaseId,
-                                   labels = diseaseList$diseaseName) )
-
-    RRplotOut <- RR %>%
-        ggplot(aes(x = comorbName, y = estimate))+
-        geom_point()+
-        geom_line()+
-        geom_hline(yintercept = 1, size = 1)+
-        geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) +
-        geom_text(aes(y = upper+0.01, label = round(estimate,3)), size = 4 )+
-        theme_bw()+
-        theme(legend.title = element_blank(),
-              strip.text = element_text(size = 15),
-              legend.text = element_text(size = 11),
-              axis.title.x = element_blank(),
-              axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
-              axis.text.y = element_text(size = 12),
-              axis.title.y = element_blank())
-
-    return(RRplotOut)
+RRplot <- function(RRResult = rr){
+  RR <- RRResult %>%
+    mutate(comorbId = as.numeric(gsub("X","",row.names(RRResult)) ) ) %>%
+    mutate(comorbName = factor(comorbId, levels = diseaseList$diseaseId,
+                               labels = diseaseList$diseaseName) ) %>%
+    mutate(estimate = as.numeric(as.character(estimate)),
+           lower = as.numeric(as.character(lower)),
+           upper = as.numeric(as.character(upper)) ) 
+  
+  RRplotOut <- RR %>%
+    ggplot(aes(x = comorbName, y = estimate))+
+    geom_point()+
+    geom_line()+
+    geom_hline(yintercept = 1, size = 1)+
+    geom_errorbar(aes(ymin = lower, ymax = upper), width = .2) +
+    #geom_text(aes(y = upper+0.01, label = round(estimate,3)), size = 4 )+
+    theme_bw()+
+    theme(legend.title = element_blank(),
+          strip.text = element_text(size = 15),
+          legend.text = element_text(size = 11),
+          axis.title.x = element_blank(),
+          axis.text.x = element_text(size = 14, angle = 45, hjust = 1),
+          axis.text.y = element_text(size = 12),
+          axis.title.y = element_blank())
+  
+  return(RRplotOut)
 }
 
 #'calculate co-prevalence rate
