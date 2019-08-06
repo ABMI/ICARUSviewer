@@ -1,6 +1,5 @@
 #'create Plp data and population data (ready for run Plp)
 #'@import PatientLevelPrediction
-#'@import FeatureExtraction
 #'@param  connectionDetails
 #'@param  Resultschema
 #'@param  CDMschema
@@ -15,55 +14,55 @@
 #'@param  minTimeAtRisk
 #'@export
 
-getPlpData <- function(connectionDetails,
-                       Resultschema,
-                       CDMschema,
-                       cohortTable = 'asthma_cohort',
-                       targetCohortConceptId,
-                       outcomeCohortConceptId,
-                       covariateSetting,
-                       washoutPeriod = 0,
-                       removeSubjectsWithPriorOutcome = TRUE,
-                       riskWindowStart,
-                       riskWindowEnd,
-                       minTimeAtRisk){
-
-    resultDatabaseSchema <- paste0(Resultschema,".dbo")
-    CDMDatabaseSchema <- paste0(CDMschema,".dbo")
-
-    Sys.setlocale(category="LC_CTYPE", locale="C")
-
-    plpOut<- PatientLevelPrediction::getPlpData(connectionDetails = connectionDetails,
-                                                cdmDatabaseSchema = CDMDatabaseSchema,
-                                                cohortDatabaseSchema = resultDatabaseSchema,
-                                                cohortTable = cohortTable,
-                                                cohortId = targetCohortConceptId,
-                                                covariateSettings = covariateSetting,
-                                                outcomeDatabaseSchema = resultDatabaseSchema,
-                                                outcomeTable = cohortTable,
-                                                outcomeIds = outcomeCohortConceptId)
-
-    populationOut<- PatientLevelPrediction::createStudyPopulation(plpData = plpOut,
-                                                                  outcomeId = outcomeCohortConceptId,
-                                                                  binary = TRUE,
-                                                                  firstExposureOnly = FALSE,
-                                                                  washoutPeriod = washoutPeriod,
-                                                                  removeSubjectsWithPriorOutcome = removeSubjectsWithPriorOutcome,
-                                                                  riskWindowStart = riskWindowStart,
-                                                                  riskWindowEnd = riskWindowEnd,
-                                                                  minTimeAtRisk = minTimeAtRisk,
-                                                                  addExposureDaysToEnd = FALSE,
-                                                                  addExposureDaysToStart = FALSE)
-
-    result<-list(plpOut = plpOut,
-                 populationOut = populationOut)
-
-    return(result)
+getPlpDataList <- function(connectionDetails,
+                           Resultschema,
+                           CDMschema,
+                           cohortTable = 'asthma_cohort',
+                           targetCohortConceptId,
+                           outcomeCohortConceptId,
+                           covariateSetting,
+                           washoutPeriod = 0,
+                           removeSubjectsWithPriorOutcome = TRUE,
+                           riskWindowStart,
+                           riskWindowEnd,
+                           minTimeAtRisk){
+  
+  resultDatabaseSchema <- paste0(Resultschema,".dbo")
+  CDMDatabaseSchema <- paste0(CDMschema,".dbo")
+  
+  Sys.setlocale(category="LC_CTYPE", locale="C")
+  
+  plpOut<- PatientLevelPrediction::getPlpData(connectionDetails = connectionDetails,
+                                              cdmDatabaseSchema = CDMDatabaseSchema,
+                                              cohortDatabaseSchema = resultDatabaseSchema,
+                                              cohortTable = cohortTable,
+                                              cohortId = targetCohortConceptId,
+                                              covariateSettings = covariateSetting,
+                                              outcomeDatabaseSchema = resultDatabaseSchema,
+                                              outcomeTable = cohortTable,
+                                              outcomeIds = outcomeCohortConceptId)
+  
+  populationOut<- PatientLevelPrediction::createStudyPopulation(plpData = plpOut,
+                                                                outcomeId = outcomeCohortConceptId,
+                                                                binary = TRUE,
+                                                                firstExposureOnly = FALSE,
+                                                                washoutPeriod = washoutPeriod,
+                                                                removeSubjectsWithPriorOutcome = removeSubjectsWithPriorOutcome,
+                                                                riskWindowStart = riskWindowStart,
+                                                                riskWindowEnd = riskWindowEnd,
+                                                                minTimeAtRisk = minTimeAtRisk,
+                                                                addExposureDaysToEnd = FALSE,
+                                                                addExposureDaysToStart = FALSE)
+  
+  result<-list(plpOut = plpOut,
+               populationOut = populationOut)
+  
+  return(result)
 }
 
 #'Run Plp
 #'@import  PatientLevelPrediction
-#'@param   getplpOut              get from getPlpData code
+#'@param   getplpOut              get from getPlpDataList code
 #'@param   learningModel          input$ModelSelect
 #'@param   splitSeed              seed setting
 #'@param   outputFolder

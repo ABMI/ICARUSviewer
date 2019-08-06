@@ -373,18 +373,18 @@ server <- function(input, output, session) {
     switchModelSelect <- reactive({ switchselect_model(input$modelSelect) })
     
     prediction <- eventReactive(input$do_predict,{
-      plpdata <- getPlpData(connectionDetails = connectionDetails,
-                            CDMschema = input$CDMschema,
-                            Resultschema = input$Resultschema,
-                            cohortTable = input$cohortTable,
-                            targetCohortConceptId = input$Target_cohort,
-                            outcomeCohortConceptId = input$Outcome_cohort,
-                            covariateSetting = covariateSetting,
-                            washoutPeriod = 0,
-                            removeSubjectsWithPriorOutcome = FALSE,
-                            riskWindowStart = input$Risk_window_start,
-                            riskWindowEnd = input$Risk_window_end,
-                            minTimeAtRisk = input$Minimum_TAR)
+      plpdata <- getPlpDataList(connectionDetails = connectionDetails,
+                                CDMschema = input$CDMschema,
+                                Resultschema = input$Resultschema,
+                                cohortTable = input$cohortTable,
+                                targetCohortConceptId = input$Target_cohort,
+                                outcomeCohortConceptId = input$Outcome_cohort,
+                                covariateSetting = covariateSetting,
+                                washoutPeriod = 0,
+                                removeSubjectsWithPriorOutcome = FALSE,
+                                riskWindowStart = input$Risk_window_start,
+                                riskWindowEnd = input$Risk_window_end,
+                                minTimeAtRisk = input$Minimum_TAR)
       plp_result <<- RunPlp(getplpOut = plpdata,
                             learningModel = switchModelSelect(),
                             splitSeed = NULL,

@@ -8,7 +8,7 @@ RunPlp(getplpOut, learningModel, splitSeed = NULL,
   outputFolder = outputFolder)
 }
 \arguments{
-\item{getplpOut}{get from getPlpData code}
+\item{getplpOut}{get from getPlpDataList code}
 
 \item{learningModel}{input$ModelSelect}
 
