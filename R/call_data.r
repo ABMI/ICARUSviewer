@@ -50,14 +50,14 @@ call_dataList<- function(connectionDetails,
     Sys.setlocale(category="LC_CTYPE", locale="C")
 
     ###load demographic data
-    sql <- SqlRender::readSql("SQL/loadDemographic.sql")
+    sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadDemographic.sql") )
     sql <- SqlRender::renderSql(sql,
                                 resultDatabaseSchema = resultDatabaseSchema)$sql
     demographic_data<-DatabaseConnector::querySql(connection, sql)
     colnames(demographic_data)<-SqlRender::snakeCaseToCamelCase(colnames(demographic_data))
 
     ##load asthma_cohort data
-    sql <- SqlRender::readSql("SQL/loadAsthma_cohort.sql")
+    sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadAsthma_cohort.sql") )
     sql <- SqlRender::renderSql(sql,
                                 resultDatabaseSchema = resultDatabaseSchema)$sql
     asthmacohort_data<-DatabaseConnector::querySql(connection, sql)
