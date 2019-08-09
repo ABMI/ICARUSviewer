@@ -18,10 +18,6 @@ check.packages("lme4")
 check.packages("lmerTest")
 check.packages("lcmm")
 
-outputFolder <- '/home/dbwls5223/outputFolder'
-options(fftempdir = '/home/dbwls5223/FFtemp')
-Sys.setlocale(category = "LC_ALL", locale = "us")
-
 # UI
 
 ui <- dashboardPage(
@@ -37,8 +33,6 @@ ui <- dashboardPage(
             menuItem("Comparing between two cohorts", tabName = "compare"),
             menuItem("Trajectory clustering", tabName = "Trajectory"),
             menuItem("Prediction model", tabName = "prediction")
-            # ,
-            # menuItem("Comorbidity", tabName = "comorbidity")
         )
     ),
 

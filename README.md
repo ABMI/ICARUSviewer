@@ -15,7 +15,7 @@ devtools::install_github("ohdsi/OhdsiSharing")
 devtools::install_github("ohdsi/PatientLevelPrediction")
 devtools::install_github("ABMI/ICARUSviewer")
 
-library(ICARUSviwere)
+library(ICARUSviewer)
 
 outputFolder <- 'S:/outputFolder'
 options(fftempdir = 'S:/FFtemp')
