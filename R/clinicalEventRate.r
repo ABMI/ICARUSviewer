@@ -13,8 +13,7 @@ call_event <- function(connectionDetails,
                        cohortId_1,
                        cohortId_2,
                        cohortId_event){
-
-    resultDatabaseSchema <- paste0(Resultschema,".dbo")
+  
     connectionDetails <-connectionDetails
     connection <- DatabaseConnector::connect(connectionDetails)
 
@@ -22,7 +21,7 @@ call_event <- function(connectionDetails,
 
     sql <- 'select * FROM @resultDatabaseSchema.@cohortTable WHERE cohort_definition_id = @eventId'
     sql <- SqlRender::renderSql(sql,
-                                resultDatabaseSchema = resultDatabaseSchema,
+                                resultDatabaseSchema = Resultschema,
                                 cohortTable = cohortTable,
                                 eventId = cohortId_event)$sql
     eventcohort<-DatabaseConnector::querySql(connection, sql)
@@ -30,7 +29,7 @@ call_event <- function(connectionDetails,
 
     sql <- 'select * FROM  @resultDatabaseSchema.@cohortTable WHERE cohort_definition_id in (@cohortId_1,@cohortId_2)'
     sql <- SqlRender::renderSql(sql,
-                                resultDatabaseSchema = resultDatabaseSchema,
+                                resultDatabaseSchema = Resultschema,
                                 cohortTable = cohortTable,
                                 cohortId_1 = cohortId_1,
                                 cohortId_2 = cohortId_2)$sql
@@ -62,17 +61,23 @@ event_incidence <- function(callEvent_result){
         mutate(eventDurationYear = floor(eventDuration/365.25),
                observDurationYear = floor(observDuration/365.25) ) %>%
         mutate(observDurationYear = if_else(observDurationYear>20,20,observDurationYear) )
-
+    
+    totalCohortObservIndex <- cohort_data %>%     
+      mutate(observDuration = as.numeric(difftime(cohortEndDate,cohortStartDate,units = "days")) ) %>%
+      mutate(observDurationYear = floor(observDuration/365.25) ) %>%
+      mutate(observDurationYear = if_else(observDurationYear>20,20,observDurationYear) )
+    
     eventResult <- data.frame()
     for(j in unique(eventAfterIndex$cohortDefinitionId) ){
 
         sub <- subset(eventAfterIndex,cohortDefinitionId == j)
+        totalSub <- subset(totalCohortObservIndex,cohortDefinitionId == j)
 
         for(i in 0:max(sub$observDurationYear)){
             cohortDefinitionId <- j
             year <- i
             eventCount <- sum(sub$eventDurationYear == i)
-            totalCount <- length(unique(sub[sub$observDurationYear >= i,]$subjectId) )
+            totalCount <- length(unique(totalSub[totalSub$observDurationYear >= i,]$subjectId) )
 
             df <- data.frame(cohortDefinitionId,year,eventCount,totalCount)
             eventResult <- rbind(eventResult,df)

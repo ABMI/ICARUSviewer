@@ -13,9 +13,7 @@ getAllLongitudinal <- function(connectionDetails,
                                Resultschema,
                                cohortTable,
                                cohortId){
-
-    cdmDatabaseSchema <- paste0(CDMschema,".dbo")
-    resultDatabaseSchema <- paste0(Resultschema,".dbo")
+  
     connectionDetails <-connectionDetails
     connection <- DatabaseConnector::connect(connectionDetails)
 
@@ -24,8 +22,8 @@ getAllLongitudinal <- function(connectionDetails,
                                                         temporalEndDays = 0:7300)
 
     covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
-                                           cdmDatabaseSchema = cdmDatabaseSchema,
-                                           cohortDatabaseSchema = resultDatabaseSchema,
+                                           cdmDatabaseSchema = CDMschema,
+                                           cohortDatabaseSchema = Resultschema,
                                            cohortTable = cohortTable,
                                            cohortId = cohortId,
                                            rowIdField = "subject_id",

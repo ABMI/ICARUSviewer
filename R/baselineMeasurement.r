@@ -12,16 +12,14 @@ getBaselineCovariate <- function(connectionDetails,
                                  Resultschema,
                                  cohortTable,
                                  cohortId){
-    resultDatabaseSchema <- paste0(Resultschema,".dbo")
-    CDMDatabaseSchema <- paste0(CDMschema,".dbo")
 
     baseline_covariate<-FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
                                                                    useDemographicsAge = TRUE,
                                                                    useMeasurementValueAnyTimePrior = TRUE,
                                                                    longTermStartDays = -365)
     baselineData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
-                                          cdmDatabaseSchema = CDMDatabaseSchema,
-                                          cohortDatabaseSchema = resultDatabaseSchema,
+                                          cdmDatabaseSchema = CDMschema,
+                                          cohortDatabaseSchema = Resultschema,
                                           cohortTable = cohortTable,
                                           cohortId = cohortId,
                                           rowIdField = "subject_id",

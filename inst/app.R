@@ -52,8 +52,8 @@ ui <- dashboardPage(
                         sidebarPanel(
                             textInput("ip","IP",""),
                             uiOutput("sqltype"),
-                            textInput("CDMschema","CDM Database Schema","ICARUS"),
-                            textInput("Resultschema","CDM Results schema","ICARUS"),
+                            textInput("CDMschema","CDM Database Schema","ICARUS.dbo"),
+                            textInput("Resultschema","CDM Results schema","ICARUS.dbo"),
                             textInput("cohortTable","cohort table","asthma_cohort"),
                             textInput("user","USER",""),
                             passwordInput("pw","PASSWORD",""),
@@ -69,8 +69,8 @@ ui <- dashboardPage(
             tabItem(tabName = "compare",
                     titlePanel("Comparison"),
                     sidebarPanel(
-                        numericInput("target_cohort","Target cohort ID",""),
-                        numericInput("comparator_cohort","Comparator cohort ID",""),
+                        uiOutput("target_cohort"),
+                        uiOutput("comparator_cohort"),
                         width = 2 ),
                     mainPanel(
                         tabsetPanel(type = "tabs",
@@ -106,7 +106,7 @@ ui <- dashboardPage(
                                     ############Clinical Events#############################################
                                     tabPanel("ClinicalEvents",
                                              fluidRow(titlePanel("Clinical event rate per year") ),
-                                             fluidRow(column(3,numericInput("ClinicalEventCohortId","Clinical Event Cohort ID","") ),
+                                             fluidRow(column(3,uiOutput("ClinicalEventCohortId") ),
                                                       column(1,actionButton("do_search_event","Search") ) ),
                                              fluidRow(box(title = "Clinical event rate per year in two cohort groups", width = 12,
                                                           plotOutput("ClinicalEventPlot")) ),
@@ -120,7 +120,7 @@ ui <- dashboardPage(
             tabItem(tabName = "Trajectory",
                     titlePanel("Trajectory Clustering"),
                     sidebarPanel(
-                        numericInput("cohortId_trajectory","Cohort ID",""),
+                        uiOutput("cohortId_trajectory"),
                         numericInput("measurementConceptId_Trajectory","Measurement Concept ID",""),
                         numericInput("clusterNumber","Cluster Count","3"),
                         actionButton("do_load_all_measurement_for_lcmm","Load Data"),
@@ -137,8 +137,8 @@ ui <- dashboardPage(
             tabItem(tabName = "prediction",
                     titlePanel("Development of Prediction Model"),
                     sidebarPanel(
-                        numericInput("Target_cohort","Target Cohort ID",""),
-                        numericInput("Outcome_cohort","Outcome Cohort ID",""),
+                        uiOutput("Target_cohort"),
+                        uiOutput("Outcome_cohort"),
                         numericInput("Risk_window_start","Risk window start",""),
                         numericInput("Risk_window_end","Risk window end",""),
                         numericInput("Minimum_TAR","Minimum time at risk",""),
@@ -181,15 +181,13 @@ server <- function(input, output, session) {
     DBconnect <- eventReactive(input$db_load, {
         connectionDetails <<- DatabaseConnector::createConnectionDetails(dbms = input$sqltype,
                                                                          server = input$ip,
-                                                                         schema = input$Resultschema,
                                                                          user = input$user,
                                                                          password = input$pw)
         connection <<-DatabaseConnector::connect(connectionDetails)
 
         dataList<<-call_dataList(connectionDetails = connectionDetails,
                                  connection = connection,
-                                 Resultschema = input$Resultschema,
-                                 CDMschema = input$CDMschema)
+                                 Resultschema = input$Resultschema)
 
         demographicData<<-dataList[[1]]
         totalCohort <<- dataList[[2]]
@@ -206,9 +204,18 @@ server <- function(input, output, session) {
     })
 
     ######################2. tab menu result : Comparing between two cohorts###########################
+    output$target_cohort <- renderUI({
+      selectInput("target_cohort","Target cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)) )
+    })
+    output$comparator_cohort <- renderUI({
+      selectInput("comparator_cohort","Comparator cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)) )
+    })
+    output$ClinicalEventCohortId <- renderUI({
+      selectInput("ClinicalEventCohortId","Clinical Event Cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)) )
+    })
     #############1-1. demographic######################
     demographic_result <- eventReactive(input$do_demographic_analyze,{
-        demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(input$target_cohort,input$comparator_cohort) )
+        demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(as.numeric(input$target_cohort),as.numeric(input$comparator_cohort)) )
         demographicSummary <- characteristic_summary(characteristic_manufac = demographicRaw)
         demographicpvalue <- characteristic_pvalue(characteristic_manufac = demographicRaw)
 
@@ -226,8 +233,8 @@ server <- function(input, output, session) {
                                                Resultschema = input$Resultschema,
                                                CDMschema = input$CDMschema,
                                                cohortTable = input$cohortTable,
-                                               cohortId_1 = input$target_cohort,
-                                               cohortId_2 = input$comparator_cohort)
+                                               cohortId_1 = as.numeric(input$target_cohort),
+                                               cohortId_2 = as.numeric(input$comparator_cohort) )
         prevalence <- co_prevtable(comorbManufacData = comorbidityRaw)
         return(prevalence)
     })
@@ -238,8 +245,8 @@ server <- function(input, output, session) {
                                                Resultschema = input$Resultschema,
                                                CDMschema = input$CDMschema,
                                                cohortTable = input$cohortTable,
-                                               cohortId_1 = input$target_cohort,
-                                               cohortId_2 = input$comparator_cohort)
+                                               cohortId_1 = as.numeric(input$target_cohort),
+                                               cohortId_2 = as.numeric(input$comparator_cohort) )
         RR_pvalue  <- calculateRR(comorbManufacData = comorbidityRaw)
         RRplot     <- RRplot(RRResult = RR_pvalue)
         
@@ -254,8 +261,8 @@ server <- function(input, output, session) {
                                                        Resultschema = input$Resultschema,
                                                        CDMschema = input$CDMschema,
                                                        cohortTable = input$cohortTable,
-                                                       cohortId_1 = input$target_cohort,
-                                                       cohortId_2 = input$comparator_cohort,
+                                                       cohortId_1 = as.numeric(input$target_cohort),
+                                                       cohortId_2 = as.numeric(input$comparator_cohort),
                                                        measurementConceptIdSet = c(2,3,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469,
                                                                                    3011708,3006504,3005322,3005600,3017501,3026514,3005791,3021940,
                                                                                    3011505,3013115,3018010,3022096) )
@@ -268,12 +275,12 @@ server <- function(input, output, session) {
                                                     CDMschema = input$CDMschema,
                                                     Resultschema = input$Resultschema,
                                                     cohortTable = input$cohortTable,
-                                                    cohortId = input$target_cohort)
+                                                    cohortId = as.numeric(input$target_cohort))
         allLongitudinal_compare<<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                      CDMschema = input$CDMschema,
                                                      Resultschema = input$Resultschema,
                                                      cohortTable = input$cohortTable,
-                                                     cohortId = input$comparator_cohort)
+                                                     cohortId = as.numeric(input$comparator_cohort))
         
         removeModal()
         showModal(modalDialog(title = "Loading complete", "load measurement data success!", footer = modalButton("OK")))
@@ -282,8 +289,8 @@ server <- function(input, output, session) {
     output$load <- renderText({ load_longitudinal() })
 
     longitudinalLME <- eventReactive(input$do_search_measure,{
-      longitudinal_data <- longitudinal(cohortId_1 = input$target_cohort,
-                                        cohortId_2 = input$comparator_cohort,
+      longitudinal_data <- longitudinal(cohortId_1 = as.numeric(input$target_cohort),
+                                        cohortId_2 = as.numeric(input$comparator_cohort),
                                         allLongitudinal_cohort_1 = allLongitudinal_target,
                                         allLongitudinal_cohort_2 = allLongitudinal_compare,
                                         measurement_concept_id = input$measurementConceptId )
@@ -308,9 +315,9 @@ server <- function(input, output, session) {
         call_event_data <- call_event(connectionDetails = connectionDetails,
                                       Resultschema = input$Resultschema,
                                       cohortTable = input$cohortTable,
-                                      cohortId_1 = input$target_cohort,
-                                      cohortId_2 =  input$comparator_cohort,
-                                      cohortId_event = input$ClinicalEventCohortId)
+                                      cohortId_1 = as.numeric(input$target_cohort),
+                                      cohortId_2 = as.numeric(input$comparator_cohort),
+                                      cohortId_event = as.numeric(input$ClinicalEventCohortId))
         event_table <- event_incidence(callEvent_result = call_event_data)
         event_plot  <- plot_event_rate(event_result = event_table)
 
@@ -321,13 +328,16 @@ server <- function(input, output, session) {
     output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
     output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
     ######################3. tab menu result : Trajectory Clustering###################################
+    output$cohortId_trajectory <- renderUI({
+      selectInput("cohortId_trajectory","Cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)) )
+    })
     #############1-1. trajectory#############
     load_for_clustering <- eventReactive(input$do_load_all_measurement_for_lcmm,{
       allclustering_target<- getAllLongitudinal(connectionDetails = connectionDetails,
                                                 CDMschema = input$CDMschema,
                                                 Resultschema = input$Resultschema,
                                                 cohortTable = input$cohortTable,
-                                                cohortId = input$cohortId_trajectory)
+                                                cohortId = as.numeric(input$cohortId_trajectory) )
       lcmm_cluster_result_list <<- latent_class_classification(all_longitudinal_data_for_cluster = allclustering_target,
                                                                measurementConceptId_Trajectory = input$measurementConceptId_Trajectory,
                                                                cluster_number = input$clusterNumber)
@@ -360,6 +370,12 @@ server <- function(input, output, session) {
     output$TrajectoryClusteringTable <- renderDataTable({ table_lcmm_cluster() })
     
     ######################4. tab menu result : Prediction model###################################
+    output$Target_cohort <- renderUI({
+      selectInput("Target_cohort","Target Cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)) )
+    })
+    output$Outcome_cohort <- renderUI({
+      selectInput("Outcome_cohort","Outcome Cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)) )
+    })
     #############1-1. prediction model###########
     output$modelSelect <- renderUI({
       selectInput("modelSelect","Machine Learning Model Select",choices = c("Lasso Logistic","Gradient Boosting"))
@@ -371,8 +387,8 @@ server <- function(input, output, session) {
                                 CDMschema = input$CDMschema,
                                 Resultschema = input$Resultschema,
                                 cohortTable = input$cohortTable,
-                                targetCohortConceptId = input$Target_cohort,
-                                outcomeCohortConceptId = input$Outcome_cohort,
+                                targetCohortConceptId = as.numeric(input$Target_cohort),
+                                outcomeCohortConceptId = as.numeric(input$Outcome_cohort),
                                 covariateSetting = covariateSetting,
                                 washoutPeriod = 0,
                                 removeSubjectsWithPriorOutcome = FALSE,
