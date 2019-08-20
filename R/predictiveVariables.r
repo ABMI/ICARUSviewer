@@ -27,14 +27,11 @@ getPlpDataList <- function(connectionDetails,
                            riskWindowEnd,
                            minTimeAtRisk){
   
-  resultDatabaseSchema <- paste0(Resultschema,".dbo")
-  CDMDatabaseSchema <- paste0(CDMschema,".dbo")
-  
   Sys.setlocale(category="LC_CTYPE", locale="C")
   
   plpOut<- PatientLevelPrediction::getPlpData(connectionDetails = connectionDetails,
-                                              cdmDatabaseSchema = CDMDatabaseSchema,
-                                              cohortDatabaseSchema = resultDatabaseSchema,
+                                              cdmDatabaseSchema = CDMschema,
+                                              cohortDatabaseSchema = Resultschema,
                                               cohortTable = cohortTable,
                                               cohortId = targetCohortConceptId,
                                               covariateSettings = covariateSetting,

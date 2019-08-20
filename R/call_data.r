@@ -33,17 +33,13 @@ sql_reader <- function(sqlquery,
 #' @import SqlRender
 #' @import DatabaseConnector
 #' @param Resultschema
-#' @param CDMschema
 #' @param connectionDetails
 #' @param connection
 #' @export
 call_dataList<- function(connectionDetails,
                          connection,
-                         Resultschema,
-                         CDMschema){
-
-    resultDatabaseSchema <- paste0(Resultschema,".dbo")
-    CDMDatabaseSchema <- paste0(CDMschema,".dbo")
+                         Resultschema){
+  
     connectionDetails <-connectionDetails
     connection <- connection
 
@@ -52,14 +48,14 @@ call_dataList<- function(connectionDetails,
     ###load demographic data
     sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadDemographic.sql") )
     sql <- SqlRender::renderSql(sql,
-                                resultDatabaseSchema = resultDatabaseSchema)$sql
+                                resultDatabaseSchema = Resultschema)$sql
     demographic_data<-DatabaseConnector::querySql(connection, sql)
     colnames(demographic_data)<-SqlRender::snakeCaseToCamelCase(colnames(demographic_data))
 
     ##load asthma_cohort data
     sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadAsthma_cohort.sql") )
     sql <- SqlRender::renderSql(sql,
-                                resultDatabaseSchema = resultDatabaseSchema)$sql
+                                resultDatabaseSchema = Resultschema)$sql
     asthmacohort_data<-DatabaseConnector::querySql(connection, sql)
     colnames(asthmacohort_data)<-SqlRender::snakeCaseToCamelCase(colnames(asthmacohort_data))
 

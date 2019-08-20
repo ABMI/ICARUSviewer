@@ -14,14 +14,11 @@ getConditionCovariate <- function(connectionDetails,
                                   cohortTable,
                                   cohortId){
 
-    resultDatabaseSchema <- paste0(Resultschema,".dbo")
-    CDMDatabaseSchema <- paste0(CDMschema,".dbo")
-
     condition_covariate<- FeatureExtraction::createCovariateSettings(useConditionOccurrenceLongTerm = TRUE, endDays = 30)
     
     covariateData_ff <- getDbCovariateData(connectionDetails = connectionDetails,
-                                           cdmDatabaseSchema = CDMDatabaseSchema,
-                                           cohortDatabaseSchema = resultDatabaseSchema,
+                                           cdmDatabaseSchema = CDMschema,
+                                           cohortDatabaseSchema = Resultschema,
                                            cohortTable = cohortTable,
                                            cohortId = cohortId,
                                            rowIdField = "subject_id",
