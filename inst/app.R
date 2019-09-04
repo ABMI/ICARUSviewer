@@ -76,14 +76,10 @@ ui <- dashboardPage(
                         tabsetPanel(type = "tabs",
                                     ############Demographics##########################################
                                     tabPanel("Demographics",
-                                             fluidRow(titlePanel("Compare Demographic Charateristics") ),
+                                             fluidRow(titlePanel("Compare Charateristics between two cohorts") ),
                                              fluidRow(column(1,actionButton("do_demographic_analyze","analyze") ) ),
-                                             fluidRow(box(title = "Comparison of clinical characteristics between two cohorts and P value", width = 12,
-                                                          dataTableOutput("clinicalCharacteristicTable"),tableOutput("clinicalCharacteristicPvalue"),dataTableOutput("baselineMeasurementTable")) ),
-                                             fluidRow(box(title = "Comparison of baseline Comorbidity between two cohorts ( co-prevalence (%) )", width = 12,
-                                                          dataTableOutput("prevalenceTable")) ),
-                                             fluidRow(box(title = "comorbidity relative ratio of target cohort", width = 12,
-                                                          plotOutput("RRplot"),dataTableOutput("RRTable")) )
+                                             fluidRow(box(title = "comorbidity of target cohort", width = 12,
+                                                          plotOutput("RRplot"),dataTableOutput("totalBaselineCharacteristicsTable")) )
                                     ),
                                     ############Longitudinal############################################
                                     tabPanel("Measurements",
@@ -215,60 +211,44 @@ server <- function(input, output, session) {
     })
     #############1-1. demographic######################
     demographic_result <- eventReactive(input$do_demographic_analyze,{
-        demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(as.numeric(input$target_cohort),as.numeric(input$comparator_cohort)) )
-        demographicSummary <- characteristic_summary(characteristic_manufac = demographicRaw)
-        demographicpvalue <- characteristic_pvalue(characteristic_manufac = demographicRaw)
-
-        result_out <- list(demographic_table = demographicSummary,
-                           demographic_pvelue = demographicpvalue)
-
-        return(result_out)
+      # demographics 
+      demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(as.numeric(input$target_cohort),as.numeric(input$comparator_cohort)) )
+      demographicSummary <- characteristic_summary(characteristic_manufac = demographicRaw)
+      demographicpvalue <- characteristic_pvalue(characteristic_manufac = demographicRaw)
+      demographicSum <- merge(demographicSummary,demographicpvalue,by = "demographicName")
+      colnames(demographicSum)[1] <- "baseline_Measure"
+      # comorbidities
+      comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
+                                             Resultschema = input$Resultschema,
+                                             CDMschema = input$CDMschema,
+                                             cohortTable = input$cohortTable,
+                                             cohortId_1 = as.numeric(input$target_cohort),
+                                             cohortId_2 = as.numeric(input$comparator_cohort) )
+      comorb_prev <- co_prevtable(comorbManufacData = comorbidityRaw)
+      RR_pvalue  <- calculateRR(comorbManufacData = comorbidityRaw)
+      comorbSum <-  merge(comorb_prev,RR_pvalue%>%select(diseaseName,pvalue),by = "diseaseName")
+      colnames(comorbSum)[1] <- "baseline_Measure"
+      # baseline measured values
+      baselinemeasurement <- baselineMeasure_compare(connectionDetails = connectionDetails,
+                                                     Resultschema = input$Resultschema,
+                                                     CDMschema = input$CDMschema,
+                                                     cohortTable = input$cohortTable,
+                                                     cohortId_1 = as.numeric(input$target_cohort),
+                                                     cohortId_2 = as.numeric(input$comparator_cohort),
+                                                     measurementConceptIdSet = c(2,3,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469,
+                                                                                 3011708,3006504,3005322,3005600,3017501,3026514,3005791,3021940,
+                                                                                 3011505,3013115,3018010,3022096) )
+      measureSum <- baselinemeasurement
+      colnames(measureSum)[1] <- "baseline_Measure"
+      characteristicsAllSum <- rbind(demographicSum,comorbSum,measureSum)
+      RRplot     <- RRplot(RRResult = RR_pvalue)
+      
+      resultList <- list(allCharacteristicsTable = characteristicsAllSum,
+                         plotForComorbidity = RRplot)
     })
-    output$clinicalCharacteristicTable <- renderDataTable({ demographic_result()[[1]] })
+    output$RRplot <- renderPlot({ demographic_result()[[2]] })
 
-    output$clinicalCharacteristicPvalue <- renderTable({ as.data.frame(demographic_result()[[2]]) })
-
-    prevalenceTable <- eventReactive(input$do_demographic_analyze,{
-        comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
-                                               Resultschema = input$Resultschema,
-                                               CDMschema = input$CDMschema,
-                                               cohortTable = input$cohortTable,
-                                               cohortId_1 = as.numeric(input$target_cohort),
-                                               cohortId_2 = as.numeric(input$comparator_cohort) )
-        prevalence <- co_prevtable(comorbManufacData = comorbidityRaw)
-        return(prevalence)
-    })
-    output$prevalenceTable <- renderDataTable({ prevalenceTable() })
-
-    RRresultList <- eventReactive(input$do_demographic_analyze,{
-        comorbidityRaw <- baseline_comorbidity(connectionDetails = connectionDetails,
-                                               Resultschema = input$Resultschema,
-                                               CDMschema = input$CDMschema,
-                                               cohortTable = input$cohortTable,
-                                               cohortId_1 = as.numeric(input$target_cohort),
-                                               cohortId_2 = as.numeric(input$comparator_cohort) )
-        RR_pvalue  <- calculateRR(comorbManufacData = comorbidityRaw)
-        RRplot     <- RRplot(RRResult = RR_pvalue)
-        
-        RRresult <- list(RR_pvalue, RRplot)
-        return(RRresult)
-    })
-    output$RRTable <- renderDataTable({ RRresultList()[[1]] })
-    output$RRplot  <- renderPlot({ RRresultList()[[2]] })
-
-    baselineMeasurementTable <- eventReactive(input$do_demographic_analyze,{
-        baselinemeasurement <- baselineMeasure_compare(connectionDetails = connectionDetails,
-                                                       Resultschema = input$Resultschema,
-                                                       CDMschema = input$CDMschema,
-                                                       cohortTable = input$cohortTable,
-                                                       cohortId_1 = as.numeric(input$target_cohort),
-                                                       cohortId_2 = as.numeric(input$comparator_cohort),
-                                                       measurementConceptIdSet = c(2,3,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469,
-                                                                                   3011708,3006504,3005322,3005600,3017501,3026514,3005791,3021940,
-                                                                                   3011505,3013115,3018010,3022096) )
-        return(baselinemeasurement)
-    })
-    output$baselineMeasurementTable <- renderDataTable({ baselineMeasurementTable() })
+    output$totalBaselineCharacteristicsTable <- renderDataTable({ demographic_result()[[1]] })
     #############1-2. longitudinal###############
     load_longitudinal <- eventReactive(input$do_load_all_measurement,{
         allLongitudinal_target<<- getAllLongitudinal(connectionDetails = connectionDetails,
@@ -407,7 +387,7 @@ server <- function(input, output, session) {
     
     contributedCovariatePlot <- eventReactive(input$do_predictionOutput,{
       predictiveVariable <- plotPredictiveVariables(machineLearningData = plp_result,
-                                                    rankCount = 40)
+                                                    rankCount = 15)
       return(predictiveVariable)
     })
     output$contributedCovariates <- renderPlot({ contributedCovariatePlot() })

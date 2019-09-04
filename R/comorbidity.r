@@ -103,37 +103,21 @@ baseline_comorbidity <- function(connectionDetails,
 #'
 calculateRR <- function(comorbManufacData){
 
-    df <- comorbManufacData
-    # if ( min(df$cohortDefinitionId) == 2){
-    # 
-    #     split <- split(df, df$diseaseId)
-    #     RRresult <- lapply(split, FUN = function(x){
-    #         simply <- x[,c("Count","notdisease")]
-    #         simply <- simply[c(2,1),]
-    #         row.names(simply)<-x$cohortDefinitionId[c(2,1)]
-    #         RR_cal<-epitools::riskratio(as.matrix(simply))
-    # 
-    #         c(diseaseName = diseaseList$diseaseName[which(diseaseList$diseaseId == unique(x$diseaseId))],
-    #           RR_cal$measure[2,],
-    #           pvalue = RR_cal$p.value[6])
-    #     })
-    # 
-    # } else {
-
-        split <- split(df, df$diseaseId)
-        RRresult <- lapply(split, FUN = function(x){
-            simply <- x[,c("Count","notdisease")]
-            row.names(simply)<-x$cohortDefinitionId
-            RR_cal<-epitools::riskratio(as.matrix(simply))
-            c(diseaseName = diseaseList$diseaseName[which(diseaseList$diseaseId == unique(x$diseaseId))],
-              RR_cal$measure[2,],
-              pvalue = RR_cal$p.value[6])
-        })
-    # }
-
-    output <- t(as.data.frame(RRresult))
-    output <- data.frame(output)
-    return(output)
+  df <- comorbManufacData
+  split_df <- split(df, df$diseaseId)
+  RRresult <- lapply(split_df, FUN = function(x){
+    simply <- x[,c("Count","notdisease")]
+    row.names(simply)<-x$cohortDefinitionId
+    RR_cal<-epitools::riskratio(as.matrix(simply))
+    c(diseaseName = diseaseList$diseaseName[which(diseaseList$diseaseId == unique(x$diseaseId))],
+      RR_cal$measure[2,],
+      pvalue = round(RR_cal$p.value[6], 4))
+  })
+  out <- t(as.data.frame(RRresult))
+  out <- data.frame(out)
+  out[,'pvalue'] <- as.numeric(as.character(out[,'pvalue'])) 
+  
+  return(out)
 }
 
 #'plot risk ratio and its CIs
