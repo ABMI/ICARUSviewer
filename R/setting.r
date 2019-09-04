@@ -65,8 +65,16 @@ setting <- function(){
                                         "exacerbation_new", "not_exacerbation_new" )
     )
 
-    measurementId <<- list(maesurementConceptId = c(2,3,4,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469),
-                           measureName = c("EDN","periostin","eotaxin1","eotaxin2","SP_D","DPP10","MBL","TGFb1","chitinase","TIMP1","OPN","IL8","MPO")
+    measurementId <<- list(maesurementConceptId = c(2,3,4,5,6,7,8,
+                                                    3028930,4169578,44786758,4010492,3046594,2212469,
+                                                    3011708,3006504,3005322,3005600,
+                                                    3017501,3026514,3005791,3021940,
+                                                    3011505,3013115,3018010,3022096),
+                           measureName = c("EDN","Periostin","Eotaxin1","Eotaxin2","SP_D","DPP10","MBL",
+                                           "TGFb1","Chitinase","TIMP1","OPN","IL8","MPO",
+                                           "FEV1(%)", "eosinophil in blood (%)", "IgE","FVC (%)",
+                                           "Neutrophil in blood manual count (/ul)","Neutrophil in sputum (%)", "Eosinophil cationic protein","Eosinophil in sputum (%)",
+                                           "FEV1/FVC (%)","Eosinophil in blood manual count (/ul)", "Neutrophil in blood (%)","Basophil in blood (%)")
     )
 
     covariateSetting <<- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,

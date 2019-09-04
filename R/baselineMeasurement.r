@@ -85,6 +85,10 @@ baselineMeasure_compare <- function(connectionDetails,
     pvalue_basemeasure <- data.frame(measurementConceptId = sort(unique(baseline_measure$conceptId)),
                                      pvalue = unlist(out_pvalue_list) )
     result <- left_join(summary_basemeasure,pvalue_basemeasure,by = "measurementConceptId")
+    result <- result %>%
+      rename(measurementName = measurementConceptId) %>%
+      mutate(measurementName = factor(measurementName, levels = measurementId$maesurementConceptId,
+                                      labels = measurementId$measureName) )
     return(result)
 }
 
@@ -92,8 +96,8 @@ baselineMeasure_compare <- function(connectionDetails,
 #'@param x
 #'@export
 baselineMeasure_summary <- function(x){
-  mean_x          <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = T),2) )
-  sd_x            <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = T),2) )
+  mean_x          <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(mean(x, na.rm = TRUE),2) )
+  sd_x            <- tapply(x$covariateValue,x$cohortDefinitionId,FUN = function(x) round(sd(x, na.rm = TRUE),2) )
   count_x         <- tapply(x$subjectId,x$cohortDefinitionId,FUN = function(x) length(unique(x)) )
   result          <- paste0(mean_x,"+/-",sd_x,"(",count_x,")")
   return(result)
@@ -108,11 +112,9 @@ baselineMeasure_pvalue <- function(x){
     if(shapiro$p.value >= 0.05){
         ttest_pvalue    <- t.test(data = x, covariateValue~cohortDefinitionId)
         p_value         <- round(ttest_pvalue$p.value,4)
-        out             <- paste0(p_value,"(t test)")
     } else {
         wilcox_pvalue   <- wilcox.test(data = x, covariateValue~cohortDefinitionId)
         p_value         <- round(wilcox_pvalue$p.value,4)
-        out             <- paste0(p_value,"(Wilcoxon rank sum test)")
     }
-    return(out)
+    return(p_value)
 }
