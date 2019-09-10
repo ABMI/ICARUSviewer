@@ -72,12 +72,12 @@ lme_logitudinal <- function(longitudinalData){
   f <- as.formula( covariateValue ~ time + (time||subjectId) )
   newdata_lmm <- data.frame(x=seq(0,15,length.out=100))
   mm <- model.matrix(~x,newdata_lmm)
-  lmm_randomSIind_1 <- lme4::lmer(formula = f, data = longitudinalData, REML = T)
+  lmm_randomSIind_1 <- lme4::lmer(formula = f, data = longitudinalData, REML = TRUE)
   predict_lmm <- mm%*%lme4::fixef(lmm_randomSIind_1) 
   pvar1 <- Matrix::diag(mm %*% Matrix::tcrossprod(vcov(lmm_randomSIind_1),mm))
   result_fixef <- lme4::fixef(lmm_randomSIind_1) 
   result_ci <- lme4::confint.merMod(lmm_randomSIind_1)
-  result_slope <- paste0(round(result_fixef[2],3), "(", paste0(round(result_ci[5,],3), collapse = ","), ")" )
+  result_slope <- paste0(round(result_fixef[2],3), "(", paste0(round(result_ci['time',],3), collapse = ","), ")" )
   
   result_df <- data.frame(time = newdata_lmm$x,
                           predict = predict_lmm,
@@ -127,29 +127,34 @@ longitudinal <- function(cohortId_1,
 
 plotLmm <- function(longitudinal_result,
                     pftIndividual = TRUE){
-
-  longitudinal_all <- rbind(longitudinal_result[[1]][[2]],
-                            longitudinal_result[[2]][[2]])
-  plotlongitudinal <- ggplot(data = longitudinal_all)
-  split_list <- split(longitudinal_all, longitudinal_all$cohortId)
-  colourList <- c("red","blue")
-  
-  if(pftIndividual){
-    i <- 1
-    while(1){
-      df <- split_list[[i]]
-      plotlongitudinal <- plotlongitudinal + geom_line(data = df, aes(x = time, y = covariateValue, group = subjectId, colour = as.factor(cohortId) ), size = 0.4, alpha = 0.5)
-      i <- i + 1
-      if(i > length( unique(longitudinal_all$cohortId) ) ) break
+  longitudinal_all <- NA
+  for(i in 1 : length(longitudinal_result)) {
+    if(is.na(longitudinal_all)){
+      longitudinal_all <- longitudinal_result[[i]][[2]]
+    } else {
+      longitudinal_all <- rbind(longitudinal_all,longitudinal_result[[i]][[2]])
     }
   }
   
+  longitudinal_all$cohortId <- factor(longitudinal_all$cohortId, 
+                                      levels = c(longitudinal_result[[1]][[1]],longitudinal_result[[2]][[1]]) )
+  
+  plotlongitudinal <- NA
+  plotlongitudinal <- ggplot(data = longitudinal_all)
+  
+  colourList <- c("red","blue","green","orange")
+  
+  if(pftIndividual){
+    plotlongitudinal <- plotlongitudinal + geom_line( aes(x = time, y = covariateValue, group = subjectId, colour = cohortId ), size = 0.4, alpha = 0.5)
+  }
+  
   for (i in 1:length(unique(longitudinal_all$cohortId))){
-    plotlongitudinal <- plotlongitudinal + geom_line(data = longitudinal_result[[i]][[3]],aes(x = time, y = predict),colour = colourList[i], size = 1)+
-      geom_ribbon(data = longitudinal_result[[i]][[3]], aes(ymin = lower, ymax = upper, x = time), fill = colourList[i], alpha = 0.25 )
+    plotlongitudinal <- plotlongitudinal + geom_line(data = longitudinal_result[[i]][[3]],aes(x = time, y = predict),colour = colourList[i], size = 0.6)+
+      geom_ribbon(data = longitudinal_result[[i]][[3]], aes(ymin = lower, ymax = upper, x = time), fill = colourList[i], alpha = 0.15 )
   }
   plotlongitudinal <- plotlongitudinal + theme_bw() + xlab("time (years)") + 
     theme(legend.title = element_blank(), axis.title.x = element_text(size=13), axis.title.y = element_text(size = 13), axis.text.x = element_text(size = 13),axis.text.y = element_text(size = 13)) 
+
   return(plotlongitudinal)
 }
 
@@ -169,11 +174,20 @@ tableLmm <- function(longitudinal_result){
     cohortId        <- longitudinal_result[[i]][[1]]
     estimated_value <- predict_sub$summaryPredict
     slope           <- longitudinal_result[[i]][[4]]
-    result          <- c(cohortId, estimated_value, slope)
-    names(result)   <- c("cohortId","time = 0","time = 5","time = 10","time = 15","slope")
+    count           <- length(unique(longitudinal_result[[i]][[2]]$subjectId))
+    result          <- c(cohortId, estimated_value, slope, count)
+    names(result)   <- c("cohortId","time = 0","time = 5","time = 10","time = 15","slope","person count")
     list_stuck[[i]] <- result
   }
   
-  out_dataframe <- as.data.frame(rbind(list_stuck[[1]],list_stuck[[2]]))
+  # out_dataframe <- as.data.frame(rbind(list_stuck[[1]],list_stuck[[2]]))
+  out_dataframe <- NA
+  for(i in 1:length(longitudinal_result)){
+    if(is.na(out_dataframe)) {
+      out_dataframe <- list_stuck[[i]] 
+    } else {
+      out_dataframe <- rbind(out_dataframe,list_stuck[[i]])
+    }
+  }
   return(out_dataframe)
 }

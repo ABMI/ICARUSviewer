@@ -1,1 +1,1 @@
-SELECT * FROM @resultDatabaseSchema.comorbidity
+SELECT * FROM @resultDatabaseSchema.@cohortTable
