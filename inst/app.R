@@ -86,7 +86,6 @@ ui <- dashboardPagePlus(
                                                        footer = "Estimated representative trajectories. The shaded areas indicate 95% CI"),
                                            dataTableOutput("TrajectoryClusteringTable" ),
                                            verbatimTextOutput("BICandAIC"),
-                                           uiOutput("trajectoryCohortIdSet"),
                                            br(), h4(strong("If clustering was done and this result was interesting, insert this result into your cohor table!")),
                                            h4(strong("Before insert, please check whether this cohort ID was used :)")),
                                            textInput("trajectoryCohortIdSet", "please write down new cohort Id set", "ex) 1/2/3 : if number of clusters is 3"),
@@ -283,15 +282,15 @@ server <- function(input, output, session) {
   output$BICandAIC <- renderText({ BICAIC() }) 
   #insert at cohort table
   insertCohortNew <- eventReactive(input$insert_trajectory_cluster,{
-    insertCohort(newCohortIdSet = as.character(input$trajectoryCohortIdSet),
-                 target_cluster_cohort = as.numeric(input$cohortId_trajectory),
+    insertCohort(newCohortIdSet = req(input$trajectoryCohortIdSet),
+                 target_cluster_cohort = req(as.numeric(input$cohortId_trajectory)),
                  resultOflcmm = lcmm_cluster_result_list,
-                 connectionDetails = connection,
+                 connection = connection,
                  Resultschema = CohortSchema,
                  cohortTable = cohortTable)
     "Insert done!"
   })
-  output$insertDone <- renderText({ withProgress(message = "Insert into CohortTable...",value = 1, { insertCohortNew() }) })
+  output$insertDone <- renderText({ insertCohortNew() })
   #####Menu Item 2 : compare cohorts #####
   output$cohort1 <- renderUI({
     selectInput("cohort1","cohort1",choices = sort(unique(totalCohort$cohortDefinitionId)), selected = "0" )
