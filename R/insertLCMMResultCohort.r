@@ -1,9 +1,10 @@
 #'code for insert cohort at result table 
 #'@import dplyr
 #'@import FeatureExtraction
-#'@param newCohortIdSet            
+#'@param newCohortIdSet           
+#'@param target_cluster_cohort 
 #'@param resultOflcmm              results of latent_class_classification code
-#'@param connectionDetails
+#'@param connection
 #'@param Resultschema
 #'@param cohortTable
 #'@export
