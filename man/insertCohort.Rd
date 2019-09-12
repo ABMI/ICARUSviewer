@@ -10,6 +10,8 @@ insertCohort(newCohortIdSet, target_cluster_cohort, resultOflcmm,
 \arguments{
 \item{newCohortIdSet}{}
 
+\item{target_cluster_cohort}{}
+
 \item{resultOflcmm}{results of latent_class_classification code}
 }
 \description{
