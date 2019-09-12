@@ -1,1 +1,0 @@
-SELECT * FROM @resultDatabaseSchema.exacerbation_cohort

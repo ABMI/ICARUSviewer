@@ -32,13 +32,17 @@ latent_class_classification <- function(all_longitudinal_data_for_cluster,
   clustering_class_with_estimated   <- fit_list$pprob %>% select(subjectId,class) %>% left_join(fit_list$predRE, by = 'subjectId')
   clustering_class_with_allMeasure  <- sub_measure %>% left_join(fit_list$pprob %>% select(subjectId,class), by = 'subjectId')
   summary_fit_result                <- summary(fit_list)
+  fit_BIC                           <- fit_list$BIC
+  fit_AIC                           <- fit_list$AIC
   
   lcmm_result <- list(fit_result = fit_list,
                       predict_result = predict_dataframe,
                       raw_data = sub_measure, 
                       measure_cluster_result = clustering_class_with_allMeasure,
                       estimate_cluster_result = clustering_class_with_estimated,
-                      summary_fit_result = summary_fit_result )
+                      summary_fit_result = summary_fit_result,
+                      fit_BIC = fit_BIC,
+                      fit_AIC = fit_AIC)
   
   # if(save_lcmm_result){
   #   saveRDS(lcmm_result, file = file.path(outputFolder,"result_190604.rds"))

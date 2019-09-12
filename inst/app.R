@@ -23,7 +23,8 @@ check.packages("lcmm")
 ui <- dashboardPage(
 
     #header
-    dashboardHeader(title = "ICARUS WINGS"),
+    dashboardHeader(title = "ICARUS WINGS",
+                    dropdownMenuOutput("ConnectionDatabase")),
 
     #side bar menu
     dashboardSidebar(
@@ -75,39 +76,39 @@ ui <- dashboardPage(
                     mainPanel(
                         tabsetPanel(type = "tabs",
                                     ############Demographics##########################################
-                                    tabPanel("Demographics",
-                                             fluidRow(titlePanel("Compare Charateristics between two cohorts") ),
-                                             fluidRow(column(1,actionButton("do_demographic_analyze","analyze") ) ),
-                                             fluidRow(box(title = "comorbidity of target cohort", width = 12,
-                                                          plotOutput("RRplot"),dataTableOutput("totalBaselineCharacteristicsTable")) )
+                                    tabPanel("Baseline characteristics",
+                                             fluidRow( titlePanel("Compare Charateristics between two cohorts") ),
+                                             fluidRow( column(1,actionButton("do_demographic_analyze","analyze") ) ),
+                                             fluidRow( box(title = "Baseline characteristics", width = 12,
+                                                           plotOutput("RRplot"),
+                                                           dataTableOutput("totalBaselineCharacteristicsTable")) ),
+                                             fluidRow( downloadButton(outputId = 'downloadBaselineCharacteristics', label = "Download Results"))
                                     ),
                                     ############Longitudinal############################################
                                     tabPanel("Measurements",
-                                             fluidRow(titlePanel("Longitudinal analysis of long-term measured values") ),
-                                             fluidRow(column(1,actionButton("do_load_all_measurement","load All") ),
-                                                      column(3,numericInput("measurementConceptId","Measurement Concept ID","") ),
-                                                      column(1,actionButton("do_search_measure","Search") ) ),
-                                             fluidRow(
-                                                 box(title = "Longitudinal analysis", width = 6,
-                                                     textOutput("load"),
-                                                     plotOutput("longitudinalAnalysis")),
-                                                 box(title = "Only estimated profiles", width = 6,
-                                                     plotOutput("longutidinalAnalysis_only"))
-                                             ),
-                                             fluidRow(
-                                               box(title = "estimted profile and 95% CI", width = 12,
-                                                   dataTableOutput("longitudinalTable"))
-                                             )
+                                             fluidRow( titlePanel("Longitudinal analysis of long-term measured values") ),
+                                             fluidRow( column(1,actionButton("do_load_all_measurement","load All") ),
+                                                       column(3,numericInput("measurementConceptId","Measurement Concept ID","") ),
+                                                       column(1,actionButton("do_search_measure","Search") ) ),
+                                             fluidRow( box(title = "Longitudinal analysis", width = 6,
+                                                           textOutput("load"),
+                                                           plotOutput("longitudinalAnalysis")),
+                                                       box(title = "Only estimated profiles", width = 6,
+                                                           plotOutput("longutidinalAnalysis_only")) ),
+                                             fluidRow( box(title = "estimted profile and 95% CI", width = 12,
+                                                           dataTableOutput("longitudinalTable")) ),
+                                             fluidRow( downloadButton(outputId = 'downloadLongitudinal', label = "Download Results"))
                                     ),
                                     ############Clinical Events#############################################
                                     tabPanel("ClinicalEvents",
-                                             fluidRow(titlePanel("Clinical event rate per year") ),
-                                             fluidRow(column(3,uiOutput("ClinicalEventCohortId") ),
-                                                      column(1,actionButton("do_search_event","Search") ) ),
-                                             fluidRow(box(title = "Clinical event rate per year in two cohort groups", width = 12,
-                                                          plotOutput("ClinicalEventPlot")) ),
-                                             fluidRow(box(width = 12,
-                                                          dataTableOutput("ClinicalEventTable")))
+                                             fluidRow( titlePanel("Yearly Count of Clinical Event") ),
+                                             fluidRow( column(3,uiOutput("ClinicalEventCohortId") ),
+                                                       column(1,actionButton("do_search_event","Search") ) ),
+                                             fluidRow( box(title = "Yearly count of clinical event between two cohorts", width = 12,
+                                                           plotOutput("ClinicalEventPlot")) ),
+                                             fluidRow( box(width = 12,
+                                                           dataTableOutput("ClinicalEventTable"))),
+                                             fluidRow( downloadButton(outputId = 'downloadClinicalEvent', label = "Download Results"))
                                     )
                         )
                     )
@@ -126,7 +127,10 @@ ui <- dashboardPage(
                         fluidRow( titlePanel("Long-term measured value trajectory clustering"), textOutput("load_for_cluster") ),
                         fluidRow( box( plotOutput("TrajectoryClustering_withIndividual"), width = 6 ),
                                   box( plotOutput("TrajectoryClustering_onlyCI")        , width = 6 ) ),
-                        fluidRow( box( dataTableOutput("TrajectoryClusteringTable")     , width = 12 ) )
+                        fluidRow( box( dataTableOutput("TrajectoryClusteringTable")     , width = 12 ) ),
+                        fluidRow( textInput("trajectoryCohortIdSet", "which cohort Id set?", "ex) 1/2/3 : if number of clusters is 3, write down 3 different number like this 1/2/3 and please check whether this cohort ID was used")),
+                        fluidRow( actionButton('insert_trajectory_cluster',"insert results at cohort table"),
+                                  downloadButton(outputId = 'downloadTrajectory', label = "Download Results") )
                     )
             ),
             #########tab menu = Prediction Model#########################
@@ -143,12 +147,12 @@ ui <- dashboardPage(
                         actionButton("do_predictionOutput","Show Result"),
                         width = 2),
                     mainPanel(
-                        fluidRow(titlePanel("Prediction Model Develop"), textOutput("prediction_done") ),
-                        fluidRow(
-                            box(plotOutput("contributedCovariates"), width = 6),
-                            box(plotOutput("AUROCcurve")           , width = 6) ),
-                        fluidRow(
-                            box(dataTableOutput("covariateTable")  , width = 12) )
+                        fluidRow( titlePanel("Prediction Model Develop"), textOutput("prediction_done") ),
+                        fluidRow( box(plotOutput("contributedCovariates"), width = 6),
+                                  box(plotOutput("AUROCcurve")           , width = 6) ),
+                        fluidRow( box(dataTableOutput("covariateTable")  , width = 12) ),
+                        fluidRow( downloadButton(outputId = 'downloadPLPresults', label = "Download Results") )
+                        
                     )
             )
         )
@@ -183,7 +187,9 @@ server <- function(input, output, session) {
 
         dataList<<-call_dataList(connectionDetails = connectionDetails,
                                  connection = connection,
-                                 Resultschema = input$Resultschema)
+                                 Resultschema = input$Resultschema,
+                                 CDMschema = input$CDMschema,
+                                 cohortTable = input$cohortTable)
 
         demographicData<<-dataList[[1]]
         totalCohort <<- dataList[[2]]
@@ -387,7 +393,7 @@ server <- function(input, output, session) {
     
     contributedCovariatePlot <- eventReactive(input$do_predictionOutput,{
       predictiveVariable <- plotPredictiveVariables(machineLearningData = plp_result,
-                                                    rankCount = 15)
+                                                    rankCount = 40)
       return(predictiveVariable)
     })
     output$contributedCovariates <- renderPlot({ contributedCovariatePlot() })

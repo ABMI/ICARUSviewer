@@ -4,7 +4,8 @@
 \alias{call_dataList}
 \title{code for loading data}
 \usage{
-call_dataList(connectionDetails, connection, Resultschema)
+call_dataList(connectionDetails, connection, Resultschema, CDMschema,
+  cohortTable)
 }
 \description{
 code for loading data

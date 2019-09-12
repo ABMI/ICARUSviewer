@@ -1,1 +1,1 @@
-SELECT * FROM @resultDatabaseSchema.asthma_cohort
+SELECT * FROM @resultDatabaseSchema.@cohortTable

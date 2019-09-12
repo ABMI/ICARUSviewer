@@ -35,7 +35,7 @@ getPlpDataList <- function(connectionDetails,
                                               cohortTable = cohortTable,
                                               cohortId = targetCohortConceptId,
                                               covariateSettings = covariateSetting,
-                                              outcomeDatabaseSchema = resultDatabaseSchema,
+                                              outcomeDatabaseSchema = Resultschema,
                                               outcomeTable = cohortTable,
                                               outcomeIds = outcomeCohortConceptId)
   
@@ -110,7 +110,7 @@ plotPredictiveVariables <- function(machineLearningData,
         geom_bar(stat = "identity", width = .5)+
         coord_flip()+
         xlab("conceptId")+
-        ylab("variable value ( if negative = more non-outcome or if positive = more outcome )")+
+        ylab("covariate value")+
         theme_bw()+
         theme(legend.title = element_blank(),
               strip.text = element_text(size = 15),
