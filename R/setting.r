@@ -87,7 +87,7 @@ setting <- function(){
                                                                     useMeasurementRangeGroupShortTerm = FALSE,
                                                                     useMeasurementValueAnyTimePrior = TRUE,
                                                                     useDrugEraShortTerm = FALSE,
-                                                                    shortTermStartDays = 0,
+                                                                    shortTermStartDays = -365,
                                                                     endDays = 0,
                                                                     includedCovariateConceptIds = c(), addDescendantsToInclude = FALSE,
                                                                     excludedCovariateConceptIds = c(),

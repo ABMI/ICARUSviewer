@@ -23,7 +23,8 @@ check.packages("lcmm")
 ui <- dashboardPage(
 
     #header
-    dashboardHeader(title = "ICARUS WINGS"),
+    dashboardHeader(title = "ICARUS WINGS",
+                    dropdownMenuOutput("ConnectionDatabase")),
 
     #side bar menu
     dashboardSidebar(
@@ -127,7 +128,7 @@ ui <- dashboardPage(
                         fluidRow( box( plotOutput("TrajectoryClustering_withIndividual"), width = 6 ),
                                   box( plotOutput("TrajectoryClustering_onlyCI")        , width = 6 ) ),
                         fluidRow( box( dataTableOutput("TrajectoryClusteringTable")     , width = 12 ) ),
-                        fluidRow( textInput("trajectoryCohortIdSet", "which cohort Id set?", "ex) if 3 clusters, 1/2/3")),
+                        fluidRow( textInput("trajectoryCohortIdSet", "which cohort Id set?", "ex) 1/2/3 : if number of clusters is 3, write down 3 different number like this 1/2/3 and please check whether this cohort ID was used")),
                         fluidRow( actionButton('insert_trajectory_cluster',"insert results at cohort table"),
                                   downloadButton(outputId = 'downloadTrajectory', label = "Download Results") )
                     )

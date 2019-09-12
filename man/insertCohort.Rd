@@ -4,8 +4,13 @@
 \alias{insertCohort}
 \title{code for insert cohort at result table}
 \usage{
-insertCohort(newCohortIdSet, resultOflcmm, connectionDetails, Resultschema,
-  cohortTable)
+insertCohort(newCohortIdSet, target_cluster_cohort, resultOflcmm,
+  connection, Resultschema, cohortTable)
+}
+\arguments{
+\item{newCohortIdSet}{}
+
+\item{resultOflcmm}{results of latent_class_classification code}
 }
 \description{
 code for insert cohort at result table

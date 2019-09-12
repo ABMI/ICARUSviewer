@@ -51,19 +51,19 @@ call_dataList<- function(connectionDetails,
 
     ###load demographic data
     sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadDemographic.sql") )
-    sql <- SqlRender::render(sql,
+    sql <- SqlRender::render(sql = sql,
                              resultDatabaseSchema = Resultschema,
                              cdmDatabaseSchema = CDMschema,
-                             cohortTable = cohortTable)$sql
+                             cohortTable = cohortTable)
     demographic_data<-DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE)
 
     ##load asthma_cohort data
     sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadAsthma_cohort.sql") )
-    sql <- SqlRender::render(sql,
+    sql <- SqlRender::render(sql = sql,
                              resultDatabaseSchema = Resultschema,
-                             cohortTable = cohortTable)$sql
+                             cohortTable = cohortTable)
     asthmacohort_data<-DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE)
-
+    
     result<-list(demographic_data,
                  asthmacohort_data)
 
