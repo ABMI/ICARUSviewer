@@ -75,7 +75,7 @@ ui <- dashboardPagePlus(
                                      numericInput("degreeOfPolynomial","Degree of polynomial","1"),
                                      numericInput("clusterNumber","Cluster Count","3"),
                                      actionButton("do_cluster","Do clustering"),
-                                     progressBar(id = "clustering", value = 0, total = 100, title = "", display_pct = TRUE ),
+                                     # progressBar(id = "clustering", value = 0, total = 100, title = "", display_pct = TRUE ),
                                      textOutput("show_results"),
                                      h4("if clustering finished, then show results"),br(),
                                      actionButton("show_cluster","Show results!"),
@@ -219,6 +219,7 @@ server <- function(input, output, session) {
                                 cohortTable = cohortTable)
     totalCohort <<- calledData[[2]]
     demographicData <<- calledData[[1]]
+    setting()
     # Sys.setlocale(category="LC_CTYPE", locale="C")
     # sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadAsthma_cohort.sql") )
     # sql <- SqlRender::render(sql = sql,
@@ -284,9 +285,9 @@ server <- function(input, output, session) {
   #insert at cohort table
   insertCohortNew <- eventReactive(input$insert_trajectory_cluster,{
     insertCohort(newCohortIdSet = as.character(input$trajectoryCohortIdSet),
-                 target_cluster_cohort = as.numeric(input$cohortId_trajectory),
+                 target_cluster_cohort = as.numeric(input$target_cluster_cohort),
                  resultOflcmm = lcmm_cluster_result_list,
-                 connectionDetails = connection,
+                 connection = connection,
                  Resultschema = CohortSchema,
                  cohortTable = cohortTable)
     "Insert done!"
