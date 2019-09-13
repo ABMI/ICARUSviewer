@@ -3,14 +3,23 @@
 #'@import dplyr
 #'@param  all_longitudinal_data_for_cluster    result of getAllLongitudinal code
 #'@param  measurementConceptId_Trajectory      which measurement_concept_id do you want to use to cluster cohort  
+#'@param  degreeOfPolynomial
 #'@param  cluster_number                       the number of clusters 
 #'@export
 #'
 latent_class_classification <- function(all_longitudinal_data_for_cluster,
                                         measurementConceptId_Trajectory,
+                                        degreeOfPolynomial,
                                         cluster_number
                                         # ,save_lcmm_result = FALSE
                                         ){
+  degree_of_polynomial <- degreeOfPolynomial
+  degreeToFormula <- switch(degree_of_polynomial,
+                            "linear"    = {"covariateValue ~ time"},
+                            "quadratic" = {"covariateValue ~ time + I(time^2)"},
+                            "cubic"     = {"covariateValue ~ time + I(time^2) + I(time^3)"},
+                            "quartic"   = {"covariateValue ~ time + I(time^2) + I(time^3) + I(time^4)"},
+                            "quintic"   = {"covariateValue ~ time + I(time^2) + I(time^3) + I(time^4) + I(time^5)"} )
   
   newdata <- data.frame(time = seq(0,15,length.out = 100) )
   
@@ -18,7 +27,8 @@ latent_class_classification <- function(all_longitudinal_data_for_cluster,
                                  measurement_concept_id = measurementConceptId_Trajectory,
                                  time_unit = 'year')
   #sub_measure %>% filter(subjectId == 2094755) %>% arrange(time)
-  fit_list <- lcmm::hlme(covariateValue ~ time,
+  fit_list <- lcmm::hlme(as.formula(degreeToFormula),
+    # covariateValue ~ time,
                          mixture = ~time,
                          random = ~time,
                          subject = "subjectId",
