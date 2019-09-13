@@ -72,7 +72,7 @@ ui <- dashboardPagePlus(
               fluidRow( h4(strong("   You can classify subjects using long-term followed measurement values")),
                         sidebarPanel(uiOutput("cohortId_trajectory"),
                                      numericInput("measurementConceptId_Trajectory","Measurement Concept ID",""),
-                                     numericInput("degreeOfPolynomial","Degree of polynomial","1"),
+                                     selectInput("degreeOfPolynomial_select","Degree of polynomial",choices = c("linear","quadratic","cubic","quartic","quintic") ),
                                      numericInput("clusterNumber","Cluster Count","3"),
                                      actionButton("do_cluster","Do clustering"),
                                      # progressBar(id = "clustering", value = 0, total = 100, title = "", display_pct = TRUE ),
@@ -104,7 +104,7 @@ ui <- dashboardPagePlus(
                                      uiOutput("cohort3"),
                                      uiOutput("cohort4"),
                                      uiOutput("cohort5"),
-                                     "You can choose at most 5 cohorts at once",
+                                     "You can choose 2 different cohorts",
                                      width = 2),
                         mainPanel(
                           tabsetPanel(type = "tabs",
@@ -243,6 +243,7 @@ server <- function(input, output, session) {
     #do LCMM
     lcmm_cluster_result_list <<- latent_class_classification(all_longitudinal_data_for_cluster = allclustering_target,
                                                              measurementConceptId_Trajectory = input$measurementConceptId_Trajectory,
+                                                             degreeOfPolynomial = input$degreeOfPolynomial_select,
                                                              cluster_number = input$clusterNumber)
     "Trajectory clustering is done!"
   })

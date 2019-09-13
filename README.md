@@ -4,7 +4,7 @@ Immune/Inflammatory Diseases CDM Augmentation for Research Union System (ICARUS)
 # Getting Started
 ```r
 install.packages("devtools")
-devtools::install_github("cran/raster", ref="2.6-7")
+devtools::install_github("cran/raster")
 devtools::install_github("ohdsi/SqlRender")
 devtools::install_github("ohdsi/DatabaseConnector")
 devtools::install_github("ohdsi/DatabaseConnectorJars")
