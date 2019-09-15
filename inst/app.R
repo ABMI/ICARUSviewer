@@ -104,7 +104,7 @@ ui <- dashboardPagePlus(
                                      uiOutput("cohort3"),
                                      uiOutput("cohort4"),
                                      uiOutput("cohort5"),
-                                     "You can choose 2 different cohorts",
+                                     "You can choose at most 5 different cohorts",
                                      width = 2),
                         mainPanel(
                           tabsetPanel(type = "tabs",

@@ -4,7 +4,7 @@
 \alias{pvalueCalAmongMoreThanTwo}
 \title{calculate pvalue among more than two cohorts}
 \usage{
-pvalueCalAmongMoreThanTwo(y, index)
+pvalueCalAmongMoreThanTwo(y, index, cohortIdLength)
 }
 \arguments{
 \item{y}{must be vector of numeric data}

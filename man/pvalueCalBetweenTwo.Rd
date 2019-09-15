@@ -4,7 +4,7 @@
 \alias{pvalueCalBetweenTwo}
 \title{calculate pvalue between two cohorts : if the value has normality, p value is calculated by t-test, if not by wilcoxon in continuous value}
 \usage{
-pvalueCalBetweenTwo(y, index)
+pvalueCalBetweenTwo(y, index, cohortIdLength)
 }
 \arguments{
 \item{y}{must be vector of numeric data}
