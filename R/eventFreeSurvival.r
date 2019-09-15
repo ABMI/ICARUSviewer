@@ -34,9 +34,9 @@ eventFreeSurvival <- function(cohort_definition_id_set,
   
   ##result
   pvalue  <- survival::survdiff( survival::Surv(survivalTime, outcome)~cohortDefinitionId, data = eventInc )
-  colourList <- c("red","blue","green","orange")
+  Predict_colourList <- c("red","blue","#66FF66", "orange","#9900cc","#0099cc")
   eventFreeSurvivalPlot<- autoplot(survfit) + 
-    scale_color_manual(values = colourList,aesthetics = "colour") +
+    scale_color_manual(values = Predict_colourList,aesthetics = "colour") +
     ylab("survival probability") + 
     xlab("time (years)") + 
     # annotate("text", label = "p-value < 0.001", x = 100, y = 0.85, size = 5) +
