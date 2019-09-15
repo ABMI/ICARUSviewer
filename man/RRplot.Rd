@@ -4,7 +4,7 @@
 \alias{RRplot}
 \title{plot risk ratio and its CIs}
 \usage{
-RRplot(RRResult = rr)
+RRplot(RRResult)
 }
 \arguments{
 \item{RRResult}{the result of calculateRR code}

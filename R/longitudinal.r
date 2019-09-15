@@ -130,27 +130,30 @@ plotLmm <- function(longitudinal_result,
   longitudinal_all <- NA
   for(i in 1 : length(longitudinal_result)) {
     if(is.na(longitudinal_all)){
-      longitudinal_all <- longitudinal_result[[i]][[2]]
+      longitudinal_all <- longitudinal_result[[i]]$subLongitudinalData
     } else {
-      longitudinal_all <- rbind(longitudinal_all,longitudinal_result[[i]][[2]])
+      longitudinal_all <- rbind(longitudinal_all,longitudinal_result[[i]]$subLongitudinalData)
     }
   }
+  orderCohortId <- sapply(longitudinal_result, FUN = function(x){ as.character(x$cohortId) })
+  orderCohortId <- as.numeric(orderCohortId)
   
   longitudinal_all$cohortId <- factor(longitudinal_all$cohortId, 
-                                      levels = c(longitudinal_result[[1]][[1]],longitudinal_result[[2]][[1]]) )
+                                      levels = orderCohortId)
   
   plotlongitudinal <- NA
   plotlongitudinal <- ggplot(data = longitudinal_all)
   
-  colourList <- c("red","blue","green","orange")
+  Individual_colourList <- c("#FF3333","#3366FF","#339933", "#FF9933","#660099","#99FFFF")
+  Predict_colourList <- c("red","blue","#66FF66", "orange","#9900cc","#0099cc")
   
   if(pftIndividual){
-    plotlongitudinal <- plotlongitudinal + geom_line( aes(x = time, y = covariateValue, group = subjectId, colour = cohortId ), size = 0.4, alpha = 0.5)
+    plotlongitudinal <- plotlongitudinal + geom_line( aes(x = time, y = covariateValue, group = subjectId, colour = cohortId ), size = 0.4, alpha = 0.5) + scale_colour_manual(values = Individual_colourList)
   }
   
   for (i in 1:length(unique(longitudinal_all$cohortId))){
-    plotlongitudinal <- plotlongitudinal + geom_line(data = longitudinal_result[[i]][[3]],aes(x = time, y = predict),colour = colourList[i], size = 0.6)+
-      geom_ribbon(data = longitudinal_result[[i]][[3]], aes(ymin = lower, ymax = upper, x = time), fill = colourList[i], alpha = 0.15 )
+    plotlongitudinal <- plotlongitudinal + geom_line(data = longitudinal_result[[i]]$lmeResult1,aes(x = time, y = predict),colour = Predict_colourList[i], size = 0.6)+
+      geom_ribbon(data = longitudinal_result[[i]]$lmeResult1, aes(ymin = lower, ymax = upper, x = time), fill = Predict_colourList[i], alpha = 0.15 )
   }
   plotlongitudinal <- plotlongitudinal + theme_bw() + xlab("time (years)") + 
     theme(legend.title = element_blank(), axis.title.x = element_text(size=13), axis.title.y = element_text(size = 13), axis.text.x = element_text(size = 13),axis.text.y = element_text(size = 13)) 
@@ -168,13 +171,13 @@ tableLmm <- function(longitudinal_result){
   
   list_stuck <- list()
   for(i in 1:length(longitudinal_result)){
-    predict_sub <- longitudinal_result[[i]][[3]] %>%
+    predict_sub <- longitudinal_result[[i]]$lmeResult1 %>%
       filter(time %in% c(0,5,10,15) ) %>%
       mutate(summaryPredict = paste0(round(predict,3), "(" , round(lower,3) , "," , round(upper,3) , ")" ) ) 
-    cohortId        <- longitudinal_result[[i]][[1]]
+    cohortId        <- longitudinal_result[[i]]$cohortId
     estimated_value <- predict_sub$summaryPredict
-    slope           <- longitudinal_result[[i]][[4]]
-    count           <- length(unique(longitudinal_result[[i]][[2]]$subjectId))
+    slope           <- longitudinal_result[[i]]$lmeResult2
+    count           <- length(unique(longitudinal_result[[i]]$subLongitudinLData$subjectId))
     result          <- c(cohortId, estimated_value, slope, count)
     names(result)   <- c("cohortId","time = 0","time = 5","time = 10","time = 15","slope","person count")
     list_stuck[[i]] <- result

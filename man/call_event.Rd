@@ -4,17 +4,10 @@
 \alias{call_event}
 \title{clinical Event data were extracted}
 \usage{
-call_event(connectionDetails, Resultschema, cohortTable, cohortId_1,
-  cohortId_2, cohortId_event)
+call_event(cohort_definition_id_set, cohortId_event)
 }
 \arguments{
-\item{connectionDetails}{}
-
-\item{Resultschema}{}
-
-\item{cohortId_1}{}
-
-\item{cohortId_2}{}
+\item{cohort_definition_id_set}{}
 
 \item{cohortId_event}{}
 }

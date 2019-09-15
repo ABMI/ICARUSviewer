@@ -4,7 +4,7 @@
 \alias{eventFreeSurvival}
 \title{get measurement baseline measurement data}
 \usage{
-eventFreeSurvival(cohortId_1, cohortId_2, cohortId_event,
+eventFreeSurvival(cohort_definition_id_set, cohortId_event,
   targetSurvivalEndDate)
 }
 \description{

@@ -5,8 +5,8 @@
 \title{comparing measurement value between two cohorts}
 \usage{
 baselineMeasure_compare(connectionDetails, Resultschema, CDMschema,
-  cohortTable, cohortId_1, cohortId_2, measurementConceptIdSet = c(2, 3,
-  5, 6, 7, 8, 3028930, 4169578, 44786758, 4010492, 3046594, 2212469,
+  cohortTable, cohort_definition_id_set, measurementConceptIdSet = c(2,
+  3, 5, 6, 7, 8, 3028930, 4169578, 44786758, 4010492, 3046594, 2212469,
   3011708, 3006504, 3005322, 3005600, 3017501, 3026514, 3005791, 3021940,
   3011505, 3013115, 3018010, 3022096))
 }
@@ -19,9 +19,7 @@ baselineMeasure_compare(connectionDetails, Resultschema, CDMschema,
 
 \item{cohortTable}{}
 
-\item{cohortId_1}{}
-
-\item{cohortId_2}{}
+\item{cohort_definition_id_set}{}
 
 \item{measurementConceptIdSet}{}
 }

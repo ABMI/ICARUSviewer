@@ -4,7 +4,7 @@
 \alias{baselineMeasure_pvalue}
 \title{function for calculate p-value of measurement values}
 \usage{
-baselineMeasure_pvalue(x)
+baselineMeasure_pvalue(measuredData)
 }
 \description{
 function for calculate p-value of measurement values

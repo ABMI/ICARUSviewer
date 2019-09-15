@@ -3,16 +3,14 @@
 #'@import survival
 #'@import ggplot2
 #'@import ggfortify
-#'@param cohortId_1
-#'@param cohortId_2
+#'@param cohort_definition_id_set
 #'@param cohortId_event
 #'@param targetSurvivalEndDate
 #'@export
-eventFreeSurvival <- function(cohortId_1,
-                              cohortId_2,
+eventFreeSurvival <- function(cohort_definition_id_set,
                               cohortId_event,
                               targetSurvivalEndDate){
-  sub_totalCohort <- totalCohort %>% filter( cohortDefinitionId %in% c(cohortId_1,cohortId_2) )
+  sub_totalCohort <- totalCohort %>% filter( cohortDefinitionId %in% cohort_definition_id_set )
   event_cohort    <- totalCohort %>% filter( cohortDefinitionId == cohortId_event )
   # unique(totalCohort$cohortDefinitionId)
   eventSubject <- event_cohort %>% select(subjectId, cohortStartDate)
@@ -31,7 +29,7 @@ eventFreeSurvival <- function(cohortId_1,
     mutate(outcome = if_else(!is.na(survivalTime) & survivalTime <= observDuration, 1, 0) ) %>%
     mutate(survivalTime = if_else(!is.na(survivalTime),survivalTime,observDuration) ) %>%
     mutate(survivalTime = if_else(survivalTime > observDuration, targetSurvivalEndDate, survivalTime) )
-
+  
   survfit <- survival::survfit( survival::Surv(survivalTime, outcome)~cohortDefinitionId, data = eventInc )
   
   ##result

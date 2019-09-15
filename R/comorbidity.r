@@ -52,47 +52,45 @@ getConditionCovariate <- function(connectionDetails,
 #'@param Resultschema
 #'@param CDMschema
 #'@param cohortTable
-#'@param cohortId_1
-#'@param cohortId_2
+#'@param cohort_definition_id_set
 #'@export
 #'
 baseline_comorbidity <- function(connectionDetails,
                                  Resultschema,
                                  CDMschema,
                                  cohortTable,
-                                 cohortId_1,
-                                 cohortId_2){
+                                 cohort_definition_id_set){
+  
+  cohort_definition_id_set <- cohort_definition_id_set[!is.na(cohort_definition_id_set)]
+  comorbidData <- data.frame()
+  for(i in cohort_definition_id_set){
+    getbaselinecondition <- getConditionCovariate(connectionDetails = connectionDetails,
+                                                  CDMschema = CDMschema,
+                                                  Resultschema = Resultschema,
+                                                  cohortTable = cohortTable,
+                                                  cohortId = i)
+    if(length(comorbidData) == 0) {
+      comorbidData <- getbaselinecondition
+    } else {
+      comorbidData <- rbind(comorbidData,getbaselinecondition) 
+    }
+  }
+   
+  templete <- data.frame(cohortDefinitionId = rep( c(cohort_definition_id_set),each = length(diseaseList$diseaseId) ),
+                         diseaseId = rep(diseaseList$diseaseId,length(cohort_definition_id_set) ) )
+  
+  out <- comorbidData %>%
+    group_by(cohortDefinitionId, diseaseId) %>%
+    summarise(Count = n_distinct(subjectId)) %>%
+    right_join( templete, by = c("cohortDefinitionId","diseaseId")) %>%
+    left_join( demographicData %>% group_by(cohortDefinitionId) %>% summarise(totalCount = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
+    mutate(notdisease = totalCount - Count) %>%
+    mutate(notdisease = if_else(is.na(notdisease),totalCount,notdisease))
 
-    baselineComorb_cohort_1 <- getConditionCovariate(connectionDetails = connectionDetails,
-                                                     Resultschema = Resultschema,
-                                                     CDMschema = CDMschema,
-                                                     cohortTable = cohortTable,
-                                                     cohortId = cohortId_1)
+  if( sum(is.na(out$Count))>0 ) out[is.na(out$Count),]$Count <- 0
+  out<- as.data.frame(out)
 
-    baselineComorb_cohort_2 <- getConditionCovariate(connectionDetails = connectionDetails,
-                                                     Resultschema = Resultschema,
-                                                     CDMschema = CDMschema,
-                                                     cohortTable = cohortTable,
-                                                     cohortId = cohortId_2)
-
-    baselineComorbidity <- rbind(baselineComorb_cohort_1,baselineComorb_cohort_2)
-
-    templete <- data.frame(cohortDefinitionId = rep( c(cohortId_1,cohortId_2),each = length(diseaseList$diseaseId) ),
-                           diseaseId = rep(diseaseList$diseaseId,2) )
-
-    out <- baselineComorbidity %>%
-        group_by(cohortDefinitionId, diseaseId) %>%
-        summarise(Count = n_distinct(subjectId)) %>%
-        right_join( templete, by = c("cohortDefinitionId","diseaseId")) %>%
-        left_join( demographicData %>% group_by(cohortDefinitionId) %>% summarise(totalCount = n_distinct(personId)), by = "cohortDefinitionId" ) %>%
-        mutate(notdisease = totalCount - Count) %>%
-        mutate(notdisease = if_else(is.na(notdisease),totalCount,notdisease))
-
-    if( sum(is.na(out$Count))>0 ) out[is.na(out$Count),]$Count <- 0
-
-    out<- as.data.frame(out)
-
-    return(out)
+  return(out)
 }
 
 #'ready for calculate Relative Ratio and CI
@@ -126,7 +124,7 @@ calculateRR <- function(comorbManufacData){
 #'@param RRResult       the result of calculateRR code
 #'@export
 #'
-RRplot <- function(RRResult = rr){
+RRplot <- function(RRResult){
   RR <- RRResult %>%
     mutate(comorbId = as.numeric(gsub("X","",row.names(RRResult)) ) ) %>%
     mutate(comorbName = factor(comorbId, levels = diseaseList$diseaseId,

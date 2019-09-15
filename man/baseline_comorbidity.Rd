@@ -5,7 +5,7 @@
 \title{ready for calculate co-prevalence and RR}
 \usage{
 baseline_comorbidity(connectionDetails, Resultschema, CDMschema,
-  cohortTable, cohortId_1, cohortId_2)
+  cohortTable, cohort_definition_id_set)
 }
 \description{
 ready for calculate co-prevalence and RR

@@ -296,27 +296,31 @@ server <- function(input, output, session) {
   output$insertDone <- renderText({ withProgress(message = "Insert into CohortTable...",value = 1, { insertCohortNew() }) })
   #####Menu Item 2 : compare cohorts #####
   output$cohort1 <- renderUI({
-    selectInput("cohort1","cohort1",choices = sort(unique(totalCohort$cohortDefinitionId)), selected = "0" )
+    selectInput("cohort1","cohort1",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
   })
   output$cohort2 <- renderUI({
-    selectInput("cohort2","cohort2",choices = sort(unique(totalCohort$cohortDefinitionId)), selected = "0" )
+    selectInput("cohort2","cohort2",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
   })
-  # output$cohort3 <- renderUI({
-  #   selectInput("cohort3","cohort3",choices = sort(unique(totalCohort$cohortDefinitionId, selected = 0)) )
-  # })
-  # output$cohort4 <- renderUI({
-  #   selectInput("cohort4","cohort4",choices = sort(unique(totalCohort$cohortDefinitionId, selected = 0)) )
-  # })
-  # output$cohort5 <- renderUI({
-  #   selectInput("cohort5","cohort5",choices = sort(unique(totalCohort$cohortDefinitionId, selected = 0)) )
-  # })
+  output$cohort3 <- renderUI({
+    selectInput("cohort3","cohort3",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+  })
+  output$cohort4 <- renderUI({
+    selectInput("cohort4","cohort4",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+  })
+  output$cohort5 <- renderUI({
+    selectInput("cohort5","cohort5",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+  })
   output$ClinicalEventCohortId <- renderUI({
     selectInput("ClinicalEventCohortId","Clinical Event Cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)), selected = 0)
   })
   #####Tab set : baseline characteristics#####
   demographic_result <- eventReactive(input$characteristic_analyze,{
+    # cohort_id_set setting
+    cohortDefinitionIdsetFive <- c(input$cohort1,input$cohort2,input$cohort3,input$cohort4,input$cohort5)
+    cohortDefinitionIdset_selected <- cohortDefinitionIdsetFive[cohortDefinitionIdsetFive != 'select'] 
+    cohortDefinitionIdSet <- as.numeric(cohortDefinitionIdset_selected)
     # demographics 
-    demographicRaw <- charterstic_manufacture(cohort_definition_id_set = c(as.numeric(input$cohort1),as.numeric(input$cohort2)) )
+    demographicRaw <- charterstic_manufacture(cohort_definition_id_set = cohortDefinitionIdSet )
     demographicSummary <- characteristic_summary(characteristic_manufac = demographicRaw)
     demographicpvalue <- characteristic_pvalue(characteristic_manufac = demographicRaw)
     demographicSum <- merge(demographicSummary,demographicpvalue,by = "demographicName")
@@ -326,8 +330,7 @@ server <- function(input, output, session) {
                                            Resultschema = CohortSchema,
                                            CDMschema = CDMschema,
                                            cohortTable = cohortTable,
-                                           cohortId_1 = as.numeric(input$cohort1),
-                                           cohortId_2 = as.numeric(input$cohort2) )
+                                           cohort_definition_id_set = cohortDefinitionIdSet )
     comorb_prev <- co_prevtable(comorbManufacData = comorbidityRaw)
     RR_pvalue  <- calculateRR(comorbManufacData = comorbidityRaw)
     comorbSum <-  merge(comorb_prev,RR_pvalue%>%select(diseaseName,pvalue),by = "diseaseName")
@@ -337,8 +340,7 @@ server <- function(input, output, session) {
                                                     Resultschema = CohortSchema,
                                                     CDMschema = CDMschema,
                                                     cohortTable = cohortTable,
-                                                    cohortId_1 = as.numeric(input$cohort1),
-                                                    cohortId_2 = as.numeric(input$cohort2),
+                                                    cohort_definition_id_set = cohortDefinitionIdSet,
                                                     measurementConceptIdSet = c(2,3,5,6,7,8,3028930,4169578,44786758,4010492,3046594,2212469,
                                                                                 3011708,3006504,3005322,3005600,3017501,3026514,3005791,3021940,
                                                                                 3011505,3013115,3018010,3022096) )
@@ -353,66 +355,65 @@ server <- function(input, output, session) {
   output$RRplot <- renderPlot({  demographic_result()[[2]] })
   output$totalBaselineCharacteristicsTable <- renderDataTable({ withProgress(message = "Baseline characteristics were analyzed...",value = 1, { demographic_result()[[1]] }) })
   
-  # #progress bar for clustering
-  # observeEvent(input$characteristic_analyze,{
-  #   for(i in 1:100){
-  #     updateProgressBar( session = session, id = "baseline", value = i, total = 100, title = paste("baseline", trunc(i/10)) )
-  #     Sys.sleep(0.1)
-  #   }
-  # })
-  
-  #####Tab set : longitudinal analysis#####
+  #####longitudinal Analysis#####
   load_longitudinal <- eventReactive(input$load_all_measurement,{
-    allLongitudinal_target<<- getAllLongitudinal(connectionDetails = connectionDetails,
-                                                 CDMschema = CDMschema,
-                                                 Resultschema = CohortSchema,
-                                                 cohortTable = cohortTable,
-                                                 cohortId = as.numeric(input$cohort1))
-    allLongitudinal_compare<<- getAllLongitudinal(connectionDetails = connectionDetails,
-                                                  CDMschema = CDMschema,
-                                                  Resultschema = CohortSchema,
-                                                  cohortTable = cohortTable,
-                                                  cohortId = as.numeric(input$cohort2))
+    # cohort_id_set setting
+    cohortDefinitionIdsetFive <- c(input$cohort1,input$cohort2,input$cohort3,input$cohort4,input$cohort5)
+    cohortDefinitionIdset_selected <- cohortDefinitionIdsetFive[cohortDefinitionIdsetFive != 'select'] 
+    cohortDefinitionIdSet <- as.numeric(cohortDefinitionIdset_selected)
+    # load all long-term measured data
+    allLongitudinalList <- list()
+    for(i in 1:length(cohortDefinitionIdSet)){
+      allLongitudinal <- getAllLongitudinal(connectionDetails = connectionDetails,
+                                            CDMschema = CDMschema,
+                                            Resultschema = CohortSchema,
+                                            cohortTable = cohortTable,
+                                            cohortId = cohortDefinitionIdSet[i] )
+      allLongitudinalList[[ i ]] <- list(cohortId = cohortDefinitionIdSet[i],
+                                         allLongitudinal = allLongitudinal )
+    }
+    allLongitudinalList <<- allLongitudinalList
     "Load all longitudinal data is done!"
   })
-  #progress bar for clustering
-  # observeEvent(input$do_load_all_measurement,{
-  #   for(i in 1:100){
-  #     updateProgressBar( session = session, id = "callmeasurement", value = i, total = 100, title = paste("call measurement", trunc(i/10)) )
-  #     Sys.sleep(0.1)
-  #   }
-  # })
   output$load <- renderText({ withProgress(message = "Measurement data were loaded...",value = 1, { load_longitudinal() }) })
-  
+  # do lme (lonaigitudinal analysis)
   longitudinalLME <- eventReactive(input$do_longitudinalAnalysis,{
-    longitudinal_data <- longitudinal(cohortId_1 = as.numeric(input$cohort1),
-                                      cohortId_2 = as.numeric(input$cohort2),
-                                      allLongitudinal_cohort_1 = allLongitudinal_target,
-                                      allLongitudinal_cohort_2 = allLongitudinal_compare,
-                                      measurement_concept_id = input$measurementConceptId )
-    
-    plot_lme_allMeasurement<- plotLmm(longitudinal_result = longitudinal_data,
-                                      pftIndividual = TRUE)
-    plot_lme_onlyEstimated<- plotLmm(longitudinal_result = longitudinal_data,
-                                     pftIndividual = FALSE)
-    table_lme_Estimated <- tableLmm(longitudinal_result = longitudinal_data) 
+    lmeResultList <- lapply(allLongitudinalList, FUN = function(x){
+      subLongitudinalData <- getLongitudinal(all_longitudinal_data = x$allLongitudinal,
+                                             measurement_concept_id = input$measurementConceptId,
+                                             time_unit = 'year')
+      lmeDone <- lme_logitudinal(longitudinalData = subLongitudinalData)
+      longitudinalResult <- list(cohortId = x[[1]],
+                                 subLongitudinalData = subLongitudinalData,
+                                 lmeResult1 = lmeDone[[2]],
+                                 lmeResult2 = lmeDone[[1]])
+      return(longitudinalResult)
+    })
+    plot_lme_allMeasurement <- plotLmm(longitudinal_result = lmeResultList,
+                                       pftIndividual = TRUE)
+    plot_lme_onlyEstimated <- plotLmm(longitudinal_result = lmeResultList,
+                                      pftIndividual = FALSE)
+    table_lme_Estimated <- tableLmm(longitudinal_result = lmeResultList) 
     
     lme_result <- list(plot_lme_allMeasurement,plot_lme_onlyEstimated,table_lme_Estimated)
-    
-    return(lme_result)
   })
+  
   output$longitudinalAnalysis <- renderPlot({ withProgress(message = "Longitudinal Analysis...",value = 1, { longitudinalLME()[[1]] }) })
   output$longutidinalAnalysis_only <- renderPlot({ longitudinalLME()[[2]] })
   output$longitudinalTable <- renderDataTable({ longitudinalLME()[[3]] })
   
   #####Tab set : clinical event#####
   clinicalEvent_frequency <- eventReactive(input$analyzeEvent,{
-    call_event_data <- call_event(connectionDetails = connectionDetails,
-                                  Resultschema = CohortSchema,
-                                  cohortTable = cohortTable,
-                                  cohortId_1 = as.numeric(input$cohort1),
-                                  cohortId_2 = as.numeric(input$cohort2),
+    # cohort_id_set setting
+    cohortDefinitionIdsetFive <- c(input$cohort1,input$cohort2,input$cohort3,input$cohort4,input$cohort5)
+    cohortDefinitionIdset_selected <- cohortDefinitionIdsetFive[cohortDefinitionIdsetFive != 'select'] 
+    cohortDefinitionIdSet <- as.numeric(cohortDefinitionIdset_selected)
+    
+    # filter cohort I need
+    call_event_data <- call_event(cohort_definition_id_set = cohortDefinitionIdSet,
                                   cohortId_event = as.numeric(input$ClinicalEventCohortId))
+    
+    # calculate yearly count and its figure
     event_table <- event_incidence(callEvent_result = call_event_data)
     event_plot  <- plot_event_rate(event_result = event_table)
     
@@ -420,12 +421,17 @@ server <- function(input, output, session) {
                       eventPlot = event_plot)
     return(event_out)
   })
+  
   output$ClinicalEventPlot <- renderPlot({ clinicalEvent_frequency()[[2]] })
   output$ClinicalEventTable <- renderDataTable({ clinicalEvent_frequency()[[1]] })
   #survival
   eventFreesurvival <- eventReactive(input$analyzeSurvival,{
-    eventFreeSurvivalResults <- eventFreeSurvival(cohortId_1 = as.numeric(input$cohort1),
-                                                  cohortId_2 = as.numeric(input$cohort2),
+    # cohort_id_set setting
+    cohortDefinitionIdsetFive <- c(input$cohort1,input$cohort2,input$cohort3,input$cohort4,input$cohort5)
+    cohortDefinitionIdset_selected <- cohortDefinitionIdsetFive[cohortDefinitionIdsetFive != 'select'] 
+    cohortDefinitionIdSet <- as.numeric(cohortDefinitionIdset_selected)
+    
+    eventFreeSurvivalResults <- eventFreeSurvival(cohort_definition_id_set = cohortDefinitionIdSet,
                                                   cohortId_event = as.numeric(input$ClinicalEventCohortId),
                                                   targetSurvivalEndDate = as.numeric(input$survivalEndDate))
   })
