@@ -177,7 +177,7 @@ tableLmm <- function(longitudinal_result){
     cohortId        <- longitudinal_result[[i]]$cohortId
     estimated_value <- predict_sub$summaryPredict
     slope           <- longitudinal_result[[i]]$lmeResult2
-    count           <- length(unique(longitudinal_result[[i]]$subLongitudinLData$subjectId))
+    count           <- length(unique(longitudinal_result[[i]]$subLongitudinalData$subjectId))
     result          <- c(cohortId, estimated_value, slope, count)
     names(result)   <- c("cohortId","time = 0","time = 5","time = 10","time = 15","slope","person count")
     list_stuck[[i]] <- result
