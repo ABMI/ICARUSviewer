@@ -73,6 +73,7 @@ event_incidence <- function(callEvent_result){
 #'@param  event_result
 #'@export
 plot_event_rate <- function(event_result){
+  Predict_colourList <- c("red","blue","#66FF66", "orange","#9900cc","#0099cc")
   eventplot <- ggplot(data = event_result) +
     geom_errorbar(aes(x = as.factor(year),ymin = lower,ymax = upper,group = cohortDefinitionId, colour = as.factor(cohortDefinitionId))) +
     geom_point(aes(x = as.factor(year),y = incidenceRate, group = cohortDefinitionId, colour = as.factor(cohortDefinitionId)), size = 1.5) +
@@ -88,7 +89,8 @@ plot_event_rate <- function(event_result){
           axis.text.y = element_text(size = 12),
           axis.title.y = element_text(size = 13),
           strip.text.x = element_text(size = 15)) +
-    scale_color_discrete(name = "Cohort Id")
+    scale_colour_manual(values = Predict_colourList) 
+    # scale_color_discrete(name = "Cohort Id")
   
   return(eventplot)
 }

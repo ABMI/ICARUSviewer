@@ -55,8 +55,9 @@ characteristic_summary <- function(characteristic_manufac){
 #'calculate pvalue between two cohorts : if the value has normality, p value is calculated by t-test, if not by wilcoxon in continuous value
 #'@param y must be vector of numeric data
 #'@param index
+#'@param cohortIdLength
 #'@export
-pvalueCalBetweenTwo <- function(y, index){
+pvalueCalBetweenTwo <- function(y, index, cohortIdLength){
   normality <- function(x){ 
     shapiro <- shapiro.test(x)
     normalityPass <- shapiro$p.value >= 0.05 
@@ -75,8 +76,9 @@ pvalueCalBetweenTwo <- function(y, index){
 #'calculate pvalue among more than two cohorts 
 #'@param y must be vector of numeric data
 #'@param index
+#'@param cohortIdLength
 #'@export
-pvalueCalAmongMoreThanTwo <- function(y, index){
+pvalueCalAmongMoreThanTwo <- function(y, index, cohortIdLength){
   normality <- function(x){ 
     shapiro <- shapiro.test(x)
     normalityPass <- shapiro$p.value >= 0.05 
@@ -105,9 +107,9 @@ characteristic_pvalue <- function(characteristic_manufac){
                      female_proportion = NA)
     
   } else if( cohortIdLength == 2 ){
-    age_pvalue <- pvalueCalBetweenTwo(y = characteristic_manufac$age, index = characteristic_manufac$cohortDefinitionId)
-    followUpDuration_pvalue <- pvalueCalBetweenTwo(y = characteristic_manufac$followUpDuration, index = characteristic_manufac$cohortDefinitionId)
-    bmi_pvalue <- pvalueCalBetweenTwo(y = characteristic_manufac$bmi, index = characteristic_manufac$cohortDefinitionId)
+    age_pvalue <- pvalueCalBetweenTwo(y = characteristic_manufac$age, index = characteristic_manufac$cohortDefinitionId, cohortIdLength = cohortIdLength)
+    followUpDuration_pvalue <- pvalueCalBetweenTwo(y = characteristic_manufac$followUpDuration, index = characteristic_manufac$cohortDefinitionId, cohortIdLength = cohortIdLength)
+    bmi_pvalue <- pvalueCalBetweenTwo(y = characteristic_manufac$bmi, index = characteristic_manufac$cohortDefinitionId, cohortIdLength = cohortIdLength)
     female_pvalue_summary <- chisq.test(table(characteristic_manufac$genderConceptId,characteristic_manufac$cohortDefinitionId))
     female_pvalue <- round(female_pvalue_summary$p.value,5) 
     
@@ -117,9 +119,9 @@ characteristic_pvalue <- function(characteristic_manufac){
                      female_proportion = female_pvalue)
     
   } else if( cohortIdLength > 2 ){
-    age_pvalue <- pvalueCalAmongMoreThanTwo(y = characteristic_manufac$age, index = characteristic_manufac$cohortDefinitionId)
-    followUpDuration_pvalue <- pvalueCalAmongMoreThanTwo(y = characteristic_manufac$followUpDuration, index = characteristic_manufac$cohortDefinitionId)
-    bmi_pvalue <- pvalueCalAmongMoreThanTwo(y = characteristic_manufac$bmi, index = characteristic_manufac$cohortDefinitionId)
+    age_pvalue <- pvalueCalAmongMoreThanTwo(y = characteristic_manufac$age, index = characteristic_manufac$cohortDefinitionId, cohortIdLength = cohortIdLength)
+    followUpDuration_pvalue <- pvalueCalAmongMoreThanTwo(y = characteristic_manufac$followUpDuration, index = characteristic_manufac$cohortDefinitionId, cohortIdLength = cohortIdLength)
+    bmi_pvalue <- pvalueCalAmongMoreThanTwo(y = characteristic_manufac$bmi, index = characteristic_manufac$cohortDefinitionId, cohortIdLength = cohortIdLength)
     female_pvalue_summary <- chisq.test(table(characteristic_manufac$genderConceptId,characteristic_manufac$cohortDefinitionId))
     female_pvalue <- round(female_pvalue_summary$p.value,5) 
     

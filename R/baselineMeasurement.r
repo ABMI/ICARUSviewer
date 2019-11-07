@@ -116,11 +116,11 @@ baselineMeasure_pvalue <- function(measuredData){
     
   } else if( cohortIdLength == 2 ){
     
-    pvalue <- pvalueCalBetweenTwo(y = measuredData$covariateValue, index = measuredData$cohortDefinitionId)
+    pvalue <- pvalueCalBetweenTwo(y = measuredData$covariateValue, index = measuredData$cohortDefinitionId, cohortIdLength = cohortIdLength)
     
   } else if( cohortIdLength > 2 ){
     
-    pvalue <- pvalueCalAmongMoreThanTwo(y = measuredData$covariateValue, index = measuredData$cohortDefinitionId)
+    pvalue <- pvalueCalAmongMoreThanTwo(y = measuredData$covariateValue, index = measuredData$cohortDefinitionId, cohortIdLength = cohortIdLength)
     
   }
   return(pvalue)
