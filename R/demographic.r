@@ -7,16 +7,16 @@
 charactManufacture<-function(characteristicData,
                              cohortDefinitionIdSet){
     out <- characteristicData %>%
-        filter(cohortDefinitionId %in% cohortDefinitionIdSet) %>%
-        #filter(age >=12) %>%
-        mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,300,301),
-                                            labels = c("Asthma", "Non-Severe Asthma","Severe Asthma", "AERD","ATA",
-                                                       "Exacerbation","Non-exacerbation"))) %>%
-        mutate( bmi = round(bmi, 2)) %>%
-        mutate( ageSection = cut(age, breaks = c(11,19,49,100),
-                                 labels = c("Adolescents (12-19)","Younger (19-49)","Older (50-100)")),
-                bmiSection = cut(bmi, breaks = c(0,18.499,22.999,24.999,29.999,34.999,1000),
-                                 labels = c("Under","Normal","Pre-obesity","1stage","2stage","3stage")))
+      dplyr::filter(cohortDefinitionId %in% cohortDefinitionIdSet) %>%
+      #filter(age >=12) %>%
+      dplyr::mutate( cohortDefinitionId = factor(cohortDefinitionId, levels = c(1,2,3,4,5,300,301),
+                                                 labels = c("Asthma", "Non-Severe Asthma","Severe Asthma", "AERD","ATA",
+                                                            "Exacerbation","Non-exacerbation"))) %>%
+      dplyr::mutate( bmi = round(bmi, 2)) %>%
+      dplyr::mutate( ageSection = cut(age, breaks = c(11,19,49,100),
+                                      labels = c("Adolescents (12-19)","Younger (19-49)","Older (50-100)")),
+                     bmiSection = cut(bmi, breaks = c(0,18.499,22.999,24.999,29.999,34.999,1000),
+                                      labels = c("Under","Normal","Pre-obesity","1stage","2stage","3stage")))
     return(out)
 }
 
@@ -29,11 +29,11 @@ charactManufacture<-function(characteristicData,
 
 genderpieplot <- function(charactManufac){
     df <- charactManufac %>%
-        group_by( cohortDefinitionId, genderConceptId ) %>%
-        summarise(count = n()) %>%
-        mutate(perc = (count/sum(count))*100 ) %>%
-        mutate(genderConceptId = factor(genderConceptId, levels = c(8507,8532),
-                                        labels = c("men","women")))
+      dplyr::group_by( cohortDefinitionId, genderConceptId ) %>%
+      dplyr::summarise(count = n()) %>%
+      dplyr::mutate(perc = (count/sum(count))*100 ) %>%
+      dplyr::mutate(genderConceptId = factor(genderConceptId, levels = c(8507,8532),
+                                             labels = c("men","women")))
     df<-as.data.frame(df)
 
     plot <- ggplot(data = df, aes(x = "", y = count, fill = genderConceptId))+

@@ -6,11 +6,11 @@ charterstic_manufacture<-function(cohort_definition_id_set){
   
   cohort_definition_id_set <- cohort_definition_id_set[!is.na(cohort_definition_id_set)]
   out <- demographicData %>%
-    filter( cohortDefinitionId %in% cohort_definition_id_set) %>%
+    dplyr::filter( cohortDefinitionId %in% cohort_definition_id_set) %>%
     #filter(age >=12) %>%
-    mutate( followUpDuration = round(followUpDuration/365.25, 2) ) %>%
-    mutate( bmi = round(bmi,2)) %>%
-    select( cohortDefinitionId,personId, genderConceptId, age, followUpDuration, bmi )
+    dplyr::mutate( followUpDuration = round(followUpDuration/365.25, 2) ) %>%
+    dplyr::mutate( bmi = round(bmi,2)) %>%
+    dplyr::select( cohortDefinitionId,personId, genderConceptId, age, followUpDuration, bmi )
   if( length(which(out$bmi > 100)) != 0 ) out[which(out$bmi > 100),]$bmi <- NA
   if( length(which(out$followUpDuration <= 0)) != 0 ) out[which(out$followUpDuration <= 0),]$followUpDuration <- NA
   
@@ -36,9 +36,9 @@ characteristic_summary <- function(characteristic_manufac){
   followUpDuration_result <- medianSD(characteristic_manufac$followUpDuration)
   bmi_result <- medianSD(characteristic_manufac$bmi)
   female_result <- female_count %>%
-    left_join(total_count, by = "cohortDefinitionId") %>%
-    mutate(female_prop = round((female_count/total_count)*100,2) ) %>%
-    mutate(female_prop_result = paste0(female_count,"(",female_prop,"%)") )
+    dplyr::left_join(total_count, by = "cohortDefinitionId") %>%
+    dplyr::mutate(female_prop = round((female_count/total_count)*100,2) ) %>%
+    dplyr::mutate(female_prop_result = paste0(female_count,"(",female_prop,"%)") )
   
   df <- data.frame(age = age_result,
                    follow_up_duration = followUpDuration_result,

@@ -34,8 +34,8 @@ getAllLongitudinal <- function(connectionDetails,
     colnames(covariateData_rawdf) <- c("subjectId","covariateId","covariateValue","time")
 
     allLongitudinalData <- covariateData_rawdf %>%
-        mutate(covariateId = floor(covariateId/1000000) ) %>%
-        mutate(cohortId = cohortId)
+      dplyr::mutate(covariateId = floor(covariateId/1000000) ) %>%
+      dplyr::mutate(cohortId = cohortId)
 
     return(allLongitudinalData)
 }
@@ -51,11 +51,10 @@ getLongitudinal <- function(all_longitudinal_data,
                             measurement_concept_id,
                             time_unit = 'year'){
 
-    longitudinalData <- all_longitudinal_data %>% filter(covariateId == measurement_concept_id )
+    longitudinalData <- all_longitudinal_data %>% dplyr::filter(covariateId == measurement_concept_id )
 
     if(time_unit == 'year'){
-        longitudinalData <- longitudinalData %>%
-            mutate(time = time/365.25)
+        longitudinalData <- longitudinalData %>% dplyr::mutate(time = time/365.25)
     }
 
     return(longitudinalData)

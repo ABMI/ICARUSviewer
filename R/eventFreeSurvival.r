@@ -10,25 +10,25 @@
 eventFreeSurvival <- function(cohort_definition_id_set,
                               cohortId_event,
                               targetSurvivalEndDate){
-  sub_totalCohort <- totalCohort %>% filter( cohortDefinitionId %in% cohort_definition_id_set )
-  event_cohort    <- totalCohort %>% filter( cohortDefinitionId == cohortId_event )
+  sub_totalCohort <- totalCohort %>% dplyr::filter( cohortDefinitionId %in% cohort_definition_id_set )
+  event_cohort    <- totalCohort %>% dplyr::filter( cohortDefinitionId == cohortId_event )
   # unique(totalCohort$cohortDefinitionId)
-  eventSubject <- event_cohort %>% select(subjectId, cohortStartDate)
+  eventSubject <- event_cohort %>% dplyr::select(subjectId, cohortStartDate)
   colnames(eventSubject)[2] <- "eventStartDate"
   
-  templet <- sub_totalCohort %>% select(cohortDefinitionId,subjectId,cohortStartDate,cohortEndDate)
+  templet <- sub_totalCohort %>% dplyr::select(cohortDefinitionId,subjectId,cohortStartDate,cohortEndDate)
   
   eventReady <- left_join(sub_totalCohort,eventSubject, by = c("subjectId") ) %>%
     filter(cohortStartDate < eventStartDate) 
   eventInc <- left_join(templet,eventReady,by = c("cohortDefinitionId","subjectId","cohortStartDate","cohortEndDate") ) %>%
-    mutate(eventDuration = as.numeric(difftime(eventStartDate,cohortStartDate,units = "days")),
-           observDuration = as.numeric(difftime(cohortEndDate,cohortStartDate,units = "days")) ) %>%
-    mutate(observDuration = if_else(observDuration>targetSurvivalEndDate,targetSurvivalEndDate,observDuration) )  %>%
-    group_by(cohortDefinitionId, subjectId, cohortStartDate, observDuration) %>%
-    summarise(survivalTime = min(eventDuration) ) %>%
-    mutate(outcome = if_else(!is.na(survivalTime) & survivalTime <= observDuration, 1, 0) ) %>%
-    mutate(survivalTime = if_else(!is.na(survivalTime),survivalTime,observDuration) ) %>%
-    mutate(survivalTime = if_else(survivalTime > observDuration, targetSurvivalEndDate, survivalTime) )
+    dplyr::mutate(eventDuration = as.numeric(difftime(eventStartDate,cohortStartDate,units = "days")),
+                  observDuration = as.numeric(difftime(cohortEndDate,cohortStartDate,units = "days")) ) %>%
+    dplyr::mutate(observDuration = if_else(observDuration>targetSurvivalEndDate,targetSurvivalEndDate,observDuration) )  %>%
+    dplyr::group_by(cohortDefinitionId, subjectId, cohortStartDate, observDuration) %>%
+    dplyr::summarise(survivalTime = min(eventDuration) ) %>%
+    dplyr::mutate(outcome = if_else(!is.na(survivalTime) & survivalTime <= observDuration, 1, 0) ) %>%
+    dplyr::mutate(survivalTime = if_else(!is.na(survivalTime),survivalTime,observDuration) ) %>%
+    dplyr::mutate(survivalTime = if_else(survivalTime > observDuration, targetSurvivalEndDate, survivalTime) )
   
   survfit <- survival::survfit( survival::Surv(survivalTime, outcome)~cohortDefinitionId, data = eventInc )
   

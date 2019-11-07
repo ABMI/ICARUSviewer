@@ -67,8 +67,8 @@ baselineMeasure_compare <- function(connectionDetails,
     else baselineMeasureData <- rbind(baselineMeasureData,getbaselineMeasure)
   }
   
-  baselineMeasureSubData <- baselineMeasureData %>% filter(conceptId %in% measurementConceptIdSet )
-  baselineMeasure <- baselineMeasureSubData %>% select(-covariateId)
+  baselineMeasureSubData <- baselineMeasureData %>% dplyr::filter(conceptId %in% measurementConceptIdSet )
+  baselineMeasure <- baselineMeasureSubData %>% dplyr::select(-covariateId)
   baseline_measure_list <-split(baselineMeasure,baselineMeasure$conceptId)
   
   out_summary_list <- lapply(baseline_measure_list,FUN = baselineMeasure_summary)
@@ -83,7 +83,7 @@ baselineMeasure_compare <- function(connectionDetails,
                                out_summary_df) 
   pvalue_basemeasure <- data.frame(measurementConceptId = names(out_summary_list),
                                    pvalue = unlist(out_pvalue_list) )
-  result <- left_join(summary_basemeasure,pvalue_basemeasure,by = "measurementConceptId")
+  result <- dplyr::left_join(summary_basemeasure,pvalue_basemeasure,by = "measurementConceptId")
   result <- result %>%
     rename(measurementName = measurementConceptId) %>%
     mutate(measurementName = factor(measurementName, levels = measurementId$maesurementConceptId,

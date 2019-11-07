@@ -38,7 +38,9 @@ ui <- dashboardPagePlus(
       textInput("user","USER",""),
       passwordInput("pw","PASSWORD",""),
       actionButton("dbConnect","Connect to database"),
-      textOutput("dbconnectDone")
+      textOutput("dbconnectDone"), br(), br(),
+      actionButton("eraseData","Log Out"),
+      textOutput("eraseDone")
     ),
     #####call cohort Table UI#####
     rightSidebarTabContent(
@@ -207,6 +209,13 @@ server <- function(input, output, session) {
     CohortSchema <<- input$Resultschema
     cohortTable <<- input$cohortTable
     connection <<-DatabaseConnector::connect(connectionDetails)
+    
+    if(!file.exists(file.path(.libPaths()[1],"ICARUSviewer/Output"))){ dir.create( file.path(.libPaths()[1],"ICARUSviewer/Output") ) } 
+    if(!file.exists(file.path(.libPaths()[1],"ICARUSviewer/Temp"))){ dir.create( file.path(.libPaths()[1],"ICARUSviewer/Temp") ) } 
+    outputFolder <<- file.path(.libPaths()[1],"ICARUSviewer/Output")
+    FFtempFolder <<- paste0(.libPaths()[1],"ICARUSviewer/Temp")
+    options(fftempdir = FFtempFolder)
+    
     "Database connection is done!"
   })
   output$dbconnectDone <- renderText({ DBconnect() })
@@ -485,6 +494,14 @@ server <- function(input, output, session) {
     return(covariateTable)
   })
   output$covariateTable <- renderDataTable({ contributedCovariateTable() })
+  
+  eraseAllData <- eventReactive(input$eraseData,{
+    rm(list = ls())
+    file.remove(outputFolder)
+    file.remove(FFtempFolder)
+    "your traces were erased!"
+  })
+  output$eraseDone <- renderText({ eraseAllData() })
 }
 
 # Run the application

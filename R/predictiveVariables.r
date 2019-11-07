@@ -100,27 +100,27 @@ plotPredictiveVariables <- function(machineLearningData,
     MLresult <- machineLearningData
 
     Covariates<- MLresult$covariateSummary %>%
-        filter( covariateValue != 0.0000000000) %>%
-        select( analysisId, conceptId, covariateName, covariateValue, CovariateCount) %>%
-        arrange( desc(abs(covariateValue)))%>%
-        head( rankCount )
-
+      dplyr::filter( covariateValue != 0.0000000000) %>%
+      dplyr::select( analysisId, conceptId, covariateName, covariateValue, CovariateCount) %>%
+      dplyr::arrange( desc(abs(covariateValue)))%>%
+      head( rankCount )
+    
     plot <- ggplot(data = Covariates,
                    aes(x = reorder(as.factor(conceptId), abs(covariateValue)), y = covariateValue) )+
-        geom_bar(stat = "identity", width = .5)+
-        coord_flip()+
-        xlab("conceptId")+
-        ylab("covariate value")+
-        theme_bw()+
-        theme(legend.title = element_blank(),
-              strip.text = element_text(size = 15),
-              #legend.position = "none",
-              legend.text = element_text(size = 11),
-              axis.title.x = element_text(size = 14),
-              axis.text.x = element_text(size = 14),
-              axis.text.y = element_text(size = 14),
-              axis.title.y = element_text(size = 14))
-
+      geom_bar(stat = "identity", width = .5)+
+      coord_flip()+
+      xlab("conceptId")+
+      ylab("covariate value")+
+      theme_bw()+
+      theme(legend.title = element_blank(),
+            strip.text = element_text(size = 15),
+            #legend.position = "none",
+            legend.text = element_text(size = 11),
+            axis.title.x = element_text(size = 14),
+            axis.text.x = element_text(size = 14),
+            axis.text.y = element_text(size = 14),
+            axis.title.y = element_text(size = 14))
+    
     return(plot)
 }
 
@@ -133,21 +133,21 @@ plotPredictiveVariables <- function(machineLearningData,
 
 tablePredictiveVariables <- function(machineLearningData,
                                      rankCount = 20){
-    MLresult <- machineLearningData
-
-    Covariates<- MLresult$covariateSummary %>%
-        filter( covariateValue != 0.0000000000) %>%
-        select( analysisId, conceptId, covariateName, covariateValue, CovariateCount) %>%
-        arrange( desc(abs(covariateValue)))%>%
-        head( rankCount )
-
-    table <- Covariates %>%
-        select( conceptId,covariateName,covariateValue,CovariateCount) %>%
-        mutate( notNullProportion = ( CovariateCount/sum(demographicData$cohortDefinitionId==1)*100 ) )
-
-    colnames(table)[5] <- 'non-missing percent (%)'
-
-    return(table)
+  MLresult <- machineLearningData
+  
+  Covariates<- MLresult$covariateSummary %>%
+    dplyr::filter( covariateValue != 0.0000000000) %>%
+    dplyr::select( analysisId, conceptId, covariateName, covariateValue, CovariateCount) %>%
+    dplyr::arrange( desc(abs(covariateValue)))%>%
+    head( rankCount )
+  
+  table <- Covariates %>%
+    dplyr::select( conceptId,covariateName,covariateValue,CovariateCount) %>%
+    dplyr::mutate( notNullProportion = ( CovariateCount/sum(demographicData$cohortDefinitionId==1)*100 ) )
+  
+  colnames(table)[5] <- 'non-missing percent (%)'
+  
+  return(table)
 }
 
 #'get AUROC curve From PatientLevelPrediction
@@ -157,19 +157,19 @@ tablePredictiveVariables <- function(machineLearningData,
 #'@export
 
 AUROCcurve <- function(machineLearningData){
-    MLresult <- machineLearningData
-
-    evaluationStat <- MLresult$performanceEvaluation$evaluationStatistics
-
-    evaluationStat_df<-as.data.frame(evaluationStat)
-
-    AUC <- evaluationStat_df[which(evaluationStat_df$Eval == 'test' & evaluationStat_df$Metric == c('AUC.auc','AUC.auc_lb95ci','AUC.auc_ub95ci')),]$Value
-
-    AUC_round<-round(as.numeric(as.character(AUC)), 3)
-
-    AUROC <- plotSparseRoc(MLresult$performanceEvaluation) +
-        ggplot2::annotate("text", label = paste0("AUC = ",AUC_round[1],"(",AUC_round[2],"-",AUC_round[3],")"), x = 0.75, y = 0.15, size = 6)
-
-    return(AUROC)
+  MLresult <- machineLearningData
+  
+  evaluationStat <- MLresult$performanceEvaluation$evaluationStatistics
+  
+  evaluationStat_df<-as.data.frame(evaluationStat)
+  
+  AUC <- evaluationStat_df[which(evaluationStat_df$Eval == 'test' & evaluationStat_df$Metric == c('AUC.auc','AUC.auc_lb95ci','AUC.auc_ub95ci')),]$Value
+  
+  AUC_round<-round(as.numeric(as.character(AUC)), 3)
+  
+  AUROC <- plotSparseRoc(MLresult$performanceEvaluation) +
+    ggplot2::annotate("text", label = paste0("AUC = ",AUC_round[1],"(",AUC_round[2],"-",AUC_round[3],")"), x = 0.75, y = 0.15, size = 6)
+  
+  return(AUROC)
 }
 

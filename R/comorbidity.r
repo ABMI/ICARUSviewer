@@ -164,12 +164,12 @@ co_prevtable <- function(comorbManufacData){
     df <- comorbManufacData
     #str(ready)
     df_coprev <- as.data.frame(df) %>%
-        mutate(co_prevalence = paste0( round((Count/totalCount)*100,2),"%") ) %>%
-        mutate(result = paste0(Count,"(",co_prevalence,")")) %>%
-        mutate(diseaseName = factor(diseaseId, levels = diseaseList$diseaseId,
-                                    labels = diseaseList$diseaseName) ) %>%
-        select(cohortDefinitionId, diseaseName, result)
-
+      dplyr::mutate(co_prevalence = paste0( round((Count/totalCount)*100,2),"%") ) %>%
+      dplyr::mutate(result = paste0(Count,"(",co_prevalence,")")) %>%
+      dplyr::mutate(diseaseName = factor(diseaseId, levels = diseaseList$diseaseId,
+                                         labels = diseaseList$diseaseName) ) %>%
+      dplyr::select(cohortDefinitionId, diseaseName, result)
+    
     out <- dcast(df_coprev, diseaseName~cohortDefinitionId)
 
     return(out)
