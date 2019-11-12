@@ -50,3 +50,10 @@ switchselect_pft <- function(input){
     )
 }
 
+#'remove setting
+#'@export
+#'
+removeTempAndOutput <- function(){
+  # if( length(list.files("./inst/Output"))!=0 ){ unlink(file.path("./inst/Output",list.files("./inst/Output"))) }
+  if( length(list.files("./inst/Temp"))!=0 ){ file.remove(file.path("./inst/Temp",list.files("./inst/Temp"))) }
+}
