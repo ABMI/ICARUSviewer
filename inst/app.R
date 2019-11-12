@@ -1,4 +1,5 @@
 # #check package ready
+source("./inst/global.R")
 check.packages("Rcpp")
 check.packages("dplyr")
 check.packages("reshape2")
@@ -210,12 +211,6 @@ server <- function(input, output, session) {
     cohortTable <<- input$cohortTable
     connection <<-DatabaseConnector::connect(connectionDetails)
     
-    if(!file.exists(file.path(.libPaths()[1],"ICARUSviewer/Output"))){ dir.create( file.path(.libPaths()[1],"ICARUSviewer/Output") ) } 
-    if(!file.exists(file.path(.libPaths()[1],"ICARUSviewer/Temp"))){ dir.create( file.path(.libPaths()[1],"ICARUSviewer/Temp") ) } 
-    outputFolder <<- file.path(.libPaths()[1],"ICARUSviewer/Output")
-    FFtempFolder <<- paste0(.libPaths()[1],"ICARUSviewer/Temp")
-    options(fftempdir = FFtempFolder)
-    
     "Database connection is done!"
   })
   output$dbconnectDone <- renderText({ DBconnect() })
@@ -229,12 +224,6 @@ server <- function(input, output, session) {
     totalCohort <<- calledData[[2]]
     demographicData <<- calledData[[1]]
     setting()
-    # Sys.setlocale(category="LC_CTYPE", locale="C")
-    # sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadAsthma_cohort.sql") )
-    # sql <- SqlRender::render(sql = sql,
-    #                          resultDatabaseSchema = CohortSchema,
-    #                          cohortTable = cohortTable)
-    # totalCohort <<-DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE)
     "Call Cohort Table finished!"
   })
   output$loadDataDone <- renderText({ callCohortTable() })
@@ -496,9 +485,7 @@ server <- function(input, output, session) {
   output$covariateTable <- renderDataTable({ contributedCovariateTable() })
   
   eraseAllData <- eventReactive(input$eraseData,{
-    rm(list = ls())
-    file.remove(outputFolder)
-    file.remove(FFtempFolder)
+    removeTempAndOutput()
     "your traces were erased!"
   })
   output$eraseDone <- renderText({ eraseAllData() })
