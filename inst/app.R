@@ -21,6 +21,7 @@ check.packages("lmerTest")
 check.packages("lcmm")
 check.packages("ggfortify")
 check.packages("survival")
+check.packages("ICARUSviewer")
 
 ui <- dashboardPagePlus(
   header = dashboardHeaderPlus(
