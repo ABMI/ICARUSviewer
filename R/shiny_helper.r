@@ -55,5 +55,5 @@ switchselect_pft <- function(input){
 #'
 removeTempAndOutput <- function(){
   # if( length(list.files("./inst/Output"))!=0 ){ unlink(file.path("./inst/Output",list.files("./inst/Output"))) }
-  if( length(list.files("./inst/Temp"))!=0 ){ file.remove(file.path("./inst/Temp",list.files("./inst/Temp"))) }
+  if( length(list.files(file.path(.libPaths()[1],"ICARUSviewer/inst/Temp")))!=0 ){ file.remove(file.path(.libPaths()[1],"ICARUSviewer/inst/Temp",list.files("./inst/Temp"))) }
 }

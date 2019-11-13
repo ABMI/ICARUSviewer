@@ -1,5 +1,5 @@
 # #check package ready
-source("./inst/global.R")
+source(file.path(.libPaths()[1],"ICARUSviewer/inst/global.R"))
 check.packages("Rcpp")
 check.packages("dplyr")
 check.packages("reshape2")
