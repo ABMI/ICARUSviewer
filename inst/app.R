@@ -67,7 +67,32 @@ ui <- dashboardPagePlus(
               mainPanel(
                 fluidRow(boxPlus(width = 12, 
                                  "Immune/Inflammatory DIsease Common Data Model Augmentation for Research Union System (ICARUS) Web-based INFOGraphics Service (WINGS)")
-                ) 
+                         
+                ),
+                tags$script(
+                  '
+       setTimeout(function(){
+         var temp = window.location.hash;
+         //스크립트 변수를 R변수로 change
+         Shiny.onInputChange("myInput",temp);
+       }, 1000);
+       $(document).bind("keydown",function(e){
+           if ( e.keyCode == 123 ) {
+               e.preventDefault();
+               alert("Developter Tools are not available.");
+               e.returnValue = false;
+           }
+       });
+       document.onmousedown=disableclick;
+       function disableclick(event){
+           if (event.button==2) {
+               alert("For security reasons, you cannot use the right the RMB(right mouse button).");
+               return false;
+           }
+       }
+       '
+                ),
+                textOutput("test")
               )
       ),
       #####trajectory clustering UI#####
@@ -232,6 +257,10 @@ server <- function(input, output, session) {
   output$cohortId_trajectory<-renderUI({
     selectInput("target_cluster_cohort","Target cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)) )
   })
+  
+  #####Java script#####
+  output$test <- renderPrint( input$myInput )
+  
   trajectoryClustering <- eventReactive(input$do_cluster,{
     #load temporal measurement data
     allclustering_target <- getAllLongitudinal(connectionDetails = connectionDetails,
