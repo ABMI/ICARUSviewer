@@ -76,6 +76,28 @@ setting <- function(){
                                            "Neutrophil in blood manual count (/ul)","Neutrophil in sputum (%)", "Eosinophil cationic protein","Eosinophil in sputum (%)",
                                            "FEV1/FVC (%)","Eosinophil in blood manual count (/ul)", "Neutrophil in blood (%)","Basophil in blood (%)")
     )
+    
+    drugList <<- list(drugId = c(1,2,3,4,5,6,7,8,9,10,11,12,13,14), 
+                     drugName = c("ICS", "LABA", "SABA", "Chromones", "LAMA", 
+                                  "SAMA", "LTRA", "biologics", "Systemic steroid", 
+                                  "Xanthines", "ICS/LABA", "LABA/LAMA", "SABA/SAMA", "Nasal steroid"),
+                     conceptIdSet = list(c(19060648, 19060647,939260, 19098138,42903156,42902623,1149380,42902447), 
+                                         c(19004167,45775365,21125194,19028982,21603311),
+                                         c(1154415,19072360,1154457,19053980,21603256,40163427,40163431),
+                                         c(21148467),
+                                         c(42902667,21144049,19112761),
+                                         c(21128713,1934101),
+                                         c(19023368,1154197,1154201,1154195,21603355),
+                                         c(46276092),
+                                         c(19016866,1518258,19095136,19006963,975125,975168,975505,35604734,
+                                           35606533,1506426,35606538,42902110,1550560,19019893,36250147,40234030,42629020),
+                                         c(1105837,19073058,35603809,21601587,19125937,19105625,1237168,1237261,1237184,42900552),
+                                         c(43190570,42902748,43146496,21148486,21148485,42902666,42902746,42902745,43534839),
+                                         c(43145869,44785911),
+                                         c(43534844),
+                                         c(939300,36250073,36250122,36250141,36250097)
+                                         )
+                     )
 
     covariateSetting <<- FeatureExtraction::createCovariateSettings(useDemographicsGender = TRUE,
                                                                     useDemographicsAge = TRUE,
