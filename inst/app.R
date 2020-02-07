@@ -141,16 +141,36 @@ ui <- dashboardPagePlus(
                                       tabPanel("Baseline characteristics",
                                                fluidRow( h3(strong("Compare Charateristics between two cohorts")) ),
                                                fluidRow( column(1,actionButton("characteristic_analyze","Analyze") ),
-                                                         # progressBar(id = "baseline", value = 0, total = 100, title = "", display_pct = TRUE ),
+                                      # progressBar(id = "baseline", value = 0, total = 100, title = "", display_pct = TRUE ),
                                                          br(),plotOutput("RRplot") ),
                                                fluidRow(br(),dataTableOutput("totalBaselineCharacteristicsTable") ) 
                                       ),
+                                      
+                                      ####Medication Use####
+                                      tabPanel(
+                                        "Medication use",
+                                        fluidRow(
+                                          h3(
+                                            strong(
+                                              "Compare baseline medications of asthma patients"
+                                            )
+                                          )
+                                        ),
+                                        
+                                        fluidRow(
+                                          column(1, actionButton("medication_analyze","Analyze")),
+                                        # progressBar(id = "baseline", value = 0, total = 100, title = "", display_pct = TRUE ),
+                                          br(),
+                                        dataTableOutput("medicationTable") 
+                                        ) 
+                                      ),
+
                                       #####longitudinal analysis#####
                                       tabPanel("Longitudinal",
                                                fluidRow( h3(strong("Longitudinal analysis of long-term measured values")) ),
                                                fluidRow( column(1,actionButton("load_all_measurement","load All") ),
                                                          br(),textOutput("load"),br(),
-                                                         # progressBar(id = "callmeasurement", value = 0, total = 100, title = "", display_pct = TRUE),
+                                      # progressBar(id = "callmeasurement", value = 0, total = 100, title = "", display_pct = TRUE),
                                                          br(), h4(strong("If call measurement data finished, then do analyze!")),
                                                          h4(strong("wirte down the Measurement Concept Id and click the 'Analyze' button")),br(),
                                                          column(3,numericInput("measurementConceptId","Measurement Concept ID you want to watch","") ),
@@ -324,23 +344,36 @@ server <- function(input, output, session) {
   output$insertDone <- renderText({ withProgress(message = "Insert into CohortTable...",value = 1, { insertCohortNew() }) })
   #####Menu Item 2 : compare cohorts #####
   output$cohort1 <- renderUI({
-    selectInput("cohort1","cohort1",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+    selectInput(
+      "cohort1","cohort1",
+      choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
   })
   output$cohort2 <- renderUI({
-    selectInput("cohort2","cohort2",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+    selectInput(
+      "cohort2","cohort2",
+      choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
   })
   output$cohort3 <- renderUI({
-    selectInput("cohort3","cohort3",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+    selectInput(
+      "cohort3","cohort3",
+      choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
   })
   output$cohort4 <- renderUI({
-    selectInput("cohort4","cohort4",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+    selectInput(
+      "cohort4","cohort4",
+      choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
   })
   output$cohort5 <- renderUI({
-    selectInput("cohort5","cohort5",choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
+    selectInput(
+      "cohort5","cohort5",
+      choices = c("select",sort(unique(totalCohort$cohortDefinitionId))), selected = "select" )
   })
   output$ClinicalEventCohortId <- renderUI({
-    selectInput("ClinicalEventCohortId","Clinical Event Cohort ID",choices = sort(unique(totalCohort$cohortDefinitionId)), selected = 0)
+    selectInput(
+      "ClinicalEventCohortId","Clinical Event Cohort ID",
+      choices = sort(unique(totalCohort$cohortDefinitionId)), selected = 0)
   })
+  
   #####Tab set : baseline characteristics#####
   demographic_result <- eventReactive(input$characteristic_analyze,{
     # cohort_id_set setting
@@ -382,6 +415,26 @@ server <- function(input, output, session) {
   })
   output$RRplot <- renderPlot({  demographic_result()[[2]] })
   output$totalBaselineCharacteristicsTable <- renderDataTable({ withProgress(message = "Baseline characteristics were analyzed...",value = 1, { demographic_result()[[1]] }) })
+  
+  
+  #####Tab set: medication Use analysis#####
+  #####medicationUse Analysis#####
+  medication_result <- eventReactive(input$medication_analyze, {
+    # cohort_id_set setting
+    cohortDefinitionIdsetFive <- c(input$cohort1,input$cohort2,input$cohort3,input$cohort4,input$cohort5)
+    cohortDefinitionIdset_selected <- cohortDefinitionIdsetFive[cohortDefinitionIdsetFive != 'select'] 
+    cohortDefinitionIdSet <- as.numeric(cohortDefinitionIdset_selected)
+    
+    #medication
+    medicationRaw <- baseline_drug(connectionDetails = connectionDetails,
+                                   Resultschema = CohortSchema,
+                                   CDMschema = CDMschema,
+                                   cohortTable = cohortTable,
+                                   cohort_definition_id_set = cohortDefinitionIdSet)
+    drugTable(drugManufacData = medicationRaw)
+    })
+  output$medicationTable <- renderDataTable({datatable(medication_result())})
+
   
   #####longitudinal Analysis#####
   load_longitudinal <- eventReactive(input$load_all_measurement,{

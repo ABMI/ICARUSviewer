@@ -64,9 +64,17 @@ call_dataList<- function(connectionDetails,
                              cohortTable = cohortTable)
     asthmacohort_data<-DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE)
     
+    # ##load medicationUse data
+    # 
+    # sql <- SqlRender::readSql( paste0(.libPaths()[1],"/ICARUSviewer","/SQL/loadDrugExposure.sql") )
+    # sql <- SqlRender::render(sql = sql,
+    #                          resultDatabaseSchema = Resultschema,
+    #                          cohortTable = cohortTable)
+    # medicationUse_data<-DatabaseConnector::querySql(connection, sql, snakeCaseToCamelCase = TRUE)
+    
     result<-list(demographic_data,
                  asthmacohort_data)
-
+    
     return(result)
 
 }
