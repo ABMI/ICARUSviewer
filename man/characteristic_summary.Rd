@@ -2,7 +2,8 @@
 % Please edit documentation in R/clinicalCharacteristic.r
 \name{characteristic_summary}
 \alias{characteristic_summary}
-\title{analysis of demographic characteristics; if the value has normality, calculate mean +/- sd, if not median (25%, 75% quantile) in continuous value}
+\title{analysis of demographic characteristics; if the value has normality, calculate mean +/- sd, if not median (25\%, 75\% quantile) in continuous value}
+
 \usage{
 characteristic_summary(characteristic_manufac)
 }
@@ -10,5 +11,5 @@ characteristic_summary(characteristic_manufac)
 \item{characteristic_manufac}{result of charterstic_manufacture}
 }
 \description{
-analysis of demographic characteristics; if the value has normality, calculate mean +/- sd, if not median (25%, 75% quantile) in continuous value
+analysis of demographic characteristics; if the value has normality, calculate mean +/- sd, if not median (25\%, 75\% quantile) in continuous value
 }

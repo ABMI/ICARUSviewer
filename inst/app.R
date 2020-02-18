@@ -23,7 +23,9 @@ check.packages("ggfortify")
 check.packages("survival")
 check.packages("ICARUSviewer")
 
-ui <- dashboardPagePlus(
+dashboardPagePlus<-
+
+ui <- shinydashboardPlus::dashboardPagePlus(
   header = dashboardHeaderPlus(
     title = "ICARUS WINGS", fixed = TRUE, enable_rightsidebar = TRUE, rightSidebarIcon = "edit"),
   rightsidebar = rightSidebar(
