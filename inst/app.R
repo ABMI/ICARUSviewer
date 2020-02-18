@@ -1,27 +1,6 @@
 # #check package ready
 source(file.path(.libPaths()[1],"ICARUSviewer/global.R"))
-check.packages("Rcpp")
-check.packages("dplyr")
-check.packages("reshape2")
-check.packages("ggplot2")
-check.packages("plotly")
-check.packages("shiny")
-check.packages("SqlRender")
-check.packages("DatabaseConnector")
-check.packages("FeatureExtraction")
-check.packages("PatientLevelPrediction")
-check.packages("shinydashboard")
-check.packages("shinyWidgets")
-check.packages("shinydashboardPlus")
-check.packages("tidyverse")
-check.packages("epitools")
-check.packages("mgcv")
-check.packages("lme4")
-check.packages("lmerTest")
-check.packages("lcmm")
-check.packages("ggfortify")
-check.packages("survival")
-check.packages("ICARUSviewer")
+
 
 dashboardPagePlus<-
 
