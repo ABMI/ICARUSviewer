@@ -2,7 +2,7 @@
 % Please edit documentation in R/longitudinal.r
 \name{lme_logitudinal}
 \alias{lme_logitudinal}
-\title{use linear mixed model regression, find regression line and its CI 95%}
+\title{use linear mixed model regression, find regression line and its CI 95\%}
 \usage{
 lme_logitudinal(longitudinalData)
 }
@@ -10,5 +10,5 @@ lme_logitudinal(longitudinalData)
 \item{longitudinalData}{result of PFTmanufacture function}
 }
 \description{
-use linear mixed model regression, find regression line and its CI 95%
+use linear mixed model regression, find regression line and its CI 95\%
 }
